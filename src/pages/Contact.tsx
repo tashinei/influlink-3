@@ -49,10 +49,10 @@ const Contact = () => {
   return (
     <div className="min-h-screen pt-20" style={{position:"relative", top:"-80px"}}>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/60 via-secondary/60 to-background">
+      <section className="py-20 bg-gradient-to-br from-primary via-gray to-secondary">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in text-muted">
-            Свържете се <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">с нас</span>
+            Свържете се с нас<span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></span>
           </h1>
           <p className="text-xl text-white max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.2s" }}>
             Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне

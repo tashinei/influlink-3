@@ -23,10 +23,10 @@ const About = () => {
   return (
     <div className="min-h-screen pt-20" style={{position:"relative", top:"-80px"}}>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/60 via-secondary/60 to-background">
+      <section className="py-20 bg-gradient-to-br from-primary via-gray to-secondary">
         <div className="container mx-auto px-4">
           <h1 className="text-5xl md:text-6xl font-bold text-center mb-6 animate-fade-in text-muted">
-            За <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">нас</span>
+            За нас<span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></span>
           </h1>
           <p className="text-xl text-center text-white max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "0.2s" }}>
             Първата платформа в България, която свързва брандове с инфлуенсъри за истински и измерим растеж

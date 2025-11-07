@@ -108,7 +108,7 @@ const Home = () => {
         description="Запишете се в чакащата листа за ранен достъп до първата българска платформа"
         buttonText="Запишете се сега"
         onButtonClick={() => setIsDialogOpen(true)}
-        colors={["#1C3D5A", "#A7C7E7", "#E8C39E", "#F9F9F9"]}
+         colors={["#6EC5E9", "#FA6F00", "#FF7A00"]}
         distortion={1.2}
         speed={0.6}
         swirl={0.8}
@@ -357,7 +357,7 @@ const Home = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 bg-gradient-to-br from-primary via-accent to-secondary">
+      <section className="py-20 bg-gradient-to-br from-primary via-gray to-secondary">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Готови да се присъедините?
