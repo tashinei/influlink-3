@@ -1,0 +1,155 @@
+import { MeshGradient } from "@paper-design/shaders-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, MailIcon } from "lucide-react";
+
+interface HeroSectionProps {
+  title?: string;
+  highlightText?: string;
+  description?: string;
+  buttonText?: string;
+  secondaryButtonText?: string;
+  onButtonClick?: () => void;
+  onSecondaryButtonClick?: () => void;
+  colors?: string[];
+  distortion?: number;
+  swirl?: number;
+  speed?: number;
+  offsetX?: number;
+  className?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  buttonClassName?: string;
+  maxWidth?: string;
+  veilOpacity?: string;
+  fontFamily?: string;
+  fontWeight?: number;
+  overlayColor?: string;
+}
+
+export function HeroSection({
+  title = "Intelligent AI Agents for",
+  highlightText = "Smart Brands",
+  description = "Transform your brand and evolve it through AI-driven brand guidelines and always up-to-date core components.",
+  buttonText = "Join Waitlist",
+  secondaryButtonText = "Свържете се с нас",
+  onButtonClick,
+  onSecondaryButtonClick,
+  colors = ["#5b8dfb", "#1e3a8a", "#ffffff", "#f49b42",],
+  distortion = 0.5,
+  swirl = 0.5,
+  speed = 0.3,
+  offsetX = 0.08,
+  className = "",
+  titleClassName = "",
+  descriptionClassName = "",
+  buttonClassName = "",
+  maxWidth = "max-w-6xl",
+  veilOpacity = "bg-white/20 dark:bg-black/25",
+  fontFamily = "inherit",
+  fontWeight = 700,
+  overlayColor = "rgba(0,0,0,0.55)",
+}: HeroSectionProps) {
+  const [dimensions, setDimensions] = useState({ width: 480, height: 270 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Set dimensions once to the hero container size
+    const container = document.getElementById("hero-container");
+    if (container) {
+      setDimensions({
+        width: container.offsetWidth,
+        height: container.offsetHeight,
+      });
+    }
+  }, []);
+
+
+  const handleButtonClick = () => {
+    if (onButtonClick) {
+      onButtonClick();
+    }
+  };
+
+  const handleSecondaryButtonClick = () => {
+    if (onSecondaryButtonClick) {
+      onSecondaryButtonClick();
+    }
+  };
+
+  return (
+    <section
+      id="hero-container"
+      className={`relative w-full min-h-[95vh] overflow-hidden bg-background flex items-center justify-center ${className}`}
+    >
+      <div className="absolute inset-0 w-full h-full "
+        style={{ willChange: "transform" }}>
+        {mounted && (
+          <>
+            <MeshGradient
+              width={dimensions.width}
+              height={dimensions.height}
+              colors={colors}
+              distortion={distortion}
+              swirl={swirl}
+              grainMixer={0}
+              grainOverlay={0}
+              speed={speed}
+              offsetX={offsetX}
+            />
+            <div
+              className={`absolute inset-0 pointer-events-none ${veilOpacity}`}
+              style={{ backgroundColor: overlayColor }}
+            />
+          </>
+        )}
+      </div>
+
+      <div className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
+        <div className="text-center">
+          <h1
+            className={`text-white font-bold text-foreground text-balance text-5xl sm:text-5xl md:text-6xl xl:text-[80px] leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 lg:text-7xl ${titleClassName}`}
+            style={{ fontFamily, fontWeight }}
+          >
+            {title}{" "}
+            <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">
+              {highlightText}
+            </span>
+          </h1>
+          <p
+            className={`text-white text-lg sm:text-xl text-foreground text-pretty max-w-2xl mx-auto leading-relaxed mb-10 px-4 ${descriptionClassName}`}
+          >
+            {description}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={handleButtonClick}
+              // Fixed: Removed redundant 'bg-primary' and added scale animation
+              className={`
+              bg-gradient-to-r from-secondary to-primary 
+              px-8 py-4 rounded-full 
+              text-primary-foreground 
+              transition duration-300 ease-in-out 
+              hover:scale-105 hover:shadow-lg
+              text-lg font-medium w-[70%] md:w-[22%] 
+              ${buttonClassName}
+            `} style={{alignSelf:"center", display:"flex", alignItems:"center", gap:"10px", justifyContent:"center"}}>
+              {buttonText}
+              <ArrowRight style={{alignSelf:"center"}} height={30} size={18}></ArrowRight>
+            </button>
+            {secondaryButtonText && (
+              <button
+                onClick={()=> window.location = "contact"}
+                className="text-white px-8 py-4 rounded-full bg-white/10 text-foreground border-2 border-white/30 hover:bg-white/20 backdrop-blur-sm transition-colors text-lg font-medium"
+                style={{alignSelf:"center", display:"flex", alignItems:"center", gap:"10px", justifyContent:"center"}}              
+              >
+                {secondaryButtonText}
+                <MailIcon style={{alignSelf:"center"}} height={20} size={18}></MailIcon>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section >
+  );
+}

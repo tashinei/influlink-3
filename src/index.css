@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* === Brand Palette: Deep Space Blue, Arctic Blue, Soft White === */
+
+@layer base {
+  :root {
+    /* === Core Colors === */
+    --background: 0 0% 98%; /* Soft White (#F9F9F9) */
+    --foreground: 210 52% 23%; /* Deep Space Blue (#1C3D5A) - Used as dark text */
+
+    --card: 0 0% 100%; /* Pure White */
+    --card-foreground: 210 52% 23%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 52% 23%;
+
+    /* === Primary (Deep Space Blue) === */
+    --primary: 210 52% 23%; /* #1C3D5A */
+    --primary-foreground: 0 0% 100%;
+
+    /* === Secondary (Vibrant Orange) === */
+    --secondary: 24 96% 59%; /* #FB7F33 */
+    --secondary-foreground: 0 0% 100%; /* White for contrast */
+
+    /* === Supporting Colors === */
+    --muted: 210 20% 95%;
+    --muted-foreground: 210 20% 50%;
+
+    --accent: 210 52% 70%; /* Arctic Blue (#A7C7E7) - remains as accent */
+    --accent-foreground: 210 52% 23%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 85%;
+    --input: 210 20% 85%;
+    --ring: 210 52% 23%;
+
+    /* === Gradients (Now Primary Blue to Secondary Orange) === */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--secondary) / 0.9));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 97%));
+
+    /* === Shadows === */
+    --shadow-glow: 0 0 40px hsl(210 52% 23% / 0.25);
+    --shadow-card: 0 4px 20px hsl(210 52% 23% / 0.08); /* Adjusted shadow color */
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* === Dark Mode (Simplified to focus on blue/white contrast) === */
+  .dark {
+    --background: 210 52% 18%; /* Darker Blue background */
+    --foreground: 0 0% 98%; /* Soft White text */
+
+    --card: 210 52% 15%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 210 52% 15%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 210 52% 70%; /* Arctic Blue (#A7C7E7) - for contrast against dark bg */
+    --primary-foreground: 210 52% 23%; /* Deep Space Blue */
+
+    --secondary: 210 52% 35%; /* Mid-tone blue */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 210 52% 20%;
+    --muted-foreground: 210 20% 70%;
+
+    --accent: 210 52% 70%;
+    --accent-foreground: 210 52% 23%;
+
+    --border: 210 52% 30%;
+    --input: 210 52% 30%;
+    --ring: 210 52% 70%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary) / 0.8), hsl(var(--secondary) / 0.8));
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.marquee-inner > * {
+  flex: 0 0 auto;
+}
+
+/* pause on parent .group hover */
+.group:hover .animate-marquee {
+  animation-play-state: paused;
+}
