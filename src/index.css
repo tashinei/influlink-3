@@ -66,3 +66,9 @@
 .group:hover .animate-marquee {
   animation-play-state: paused;
 }
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text; /* Required for Safari compatibility */
+  color: transparent; /* Ensures the background shows through */
+}
