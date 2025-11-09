@@ -50,7 +50,7 @@ export function DisplayCards() {
             className="text-4xl md:text-4xl lg:text-6xl font-extrabold tracking-tight leading-tight
                        bg-gradient-to-r from-secondary to-primary text-gradient" // <- KEY CHANGE HERE
           >
-            <span className="block">Не чакайте месеци.</span>
+            <span className="block">Не чакайте с месеци.</span>
             <span className="block text-5xl bg-gradient-to-l from-secondary to-primary text-gradient">
               Започнете кариерата си сега.
             </span>

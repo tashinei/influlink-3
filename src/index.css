@@ -16,16 +16,16 @@
     --popover-foreground: 0 0% 17%;
 
     /* === Brand Colors === */
-    --primary: 199 72% 67%; /* #6EC5E9 */
+    --primary: 208 79% 51%; /* #6EC5E9 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 27 100% 49%; /* #FA6F00 */
+    --secondary: 198 74% 67%; /* #FA6F00 */
     --secondary-foreground: 0 0% 100%;
 
     --cta: 33 100% 50%; /* #FF7A00 */
     --cta-hover: 26 100% 45%; /* #E96A00 */
 
-    --text: 0 0% 17%; /* #2B2B2B */
+    --text: 204 5% 19%; /* #2B2B2B */
 
     /* === Other Tokens === */
     --muted: 0 0% 95%;
@@ -38,8 +38,8 @@
     --accent-foreground: 0 0% 40%; */
 
     /* === Gradients === */
-    --gradient-primary: linear-gradient(135deg, #6EC5E9, #FA6F00);
-    --gradient-hero: linear-gradient(135deg, #6EC5E9 0%, #FA6F00 100%);
+    --gradient-primary: linear-gradient(135deg, #1E88E5, #6EC5E9);
+    --gradient-hero: linear-gradient(135deg, #1E88E5 0%, #6EC5E9 100%);
     --gradient-cta: linear-gradient(90deg, #FF7A00, #E96A00);
 
     --radius: 1rem;

@@ -80,7 +80,7 @@ export function HeroSection({
   return (
     <section
       id="hero-container"
-      className={`relative w-full min-h-[95vh] overflow-hidden bg-background flex items-center justify-center ${className}`}
+      className={`relative w-full min-h-[100vh] overflow-hidden bg-background flex items-center justify-center ${className}`}
     >
       <div className="absolute inset-0 w-full h-full "
         style={{ willChange: "transform" }}>
@@ -105,10 +105,10 @@ export function HeroSection({
         )}
       </div>
 
-      <div className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
+      <div style={{paddingTop:"30px"}} className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
         <div className="text-center">
           <h1
-            className={`text-white font-bold text-foreground text-balance text-5xl sm:text-5xl md:text-6xl xl:text-[80px] leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 lg:text-7xl ${titleClassName}`}
+            className={`text-white font-bold text-foreground text-balance text-4xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 ${titleClassName}`}
             style={{ fontFamily, fontWeight }}
           >
             {title}{" "}
