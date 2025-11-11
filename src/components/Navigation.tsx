@@ -3,10 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/store/useUserStore";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  const isRegistered = useUserStore((state) => state.isRegistered);
 
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -18,13 +21,12 @@ const Navigation = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
-    
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const links = [
     { name: "Начало", path: "/" },
-    { name: "За нас", path: "/about" },
     { name: "Контакти", path: "/contact" },
   ];
 
@@ -32,10 +34,9 @@ const Navigation = () => {
 
   const navClasses = `
     fixed top-0 w-full z-50 transition-all duration-300 
-    ${
-      isScrolled
-        ? "bg-background/90 shadow-md border-b"
-        : "bg-background/0 backdrop-blur-none border-b-transparent"
+    ${isScrolled
+      ? "bg-background/90 shadow-md border-b"
+      : "bg-background/0 backdrop-blur-none border-b-transparent"
     }
   `;
 
@@ -59,14 +60,27 @@ const Navigation = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-4 py-2 rounded-full transition-all ${
-                  isActive(link.path)
-                    ? "bg-primary text-white hover:bg-secondary" : null
-                } ${isScrolled && !isActive(link.path) ? "text-black  hover:bg-secondary hover:text-white" : "text-white hover:bg-secondary"}`}
+                className={`px-4 py-2 rounded-full transition-all ${isActive(link.path)
+                  ? "bg-primary text-white hover:bg-secondary" : null
+                  } ${isScrolled && !isActive(link.path) ? "text-black  hover:bg-secondary hover:text-white" : "text-white hover:bg-secondary"}`}
               >
                 {link.name}
               </Link>
             ))}
+
+            {isRegistered && (
+              <Link
+                to={useUserStore.getState().accountType === "creator" ? "/creator/about" : "/brand/about"}
+                className={`px-4 py-2 rounded-full transition-all ${isActive("/about")
+                  ? "bg-primary text-white hover:bg-secondary"
+                  : isScrolled
+                    ? "text-black hover:bg-secondary hover:text-white"
+                    : "text-white hover:bg-secondary"
+                  }`}
+              >
+                {useUserStore.getState().accountType === "creator" ? "За създатели" : "За бизнеси"}
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,7 +95,7 @@ const Navigation = () => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div 
+          <div
             className={`md:hidden py-4 space-y-2 border-t mt-2 ${isScrolled ? 'border-border' : 'border-border/0'}`}
           >
             {links.map((link) => (
@@ -89,11 +103,10 @@ const Navigation = () => {
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-2 rounded-lg transition-all ${
-                  isActive(link.path)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-muted" 
-                }`}
+                className={`block px-4 py-2 rounded-lg transition-all ${isActive(link.path)
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground hover:bg-muted"
+                  }`}
               >
                 {link.name}
               </Link>

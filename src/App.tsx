@@ -10,6 +10,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { useLocation } from "react-router-dom";
+import CreatorAbout from "./pages/AboutPages/CreatorAbout";
+import BrandAbout from "./pages/AboutPages/BrandAbout";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +24,8 @@ const MainContent = () => {
       <Navigation />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
+        <Route path="/creator/about" element={<CreatorAbout />} />
+        <Route path="/brand/about" element={<BrandAbout />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

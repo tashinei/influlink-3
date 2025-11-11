@@ -1,4 +1,4 @@
-import { BenefitsSection } from "./ui/benefits-section"
+import { BenefitsSection } from "./ui/benefits-section";
 import { 
   TicketCheck, 
   Gift, 
@@ -10,9 +10,10 @@ import {
   Award,
   Clock,
   Target
-} from "lucide-react"
+} from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
 
-const benefits = [
+const creatorBenefits = [
   {
     icon: TicketCheck,
     title: "Ранен достъп",
@@ -23,7 +24,7 @@ const benefits = [
   {
     icon: Gift,
     title: "Специални условия",
-    description: "Ексклузивни отстъпки за ранни потребители",
+    description: "Ексклузивни оферти за инфлуенсъри",
     iconColor: "text-secondary",
     borderColor: "border-secondary/20"
   },
@@ -37,7 +38,24 @@ const benefits = [
   {
     icon: Zap,
     title: "Бързо внедряване",
-    description: "Стартирайте за минути, не за месеци",
+    description: "Стартирайте кампании за минути",
+    iconColor: "text-secondary",
+    borderColor: "border-secondary/20"
+  },
+  {
+    icon: Award,
+    title: "VIP статус",
+    description: "Специални привилегии за първите",
+    iconColor: "text-secondary",
+    borderColor: "border-secondary/20"
+  }
+];
+
+const brandBenefits = [
+  {
+    icon: Target,
+    title: "Персонализация",
+    description: "Съдържание и кампании пригодени за вашия бизнес",
     iconColor: "text-secondary",
     borderColor: "border-secondary/20"
   },
@@ -51,7 +69,7 @@ const benefits = [
   {
     icon: Users,
     title: "Общност",
-    description: "Свържете се с други ранни потребители",
+    description: "Свържете се с други брандове и партньори",
     iconColor: "text-secondary",
     borderColor: "border-secondary/20"
   },
@@ -63,30 +81,20 @@ const benefits = [
     borderColor: "border-primary/20"
   },
   {
-    icon: Award,
-    title: "VIP статус",
-    description: "Специални привилегии за първите",
-    iconColor: "text-secondary",
-    borderColor: "border-secondary/20"
-  },
-  {
     icon: Clock,
     title: "Спестете време",
     description: "Автоматизирайте рутинните задачи",
     iconColor: "text-primary",
     borderColor: "border-primary/20"
-  },
-  {
-    icon: Target,
-    title: "Персонализация",
-    description: "Съдържание пригодено за вашия бизнес",
-    iconColor: "text-secondary",
-    borderColor: "border-secondary/20"
   }
-]
+];
 
 export function Benefits() {
-  return (
-    <BenefitsSection benefits={benefits} className="mb-12" />
-  )
+  const accountType = useUserStore((state) => state.accountType);
+  let benefitsToShow = [];
+
+  if (accountType === "creator") benefitsToShow = creatorBenefits;
+  else if (accountType === "brand") benefitsToShow = brandBenefits;
+
+  return <BenefitsSection benefits={benefitsToShow} className="mb-12" />;
 }

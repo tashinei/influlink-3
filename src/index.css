@@ -72,3 +72,137 @@
   -webkit-background-clip: text; /* Required for Safari compatibility */
   color: transparent; /* Ensures the background shows through */
 }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.6s ease forwards;
+}
+
+/* 💥 Modal pop */
+@keyframes modal-pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-modal-pop {
+  animation: modal-pop 0.4s ease forwards;
+}
+
+/* 🌟 Scale-in for icon (e.g. CheckCircle2) */
+@keyframes scale-in {
+  0% { transform: scale(0); opacity: 0; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.5, 1.5, 0.5, 1) forwards;
+}
+
+/* ✨ Splash burst rings */
+@keyframes spiral-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+      calc(450px * cos(var(--angle))),
+      calc(450px * sin(var(--angle)))
+    ) rotate(720deg) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-spiral-burst {
+  animation: spiral-burst 1s forwards;
+}
+
+/* @keyframes splash-burst {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.9; }
+  80% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.35; }
+  100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+}
+.splash-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  border-radius: 1rem;
+  animation-name: splash-burst;
+  animation-duration: 1200ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  pointer-events: none;
+} */
+
+/* Particles */
+@keyframes particle-burst {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  70% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.6); opacity: 0; }
+}
+
+.particle-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  animation-name: particle-burst;
+  animation-duration: 1000ms;
+  animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  animation-fill-mode: forwards;
+  pointer-events: none;
+}
+
+.custom-curved-underline {
+  position: relative;
+  display: inline-block; /* Makes sure the span wraps the text tightly */
+  padding-bottom: 5px; /* Adjust this for space below the text if needed */
+  text-decoration: none; /* Remove any default underline */
+}
+
+.custom-curved-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  
+  /* Increase the vertical space for the line */
+  bottom: -10px; /* ADJUSTED: Increased vertical offset for better visibility */
+  height: 16px; /* ADJUSTED: Increased the height of the container to 12px */
+  
+  background-image: url('assets/curved.svg'); 
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 100%; 
+}
+
+@keyframes y-scroll {
+  0% {
+    /* Start the element at its normal position */
+    transform: translateY(0);
+  }
+  100% {
+    /* Translate the element up by exactly 50% of its total height.
+       Since we duplicated the content (10 items + 10 items), translating
+       by 50% moves the bottom half (the duplicate) into the visible area,
+       creating a seamless loop back to the beginning. */
+    transform: translateY(-50%); 
+  }
+}
+
+.animate-y-scroll {
+  /* Apply the animation:
+    1. y-scroll: The name of the keyframe animation
+    2. 30s: Duration (adjust this for speed; longer = slower)
+    3. linear: Constant speed
+    4. infinite: Loop forever
+  */
+  animation: y-scroll 30s linear infinite;
+  
+  /* Setting the min-height is crucial to ensure the animation has enough content to scroll */
+  min-height: 200%; 
+}

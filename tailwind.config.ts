@@ -119,9 +119,28 @@ export default {
             transform: "translateY(-20px)",
           },
         },
-        marquee: {
+        "marquee": {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' }, // move left by half the content (we duplicate content)
+        },
+        'modal-pop': {
+          '0%': { transform: 'scale(0.9)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'scale-in': {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '80%': { transform: 'scale(1.1)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'splash-burst': {
+          '0%': { transform: 'scale(0.5)', opacity: '0.8' },
+          '80%': { transform: 'scale(1.3)', opacity: '0.4' },
+          '100%': { transform: 'scale(1.6)', opacity: '0' },
+        },
+        'particle-burst': {
+          '0%': { transform: 'translate(0,0) scale(0)', opacity: '1' },
+          '70%': { transform: 'translate(var(--tx), var(--ty)) scale(1)', opacity: '1' },
+          '100%': { opacity: '0' },
         },
       },
       animation: {
@@ -131,7 +150,11 @@ export default {
         "slide-up": "slide-up 0.6s ease-out",
         "plasma": "plasma 20s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
-         marquee: 'marquee var(--duration, 20s) linear infinite',
+        "marquee": 'marquee var(--duration, 20s) linear infinite',
+        'modal-pop': 'modal-pop 0.4s ease forwards',
+        'scale-in': 'scale-in 0.5s cubic-bezier(0.5, 1.5, 0.5, 1) forwards',
+        'splash-burst': 'splash-burst 1.2s ease-out forwards',
+        'particle-burst': 'particle-burst 1s cubic-bezier(0.25, 1, 0.5, 1) forwards',
       },
     },
   },

@@ -1,6 +1,6 @@
 import { MeshGradient } from "@paper-design/shaders-react";
 import { useEffect, useState } from "react";
-import { ArrowRight, MailIcon } from "lucide-react";
+import { ArrowRight, MailIcon, TrendingUpIcon, LucideUserRoundSearch } from "lucide-react";
 
 interface HeroSectionProps {
   title?: string;
@@ -105,10 +105,10 @@ export function HeroSection({
         )}
       </div>
 
-      <div style={{paddingTop:"30px"}} className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
+      <div style={{ paddingTop: "30px" }} className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
         <div className="text-center">
           <h1
-            className={`text-white font-bold text-foreground text-balance text-4xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 ${titleClassName}`}
+            className={`text-white font-bold text-foreground text-balance text-5xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 ${titleClassName}`}
             style={{ fontFamily, fontWeight }}
           >
             {title}{" "}
@@ -117,7 +117,7 @@ export function HeroSection({
             </span>
           </h1>
           <p
-            className={`text-white text-lg sm:text-xl text-foreground text-pretty max-w-2xl mx-auto leading-relaxed mb-10 px-4 ${descriptionClassName}`}
+            className={`text-white text-xl sm:text-xl text-foreground text-pretty max-w-2xl mx-auto leading-relaxed mb-10 px-4 ${descriptionClassName}`}
           >
             {description}
           </p>
@@ -126,25 +126,31 @@ export function HeroSection({
               onClick={handleButtonClick}
               // Fixed: Removed redundant 'bg-primary' and added scale animation
               className={`
-              bg-gradient-to-r from-secondary to-primary 
-              px-8 py-4 rounded-full 
-              text-primary-foreground 
-              transition duration-300 ease-in-out 
-              hover:scale-105 hover:shadow-lg
-              text-lg font-medium w-[70%] md:w-[22%] 
-              ${buttonClassName}
-            `} style={{alignSelf:"center", display:"flex", alignItems:"center", gap:"10px", justifyContent:"center"}}>
+                bg-gradient-to-r from-secondary to-primary 
+                px-8 py-5 md:px-10 md:py-5 rounded-full 
+                text-primary-foreground 
+                transition duration-300 ease-in-out 
+                hover:scale-105 hover:shadow-lg
+                text-[17px] font-medium w-[72%] md:w-[27%] md:text-[19px]
+                ${buttonClassName}
+            `} style={{ alignSelf: "center", display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}>
               {buttonText}
-              <ArrowRight style={{alignSelf:"center"}} height={30} size={18}></ArrowRight>
+              <LucideUserRoundSearch style={{ alignSelf: "center" }} height={20} size={20}></LucideUserRoundSearch>
             </button>
             {secondaryButtonText && (
               <button
-                onClick={()=> window.location = "contact"}
-                className="text-white px-8 py-4 rounded-full bg-white/10 text-foreground border-2 border-white/30 hover:bg-white/20 backdrop-blur-sm transition-colors text-lg font-medium"
-                style={{alignSelf:"center", display:"flex", alignItems:"center", gap:"10px", justifyContent:"center"}}              
+                onClick={handleSecondaryButtonClick}
+                className="
+                bg-gradient-to-l from-secondary to-primary 
+                px-8 py-5 md:px-10 md:py-5 rounded-full 
+                text-primary-foreground 
+                transition duration-300 ease-in-out 
+                hover:scale-105 hover:shadow-lg
+                text-[17px] font-medium w-[72%] md:w-[27%] md:text-[19px]"
+                style={{ alignSelf: "center", display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}
               >
                 {secondaryButtonText}
-                <MailIcon style={{alignSelf:"center"}} height={20} size={18}></MailIcon>
+                <TrendingUpIcon style={{ alignSelf: "center" }} height={20} size={22}></TrendingUpIcon>
               </button>
             )}
           </div>
