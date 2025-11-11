@@ -63,7 +63,7 @@ const brandCards = [
   {
     icon: <Target className="size-4 text-white" />,
     title: "Персонализирани кампании",
-    description: "Създавайте кампании, които съответстват на вашия бранд.",
+    description: "Създавайте кампании, съответстващи на вашия бранд.",
     date: "InfluLink",
     iconClassName: "text-primary",
     titleClassName: "text-white",
@@ -79,7 +79,7 @@ export function DisplayCards() {
   const sectionCards = isCreator ? creatorCards : brandCards;
 
   return (
-    <section className="py-24 md:py-32 bg-background">
+    <section className="py-24 md:py-32 bg-[white]">
       <div className="container grid grid-cols-1 lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Left Column: Statement with Gradient Text */}
         <div className="lg:pl-10">
@@ -104,13 +104,13 @@ export function DisplayCards() {
             )}
           </h2>
 
-          <p className="mt-8 text-2xl font-semibold text-muted-foreground max-w-lg">
+          <p className="mt-8 text-2xl font-semibold text-[#2b2b2b] max-w-lg">
             {isCreator
               ? "Бъдете избрани от стотици бизнеси."
               : "Управлявайте кампаниите си ефективно и лесно."}
           </p>
 
-          <p className="mt-4 text-lg text-muted-foreground max-w-lg">
+          <p className="mt-4 text-lg text-[#2b2b2b] max-w-lg">
             {isCreator
               ? "Нашата платформа свързва инфлуенсъри и брандове моментално, елиминирайки дългите преговори и забавяния. Фокусирайте се върху създаването на съдържание, а ние ще се погрижим за сътрудничеството и плащанията."
               : "Нашата платформа улеснява брандовете да откриват подходящи инфлуенсъри, създават кампании и управляват плащанията бързо и прозрачно."}

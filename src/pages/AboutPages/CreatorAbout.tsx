@@ -214,7 +214,7 @@ const CreatorAbout = () => {
             style={{ position: "relative", top: "-80px" }}
         >
             {/* Hero Section */}
-            <section className="py-20 bg-gradient-to-br from-primary via-gray to-secondary">
+            <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4">
                     <h1 className="text-5xl md:text-6xl font-bold text-center mb-6 animate-fade-in text-muted">
                         За създатели
@@ -232,180 +232,6 @@ const CreatorAbout = () => {
 
             <DisplayCards></DisplayCards>
 
-            {/* Waitlist Dialog */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="md:max-w-[60%] 2xl:max-w-[50%] p-0 overflow-hidden">
-                    <div className="grid md:grid-cols-2 gap-0">
-                        {/* Left side - Image */}
-                        <div className="hidden md:block relative bg-gradient-to-br from-primary to-secondary">
-                            <img
-                                src={waitlistHero}
-                                alt="InfluLink Platform"
-                                className="w-full h-full object-cover opacity-90"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-                                <div className="text-white">
-                                    <h3 className="text-2xl font-bold mb-2">
-                                        Присъединете се към революцията
-                                    </h3>
-                                    <p className="text-white/90">
-                                        Първата българска платформа за инфлуенсър маркетинг
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right side - Form */}
-                        <div
-                            className="p-8"
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <DialogHeader className="mb-6">
-                                <DialogTitle className="text-2xl">
-                                    Запишете се в чакащата листа
-                                </DialogTitle>
-                                <DialogDescription>
-                                    Стъпка {quizStep} от 3: Помогнете ни да ви опознаем по-добре
-                                </DialogDescription>
-                            </DialogHeader>
-
-                            <form onSubmit={handleQuizSubmit} className="space-y-5">
-                                {quizStep === 1 && (
-                                    <>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name">Име</Label>
-                                            <Input
-                                                id="name"
-                                                value={formData.name}
-                                                onChange={(e) =>
-                                                    setFormData({ ...formData, name: e.target.value })
-                                                }
-                                                placeholder="Вашето име"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email">Имейл</Label>
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={(e) =>
-                                                    setFormData({ ...formData, email: e.target.value })
-                                                }
-                                                placeholder="email@example.com"
-                                                required
-                                            />
-                                        </div>
-                                    </>
-                                )}
-
-                                {quizStep === 2 && (
-                                    <>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="accountType">Тип акаунт</Label>
-                                            <select
-                                                id="accountType"
-                                                value={formData.accountType}
-                                                onChange={(e) =>
-                                                    setFormData({
-                                                        ...formData,
-                                                        accountType: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full rounded-md border border-input bg-background px-3 py-2"
-                                                required
-                                            >
-                                                <option value="">Изберете...</option>
-                                                <option value="brand">Бранд</option>
-                                                <option value="influencer">Инфлуенсър</option>
-                                                <option value="both">И двете</option>
-                                            </select>
-                                        </div>
-                                        {formData.accountType === "brand" && (
-                                            <div className="space-y-2">
-                                                <Label htmlFor="businessName">Име на бизнеса</Label>
-                                                <Input
-                                                    id="businessName"
-                                                    value={formData.businessName}
-                                                    onChange={(e) =>
-                                                        setFormData({
-                                                            ...formData,
-                                                            businessName: e.target.value,
-                                                        })
-                                                    }
-                                                    placeholder="Име на компанията"
-                                                    required
-                                                />
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-
-                                {quizStep === 3 && (
-                                    <>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="followers">
-                                                Брой последователи (ако сте инфлуенсър)
-                                            </Label>
-                                            <select
-                                                id="followers"
-                                                value={formData.followers}
-                                                onChange={(e) =>
-                                                    setFormData({
-                                                        ...formData,
-                                                        followers: e.target.value,
-                                                    })
-                                                }
-                                                className="w-full rounded-md border border-input bg-background px-3 py-2"
-                                            >
-                                                <option value="">Изберете...</option>
-                                                <option value="1k-10k">1K - 10K</option>
-                                                <option value="10k-50k">10K - 50K</option>
-                                                <option value="50k-100k">50K - 100K</option>
-                                                <option value="100k+">100K+</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="niche">Ниша / Индустрия</Label>
-                                            <Input
-                                                id="niche"
-                                                value={formData.niche}
-                                                onChange={(e) =>
-                                                    setFormData({ ...formData, niche: e.target.value })
-                                                }
-                                                placeholder="Например: мода, технологии, храна..."
-                                                required
-                                            />
-                                        </div>
-                                    </>
-                                )}
-
-                                <div className="flex gap-3 pt-6">
-                                    {quizStep > 1 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            onClick={() => setQuizStep(quizStep - 1)}
-                                            className="flex-1 rounded-full"
-                                        >
-                                            Назад
-                                        </Button>
-                                    )}
-                                    <Button type="submit" className="flex-1 rounded-full">
-                                        {quizStep === 3 ? "Изпрати" : "Напред"}
-                                    </Button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
             {/* Waitlist Section */}
             <section className="flex py-20 bg-white">
                 <div className="container mx-auto px-4">
@@ -413,12 +239,12 @@ const CreatorAbout = () => {
                     <div className="max-w-4xl mx-auto text-center mb-16">
                         <h2 className="text-4xl md:text-7xl font-bold mb-6">
                             Създадена за{" "}
-                            <span className="custom-curved-underline bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
+                            <span className="custom-curved-underline2 bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
                                 Вас
                             </span>
                         </h2>
                         <p className="text-xl text-text max-w-2xl mx-auto">
-                            Станете част от бъдещето на сътрудничеството между бизнеси и създатели на съдържание.
+                            Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.
                         </p>
                     </div>
 
@@ -494,7 +320,7 @@ const CreatorAbout = () => {
             </section>
 
 
-            <section className="py-20 bg-gradient-to-br from-primary/5 via-secondary/5 to-background">
+            <section className="py-20 bg-[white]">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto">
                         <div className="text-center mb-12">
@@ -601,7 +427,7 @@ const CreatorAbout = () => {
             </section>
 
             {/* Final CTA */}
-            <section className="py-20 bg-gradient-to-br from-primary via-secondary to-secondary">
+            <section className="py-20 bg-gradient-to-t from-[#6EC5E9] via-secondary to-primary">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                         Готови да се присъедините?
@@ -613,9 +439,9 @@ const CreatorAbout = () => {
                     <Button
                         size="lg"
                         onClick={() => setIsDialogOpen(true)}
-                        className="bg-primary text-muted text-lg px-12 rounded-full transition duration-300 ease-in-out hover:scale-105 "
+                        className="bg-primary text-muted text-lg px-12 py-8 rounded-full transition duration-300 ease-in-out hover:scale-105 "
                     >
-                        Запишете се безплатно
+                        Проверете статуса си
                     </Button>
                 </div>
             </section>

@@ -27,7 +27,7 @@ function DisplayCard({
     <div
       className={cn(
         // === UPDATED BACKGROUND CLASS: Replaced bg-muted/70 with a subtle gradient ===
-        "relative flex h-36 w-[28rem] -skew-y-[8deg] select-none flex-col justify-between rounded-xl border-2 border-border/50 bg-gradient-to-r from-primary to-secondary backdrop-blur-lg px-4 py-3 transition-all duration-700 after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[26rem] after:bg-gradient-to-l after:from-background after:to-transparent after:content-[''] hover:border-white/20 hover:bg-muted [&>*]:flex [&>*]:items-center [&>*]:gap-2",
+        "relative flex h-36 w-[32rem] -skew-y-[8deg] select-none flex-col justify-between rounded-xl border-2 border-border/50 bg-gradient-to-r from-primary to-secondary backdrop-blur-lg px-4 py-3 transition-all duration-700 after:absolute after:-right-1 after:top-[-5%] after:h-[110%] after:w-[6rem] after:bg-gradient-to-l after:from-background after:to-transparent after:content-[''] hover:border-white/20 hover:bg-muted [&>*]:flex [&>*]:items-center [&>*]:gap-2",
         className
       )}
     >

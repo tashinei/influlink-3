@@ -49,7 +49,7 @@ const Contact = () => {
   return (
     <div className="min-h-screen pt-20" style={{position:"relative", top:"-80px"}}>
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-br from-primary via-gray to-secondary">
+      <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in text-muted">
             Свържете се с нас<span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></span>

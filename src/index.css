@@ -180,6 +180,29 @@
   background-size: 100% 100%; 
 }
 
+.custom-curved-underline2 {
+  position: relative;
+  display: inline-block; /* Makes sure the span wraps the text tightly */
+  padding-bottom: 5px; /* Adjust this for space below the text if needed */
+  text-decoration: none; /* Remove any default underline */
+}
+
+.custom-curved-underline2::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  
+  /* Increase the vertical space for the line */
+  bottom: -10px; /* ADJUSTED: Increased vertical offset for better visibility */
+  height: 16px; /* ADJUSTED: Increased the height of the container to 12px */
+  
+  background-image: url('assets/curvedBrands.svg'); 
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 100%; 
+}
+
 @keyframes y-scroll {
   0% {
     /* Start the element at its normal position */
