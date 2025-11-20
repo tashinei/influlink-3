@@ -16,16 +16,21 @@
     --popover-foreground: 0 0% 17%;
 
     /* === Brand Colors === */
-    --primary: 208 79% 51%; /* #6EC5E9 */
+    --primary: 208 79% 51%;
+    /* #6EC5E9 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 198 74% 67%; /* #FA6F00 */
+    --secondary: 198 74% 67%;
+    /* #FA6F00 */
     --secondary-foreground: 0 0% 100%;
 
-    --cta: 33 100% 50%; /* #FF7A00 */
-    --cta-hover: 26 100% 45%; /* #E96A00 */
+    --cta: 33 100% 50%;
+    /* #FF7A00 */
+    --cta-hover: 26 100% 45%;
+    /* #E96A00 */
 
-    --text: 204 5% 19%; /* #2B2B2B */
+    --text: 204 5% 19%;
+    /* #2B2B2B */
 
     /* === Other Tokens === */
     --muted: 0 0% 95%;
@@ -58,7 +63,7 @@
   }
 }
 
-.marquee-inner > * {
+.marquee-inner>* {
   flex: 0 0 auto;
 }
 
@@ -69,33 +74,60 @@
 
 .text-gradient {
   background-clip: text;
-  -webkit-background-clip: text; /* Required for Safari compatibility */
-  color: transparent; /* Ensures the background shows through */
+  -webkit-background-clip: text;
+  /* Required for Safari compatibility */
+  color: transparent;
+  /* Ensures the background shows through */
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 .animate-fade-in {
   animation: fade-in 0.6s ease forwards;
 }
 
 /* 💥 Modal pop */
 @keyframes modal-pop {
-  0% { transform: scale(0.9); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
+
 .animate-modal-pop {
   animation: modal-pop 0.4s ease forwards;
 }
 
 /* 🌟 Scale-in for icon (e.g. CheckCircle2) */
 @keyframes scale-in {
-  0% { transform: scale(0); opacity: 0; }
-  80% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  80% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
+
 .animate-scale-in {
   animation: scale-in 0.5s cubic-bezier(0.5, 1.5, 0.5, 1) forwards;
 }
@@ -106,11 +138,10 @@
     transform: translate(0, 0) rotate(0deg) scale(1);
     opacity: 1;
   }
+
   100% {
-    transform: translate(
-      calc(450px * cos(var(--angle))),
-      calc(450px * sin(var(--angle)))
-    ) rotate(720deg) scale(1.5);
+    transform: translate(calc(450px * cos(var(--angle))),
+        calc(450px * sin(var(--angle)))) rotate(720deg) scale(1.5);
     opacity: 0;
   }
 }
@@ -139,9 +170,20 @@
 
 /* Particles */
 @keyframes particle-burst {
-  0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  70% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.6); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  70% {
+    transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.6);
+    opacity: 0;
+  }
 }
 
 .particle-burst {
@@ -159,9 +201,12 @@
 
 .custom-curved-underline {
   position: relative;
-  display: inline-block; /* Makes sure the span wraps the text tightly */
-  padding-bottom: 5px; /* Adjust this for space below the text if needed */
-  text-decoration: none; /* Remove any default underline */
+  display: inline-block;
+  /* Makes sure the span wraps the text tightly */
+  padding-bottom: 5px;
+  /* Adjust this for space below the text if needed */
+  text-decoration: none;
+  /* Remove any default underline */
 }
 
 .custom-curved-underline::after {
@@ -169,22 +214,27 @@
   position: absolute;
   left: 0;
   right: 0;
-  
+
   /* Increase the vertical space for the line */
-  bottom: -10px; /* ADJUSTED: Increased vertical offset for better visibility */
-  height: 16px; /* ADJUSTED: Increased the height of the container to 12px */
-  
-  background-image: url('assets/curved.svg'); 
+  bottom: -10px;
+  /* ADJUSTED: Increased vertical offset for better visibility */
+  height: 16px;
+  /* ADJUSTED: Increased the height of the container to 12px */
+
+  background-image: url('assets/curved.svg');
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: 100% 100%; 
+  background-size: 100% 100%;
 }
 
 .custom-curved-underline2 {
   position: relative;
-  display: inline-block; /* Makes sure the span wraps the text tightly */
-  padding-bottom: 5px; /* Adjust this for space below the text if needed */
-  text-decoration: none; /* Remove any default underline */
+  display: inline-block;
+  /* Makes sure the span wraps the text tightly */
+  padding-bottom: 5px;
+  /* Adjust this for space below the text if needed */
+  text-decoration: none;
+  /* Remove any default underline */
 }
 
 .custom-curved-underline2::after {
@@ -192,15 +242,17 @@
   position: absolute;
   left: 0;
   right: 0;
-  
+
   /* Increase the vertical space for the line */
-  bottom: -10px; /* ADJUSTED: Increased vertical offset for better visibility */
-  height: 16px; /* ADJUSTED: Increased the height of the container to 12px */
-  
-  background-image: url('assets/curvedBrands.svg'); 
+  bottom: -10px;
+  /* ADJUSTED: Increased vertical offset for better visibility */
+  height: 16px;
+  /* ADJUSTED: Increased the height of the container to 12px */
+
+  background-image: url('assets/curvedBrands.svg');
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: 100% 100%; 
+  background-size: 100% 100%;
 }
 
 @keyframes y-scroll {
@@ -208,12 +260,13 @@
     /* Start the element at its normal position */
     transform: translateY(0);
   }
+
   100% {
     /* Translate the element up by exactly 50% of its total height.
        Since we duplicated the content (10 items + 10 items), translating
        by 50% moves the bottom half (the duplicate) into the visible area,
        creating a seamless loop back to the beginning. */
-    transform: translateY(-50%); 
+    transform: translateY(-50%);
   }
 }
 
@@ -225,7 +278,199 @@
     4. infinite: Loop forever
   */
   animation: y-scroll 30s linear infinite;
-  
+
   /* Setting the min-height is crucial to ensure the animation has enough content to scroll */
-  min-height: 200%; 
+  min-height: 200%;
 }
+
+/* Glass background with liquid displacement effect */
+.glass-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 50px;
+  backdrop-filter: blur(20px) saturate(200%) brightness(.9) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='displace'><feTurbulence type='turbulence' baseFrequency='0.01' numOctaves='2' result='turbulence'/><feDisplacementMap in='SourceGraphic' in2='turbulence' scale='20' xChannelSelector='R' yChannelSelector='G'/></filter></svg>#displace") brightness(.9) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(.55) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='displace'><feTurbulence type='turbulence' baseFrequency='0.01' numOctaves='2' result='turbulence'/><feDisplacementMap in='SourceGraphic' in2='turbulence' scale='20' xChannelSelector='R' yChannelSelector='G'/></filter></svg>#displace") brightness(1.1) saturate(1.2);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 0;
+}
+
+/* Optional top-left reflection */
+.glass-reflection-top {
+  position: absolute;
+  top: -20%;
+  left: -15%;
+  width: 65%;
+  height: 60%;
+  border-radius: 50%;
+  background: radial-gradient(circle at top left,
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0.15) 35%,
+      transparent 80%);
+  mix-blend-mode: screen;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 2;
+  transform: rotate(-10deg);
+}
+
+.glass-glow-bottom {
+  position: absolute;
+  bottom: -18%;
+  right: -20%;
+  width: 70%;
+  height: 65%;
+  border-radius: 50%;
+  background: radial-gradient(circle at bottom right,
+      rgba(255, 255, 255, 0.4),
+      rgba(255, 255, 255, 0.1) 40%,
+      transparent 85%);
+  mix-blend-mode: screen;
+  filter: blur(130px);
+  pointer-events: none;
+  z-index: 2;
+  transform: rotate(15deg);
+}
+
+.glass-specular {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(145deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(255, 255, 255, 0.1) 20%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.15) 80%,
+      rgba(255, 255, 255, 0.3) 100%);
+  mask-image: radial-gradient(circle at center, transparent 55%, black 100%);
+  -webkit-mask-image: radial-gradient(circle at center, transparent 55%, black 100%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  filter: blur(2px);
+}
+
+/* Optional shimmer for realism */
+.glass-shimmer {
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 65%,
+      rgba(255, 255, 255, 0) 100%);
+  animation: shimmer1 6s infinite ease-in-out;
+  mix-blend-mode: screen;
+  filter: blur(10px) brightness(1.5);
+  opacity: .5;
+  border-radius: 45%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Second shimmer: slightly different angle & speed */
+.glass-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -40%;
+  width: 160%;
+  height: 240%;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.4) 60%,
+      rgba(255, 255, 255, 0) 100%);
+  animation: shimmer2 5s infinite ease-in-out;
+  mix-blend-mode: screen;
+  filter: blur(15px);
+  opacity: 1;
+}
+
+/* Third layer: even slower, smaller width for subtle highlights */
+.glass-shimmer::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -20%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(90deg,
+      rgba(71, 8, 60, 0.45) 100%);
+  animation: shimmer3 3s infinite ease-in-out;
+  mix-blend-mode: screen;
+  filter: blur(16px);
+  opacity: 1;
+}
+
+/* @keyframes shimmer1 {
+  0% {
+    transform: translateX(-200%) rotate(18deg);
+    opacity: 0.35;
+  }
+
+  25% {
+    transform: translateX(-75%) rotate(18deg);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateX(50%) rotate(18deg);
+    opacity: 0.65;
+  }
+
+  75% {
+    transform: translateX(125%) rotate(18deg);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateX(200%) rotate(18deg);
+    opacity: 0.35;
+  }
+} */
+
+@keyframes shimmer2 {
+  0% {
+    transform: translateX(180%) rotate(-20deg);
+    opacity: 0.25;
+  }
+
+  50% {
+    transform: translateX(-50%) rotate(-20deg);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateX(-180%) rotate(-20deg);
+    opacity: 0.25;
+  }
+}
+
+@keyframes shimmer3 {
+  0% {
+    transform: translateX(-150%) rotate(15deg);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: translateX(50%) rotate(15deg);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateX(150%) rotate(15deg);
+    opacity: 0.2;
+  }
+}
+
+/* .glass-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg,
+      rgba(150, 180, 255, 0.3),
+      rgba(100, 150, 255, 0.2));
+  mix-blend-mode: overlay;
+  z-index: 1;
+} */

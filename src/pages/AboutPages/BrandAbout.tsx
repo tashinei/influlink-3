@@ -64,8 +64,6 @@ const IconMap = {
 const allBenefits = [...creatorBenefits, ...brandBenefits];
 const scrollingBenefits = [...allBenefits, ...allBenefits];
 
-// --- BENEFIT CARD COMPONENT (Revised to render Lucide Component) ---
-
 const BenefitCard = ({ title, description, iconName, iconColor, color }) => {
     // Look up the actual Lucide component based on the string name
     const LucideIcon = IconMap[iconName];

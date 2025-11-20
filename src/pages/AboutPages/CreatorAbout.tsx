@@ -9,6 +9,8 @@ import cardPay from "@/assets/cardPay.jpg";
 import support from "@/assets/support.jpg";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import GlassSection from "@/components/ui/glass-section";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
     Accordion,
     AccordionContent,
@@ -64,8 +66,6 @@ const IconMap = {
 const allBenefits = [...creatorBenefits, ...brandBenefits];
 const scrollingBenefits = [...allBenefits, ...allBenefits];
 
-// --- BENEFIT CARD COMPONENT (Revised to render Lucide Component) ---
-
 const BenefitCard = ({ title, description, iconName, iconColor, color }) => {
     // Look up the actual Lucide component based on the string name
     const LucideIcon = IconMap[iconName];
@@ -98,6 +98,7 @@ const CreatorAbout = () => {
     const { toast } = useToast();
     const [quizStep, setQuizStep] = useState(1);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const isMobile = useIsMobile();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -230,7 +231,12 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            <DisplayCards></DisplayCards>
+            {!isMobile ? (
+                <DisplayCards />
+            ) : (
+                null
+            )}
+
 
             {/* Waitlist Section */}
             <section className="flex py-20 bg-white">
@@ -427,24 +433,51 @@ const CreatorAbout = () => {
             </section>
 
             {/* Final CTA */}
-            <section className="py-20 bg-gradient-to-t from-[#6EC5E9] via-secondary to-primary">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                        Готови да се присъедините?
-                    </h2>
-                    <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                        Запишете се сега и бъдете част от революцията в инфлуенсър
-                        маркетинга
-                    </p>
-                    <Button
-                        size="lg"
-                        onClick={() => setIsDialogOpen(true)}
-                        className="bg-primary text-muted text-lg px-12 py-8 rounded-full transition duration-300 ease-in-out hover:scale-105 "
-                    >
-                        Проверете статуса си
-                    </Button>
-                </div>
-            </section>
+            {/* <div
+                className="relative w-[95vw] mx-auto rounded-[50px] p-6 md:p-2 flex items-center justify-center bg-gradient-to-br from-primary via-secondary to-[#90d5f3ff]"
+            >
+                <section
+                    className="relative flex flex-col items-center justify-center w-full rounded-[45px] bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg"
+                    style={{
+                        WebkitBackdropFilter: 'blur(250px) saturate(180%) brightness(1)',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.25), inset 0 0 25px rgba(255,255,255,0.15)',
+                    }}
+                >
+                    <div
+                        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full pointer-events-none"
+                        style={{
+                            background: 'radial-gradient(circle at top left, rgba(255,255,255,0.35), transparent 60%)',
+                            mixBlendMode: 'screen',
+                            filter: 'blur(100px)',
+                        }}
+                    ></div>
+                    <div
+                        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full pointer-events-none"
+                        style={{
+                            background: 'radial-gradient(circle at bottom right, rgba(255,255,255,0.20), transparent 70%)',
+                            mixBlendMode: 'screen',
+                            filter: 'blur(120px)',
+                        }}
+                    ></div>
+
+                    <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-white/10 blur-[220px] z-0 animate-bubble1"></div>
+                    <div className="absolute bottom-[-15%] right-[-15%] w-[500px] h-[500px] rounded-full bg-white/10 blur-[180px] z-0 animate-bubble2"></div>
+
+                    <div className="relative z-20 text-center text-white max-w-3xl px-6 py-24">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-lg">
+                            Готови да се присъедините?
+                        </h2>
+                        <p className="text-lg md:text-xl text-white/90 mb-10">
+                            Запишете се сега и бъдете част от революцията в инфлуенсър маркетинга.
+                        </p>
+                        <button className="bg-gradient-to-t from-secondary/10 to-primary/20 hover:bg-white/15 backdrop-blur-md border border-white/20 text-white font-semibold text-lg px-10 py-4 rounded-full transition duration-300 shadow-md">
+                            Проверете статуса си
+                        </button>
+                    </div>
+                </section>
+            </div> */}
+
+            <GlassSection></GlassSection>
 
             {/* FAQ Section */}
             <section className="py-20 bg-background">
