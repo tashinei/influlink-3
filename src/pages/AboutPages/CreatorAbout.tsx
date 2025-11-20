@@ -33,6 +33,7 @@ import {
     Gift,
     HeadphonesIcon,
 } from "lucide-react";
+import { DisplaySection } from "@/components/ui/display-section";
 
 const creatorBenefits = [
     { icon: "TicketCheck", title: "Ранен достъп", description: "Използвайте платформата преди официалния старт", iconColor: "text-primary" },
@@ -214,7 +215,6 @@ const CreatorAbout = () => {
             className="min-h-screen pt-20"
             style={{ position: "relative", top: "-80px" }}
         >
-            {/* Hero Section */}
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4">
                     <h1 className="text-5xl md:text-6xl font-bold text-center mb-6 animate-fade-in text-muted">
@@ -234,14 +234,11 @@ const CreatorAbout = () => {
             {!isMobile ? (
                 <DisplayCards />
             ) : (
-                null
+                <DisplaySection accountType="creator"/>
             )}
 
-
-            {/* Waitlist Section */}
-            <section className="flex py-20 bg-white">
+            <section className="flex pt-20 pb-[20px] md:pb-20 bg-white">
                 <div className="container mx-auto px-4">
-                    {/* SECTION HEADER */}
                     <div className="max-w-4xl mx-auto text-center mb-16">
                         <h2 className="text-4xl md:text-7xl font-bold mb-6">
                             Създадена за{" "}
@@ -254,21 +251,16 @@ const CreatorAbout = () => {
                         </p>
                     </div>
 
-                    {/* MAIN FEATURE GRID */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
 
-                        {/* LARGE DOMINANT CARD */}
                         <div className="transition duration-300 ease-in-out hover:scale-105 col-span-1 md:col-span-2 bg-gradient-to-t from-[#90d5f3ff] via-secondary to-primary text-white p-8 lg:p-12 rounded-3xl shadow-2xl min-h-[450px] flex flex-col justify-end relative overflow-hidden">
-                            {/* Background placeholder image */}
                             <img
                                 src={firstPlaceholder}
                                 alt="Abstract background"
                                 className="absolute inset-0 w-full h-full object-cover opacity-10 z-0" // z-0 ensures it’s behind text
                             />
 
-                            {/* Text content */}
-                            {/* <p className="font-bold text-base mb-3 z-10 relative opacity-100">СВЕТЪТ НА INFLULINK</p> */}
-                            <h3 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight z-10 relative">
+                            <h3 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight z-10 relative">
                                 Активирайте влиянието <br />си и печелете
                             </h3>
                             <p className="mb-10 text-lg max-w-2xl z-10 relative">
@@ -277,20 +269,14 @@ const CreatorAbout = () => {
                             </p>
                         </div>
 
-
-                        {/* STACKED SMALL CARDS */}
-                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8">
-
-                            {/* CARD 2: TECHNOLOGY */}
+                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8 h-[50vh]">
                             <div className="transition duration-300 ease-in-out hover:scale-105 bg-gradient-to-tr from-[#90d5f3ff] via-secondary to-primary text-white p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden">
-                                {/* Background image */}
                                 <img
                                     src={cardPay}
                                     alt="Tech"
                                     className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-30 z-0"
                                 />
 
-                                {/* Text content */}
                                 <div className="relative z-10">
                                     <h4 className="text-2xl font-bold mb-3 leading-snug">
                                         Прозрачни плащания
@@ -432,54 +418,8 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            {/* Final CTA */}
-            {/* <div
-                className="relative w-[95vw] mx-auto rounded-[50px] p-6 md:p-2 flex items-center justify-center bg-gradient-to-br from-primary via-secondary to-[#90d5f3ff]"
-            >
-                <section
-                    className="relative flex flex-col items-center justify-center w-full rounded-[45px] bg-white/10 backdrop-blur-xl border border-white/20 shadow-lg"
-                    style={{
-                        WebkitBackdropFilter: 'blur(250px) saturate(180%) brightness(1)',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.25), inset 0 0 25px rgba(255,255,255,0.15)',
-                    }}
-                >
-                    <div
-                        className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full pointer-events-none"
-                        style={{
-                            background: 'radial-gradient(circle at top left, rgba(255,255,255,0.35), transparent 60%)',
-                            mixBlendMode: 'screen',
-                            filter: 'blur(100px)',
-                        }}
-                    ></div>
-                    <div
-                        className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full pointer-events-none"
-                        style={{
-                            background: 'radial-gradient(circle at bottom right, rgba(255,255,255,0.20), transparent 70%)',
-                            mixBlendMode: 'screen',
-                            filter: 'blur(120px)',
-                        }}
-                    ></div>
-
-                    <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-white/10 blur-[220px] z-0 animate-bubble1"></div>
-                    <div className="absolute bottom-[-15%] right-[-15%] w-[500px] h-[500px] rounded-full bg-white/10 blur-[180px] z-0 animate-bubble2"></div>
-
-                    <div className="relative z-20 text-center text-white max-w-3xl px-6 py-24">
-                        <h2 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-lg">
-                            Готови да се присъедините?
-                        </h2>
-                        <p className="text-lg md:text-xl text-white/90 mb-10">
-                            Запишете се сега и бъдете част от революцията в инфлуенсър маркетинга.
-                        </p>
-                        <button className="bg-gradient-to-t from-secondary/10 to-primary/20 hover:bg-white/15 backdrop-blur-md border border-white/20 text-white font-semibold text-lg px-10 py-4 rounded-full transition duration-300 shadow-md">
-                            Проверете статуса си
-                        </button>
-                    </div>
-                </section>
-            </div> */}
-
             <GlassSection></GlassSection>
 
-            {/* FAQ Section */}
             <section className="py-20 bg-background">
                 <div className="container mx-auto px-4">
                     <div className="max-w-3xl mx-auto">

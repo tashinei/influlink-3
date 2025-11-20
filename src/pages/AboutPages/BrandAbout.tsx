@@ -31,6 +31,8 @@ import {
     Gift,
     HeadphonesIcon,
 } from "lucide-react";
+import { DisplaySection } from "@/components/ui/display-section";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const creatorBenefits = [
     { icon: "TicketCheck", title: "Ранен достъп", description: "Използвайте платформата преди официалния старт", iconColor: "text-primary" },
@@ -96,6 +98,7 @@ const CreatorAbout = () => {
     const { toast } = useToast();
     const [quizStep, setQuizStep] = useState(1);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const isMobile = useIsMobile();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -228,7 +231,11 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            <DisplayCards></DisplayCards>
+            {!isMobile ? (
+                <DisplayCards />
+            ) : (
+                <DisplaySection accountType="brand" />
+            )}
 
             {/* Waitlist Section */}
             <section className="flex py-20 bg-white">
@@ -306,7 +313,7 @@ const CreatorAbout = () => {
                                 <div className="relative z-10">
                                     <p className="text-white font-bold text-sm mb-2">ПОДДРЪЖКА</p>
                                     <h4 className="text-white text-2xl font-bold mb-3 leading-snug">
-                                      24/7 Приоритет
+                                        24/7 Приоритет
                                     </h4>
                                 </div>
                             </div>

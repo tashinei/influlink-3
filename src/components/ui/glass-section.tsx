@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { MeshGradient } from "@paper-design/shaders-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const GlassSection: React.FC = () => {
   const [dimensions, setDimensions] = useState({ width: 480, height: 270 });
   const [mounted, setMounted] = useState(false);
   const [offsetX, setOffsetX] = useState(0.5); // initial offset
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setMounted(true);
@@ -103,7 +105,7 @@ const GlassSection: React.FC = () => {
         <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
           <h2
             style={{
-              fontSize: "3rem",
+              fontSize: isMobile ? "2rem" : "3rem",
               fontWeight: "bold",
               color: "white",
               marginBottom: "1rem",
@@ -114,7 +116,7 @@ const GlassSection: React.FC = () => {
           <p
             style={{
               color: "rgba(255,255,255,0.9)",
-              fontSize: "1.35rem",
+              fontSize: isMobile ? "1.15rem" : "1.35rem",
               marginBottom: "2rem",
             }}
           >
@@ -127,7 +129,7 @@ const GlassSection: React.FC = () => {
                 "linear-gradient(150deg, rgba(255, 255, 255, 0.15), rgba(45, 143, 230, 0.52))",
               backdropFilter: "blur(10px)",
               color: "white",
-              fontSize: "1.1rem",
+              fontSize: isMobile ? "1rem" : "1.1rem",
               fontWeight: 600,
               padding: "1rem 2rem",
               borderRadius: "50px",
