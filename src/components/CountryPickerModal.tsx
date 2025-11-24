@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Search, X, Check, Globe } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CountryPickerModal({
   open,
@@ -12,56 +13,28 @@ export default function CountryPickerModal({
   const [search, setSearch] = useState("");
   const [isShaking, setIsShaking] = useState(false);
   const inputRef = useRef(null);
-  const isMobile =  useIsMobile();
+  const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
-  const internalCountries = [
-    { code: "AL", name: "Албания", flag: "https://flagcdn.com/w40/al.png" },
-    { code: "AD", name: "Андора", flag: "https://flagcdn.com/w40/ad.png" },
-    { code: "AT", name: "Австрия", flag: "https://flagcdn.com/w40/at.png" },
-    { code: "BY", name: "Беларус", flag: "https://flagcdn.com/w40/by.png" },
-    { code: "BE", name: "Белгия", flag: "https://flagcdn.com/w40/be.png" },
-    { code: "BA", name: "Босна и Херцеговина", flag: "https://flagcdn.com/w40/ba.png" },
-    { code: "BG", name: "България", flag: "https://flagcdn.com/w40/bg.png" },
-    { code: "HR", name: "Хърватия", flag: "https://flagcdn.com/w40/hr.png" },
-    { code: "CY", name: "Кипър", flag: "https://flagcdn.com/w40/cy.png" },
-    { code: "CZ", name: "Чехия", flag: "https://flagcdn.com/w40/cz.png" },
-    { code: "DK", name: "Дания", flag: "https://flagcdn.com/w40/dk.png" },
-    { code: "EE", name: "Естония", flag: "https://flagcdn.com/w40/ee.png" },
-    { code: "FI", name: "Финландия", flag: "https://flagcdn.com/w40/fi.png" },
-    { code: "FR", name: "Франция", flag: "https://flagcdn.com/w40/fr.png" },
-    { code: "DE", name: "Германия", flag: "https://flagcdn.com/w40/de.png" },
-    { code: "GR", name: "Гърция", flag: "https://flagcdn.com/w40/gr.png" },
-    { code: "HU", name: "Унгария", flag: "https://flagcdn.com/w40/hu.png" },
-    { code: "IS", name: "Исландия", flag: "https://flagcdn.com/w40/is.png" },
-    { code: "IE", name: "Ирландия", flag: "https://flagcdn.com/w40/ie.png" },
-    { code: "IT", name: "Италия", flag: "https://flagcdn.com/w40/it.png" },
-    { code: "XK", name: "Косово", flag: "https://flagcdn.com/w40/xk.png" },
-    { code: "LV", name: "Латвия", flag: "https://flagcdn.com/w40/lv.png" },
-    { code: "LI", name: "Лихтенщайн", flag: "https://flagcdn.com/w40/li.png" },
-    { code: "LT", name: "Литва", flag: "https://flagcdn.com/w40/lt.png" },
-    { code: "LU", name: "Люксембург", flag: "https://flagcdn.com/w40/lu.png" },
-    { code: "MT", name: "Малта", flag: "https://flagcdn.com/w40/mt.png" },
-    { code: "MD", name: "Молдова", flag: "https://flagcdn.com/w40/md.png" },
-    { code: "MC", name: "Монако", flag: "https://flagcdn.com/w40/mc.png" },
-    { code: "ME", name: "Черна гора", flag: "https://flagcdn.com/w40/me.png" },
-    { code: "NL", name: "Нидерландия", flag: "https://flagcdn.com/w40/nl.png" },
-    { code: "NO", name: "Норвегия", flag: "https://flagcdn.com/w40/no.png" },
-    { code: "PL", name: "Полша", flag: "https://flagcdn.com/w40/pl.png" },
-    { code: "PT", name: "Португалия", flag: "https://flagcdn.com/w40/pt.png" },
-    { code: "RO", name: "Румъния", flag: "https://flagcdn.com/w40/ro.png" },
-    { code: "RU", name: "Русия", flag: "https://flagcdn.com/w40/ru.png" },
-    { code: "SM", name: "Сан Марино", flag: "https://flagcdn.com/w40/sm.png" },
-    { code: "RS", name: "Сърбия", flag: "https://flagcdn.com/w40/rs.png" },
-    { code: "SK", name: "Словакия", flag: "https://flagcdn.com/w40/sk.png" },
-    { code: "SI", name: "Словения", flag: "https://flagcdn.com/w40/si.png" },
-    { code: "ES", name: "Испания", flag: "https://flagcdn.com/w40/es.png" },
-    { code: "SE", name: "Швеция", flag: "https://flagcdn.com/w40/se.png" },
-    { code: "CH", name: "Швейцария", flag: "https://flagcdn.com/w40/ch.png" },
-    { code: "TR", name: "Турция", flag: "https://flagcdn.com/w40/tr.png" },
-    { code: "UA", name: "Украйна", flag: "https://flagcdn.com/w40/ua.png" },
-    { code: "GB", name: "Обединено кралство", flag: "https://flagcdn.com/w40/gb.png" },
-    { code: "VA", name: "Ватикан", flag: "https://flagcdn.com/w40/va.png" }
+  const ALL_EUROPEAN_COUNTRY_CODES = [
+    "AL", "AD", "AT", "BY", "BE", "BA", "BG", "HR", "CY", "CZ", "DK",
+    "EE", "FI", "FR", "DE", "GR", "HU", "IS", "IE", "IT", "XK", "LV",
+    "LI", "LT", "LU", "MT", "MD", "MC", "ME", "NL", "NO", "PL", "PT",
+    "RO", "RU", "SM", "RS", "SK", "SI", "ES", "SE", "CH", "TR", "UA",
+    "GB", "VA"
   ];
+
+  const getFlagUrl = (code) => `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
+
+  const translatedCountries = useMemo(() => {
+    return ALL_EUROPEAN_COUNTRY_CODES.map((code) => ({
+      code: code,
+      // Name is fetched dynamically from the translation file
+      name: t(`form.countries.${code}`),
+      // Flag is generated dynamically from the code
+      flag: getFlagUrl(code),
+    }));
+  }, [t]);
 
   useEffect(() => {
     if (open) {
@@ -72,7 +45,7 @@ export default function CountryPickerModal({
 
   if (!open) return null;
 
-  const filtered = internalCountries.filter((c) =>
+  const filtered = translatedCountries.filter((c) =>
     c.name.toLowerCase().includes(search.trim().toLowerCase())
   );
 
@@ -108,13 +81,13 @@ export default function CountryPickerModal({
           ${isShaking ? "animate-shake" : ""} 
           animate-in fade-in zoom-in-95 duration-200
         `}
-        style={isMobile ? {height:"90%", width: "90%"} : {}}
+        style={isMobile ? { height: "90%", width: "90%" } : {}}
       >
         {/* HEADER: Compact padding */}
         <div className="px-4 py-3 border-b border-gray-100 shrink-0">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
-              Изберете държави
+              {t("form.countryPick.title")}
             </h2>
             <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition">
               <X className="w-5 h-5 text-gray-500" />
@@ -122,7 +95,7 @@ export default function CountryPickerModal({
           </div>
 
           <p className="text-xs text-gray-500 mt-1">
-            Максимум <span className="font-bold text-primary">3</span> държави.
+            {t("form.countryPick.subTitle")}
           </p>
 
           {/* CHIPS: More compact */}
@@ -217,7 +190,7 @@ export default function CountryPickerModal({
             onClick={onSave}
             className="bg-gradient-to-tr from-primary to-secondary hover:scale-105 text-white text-sm px-6 py-2 rounded-lg font-medium transition-all active:scale-95"
           >
-            Готово
+            {t("form.countryPick.save")}
           </button>
         </div>
       </div>

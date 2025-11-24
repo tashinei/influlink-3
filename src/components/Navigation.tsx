@@ -1,34 +1,59 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Ear, Menu, X } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
+import { Earth } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  const { language, setLanguage, t } = useTranslation();
+  const [langOpen, setLangOpen] = useState(false);
+
+  const languages: { code: "bg" | "en"; label: string }[] = [
+    { code: "bg", label: "Български" },
+    { code: "en", label: "English" },
+  ];
+
+  const changeLanguage = (lang: "bg" | "en") => {
+    setLanguage(lang);
+    setLangOpen(false);
+  };
 
   const isRegistered = useUserStore((state) => state.isRegistered);
   const accountType = useUserStore((state) => state.accountType);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    setIsScrolled(false);
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 100);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    const timer = setTimeout(() => {
+      window.addEventListener("scroll", handleScroll);
+      handleScroll();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const links = [
-    { name: "Начало", path: "/" },
-    { name: "Контакти", path: "/contact" },
+    { name: t("nav.home"), path: "/" },
+    { name: t("nav.contact"), path: "/contact" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   // Determine path/label for the dynamic "About" link
   const aboutPath = accountType === "creator" ? "/creator/about" : "/brand/about";
-  const aboutLabel = accountType === "creator" ? "За създатели" : "За бизнеси";
+  const aboutLabel = accountType === "creator" ? t("nav.creatorAbout") : t("nav.brandAbout");
 
   const isSolidBackground = isScrolled || isOpen;
   const textColorClass = !isSolidBackground ? "text-white" : "text-primary";
@@ -56,6 +81,29 @@ const Navigation = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
+            <div className="relative">
+              <button
+                onClick={() => setLangOpen(!langOpen)}
+                className={`p-2 rounded-full transition-colors duration-300 ${textColorClass}`}
+                aria-label="Select language"
+              >
+                <Earth size={24} />
+              </button>
+
+              {langOpen && (
+                <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => changeLanguage(lang.code)}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                    >
+                      {lang.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {links.map((link) => (
               <Link
                 key={link.path}
@@ -98,21 +146,19 @@ const Navigation = () => {
           </button>
         </div>
 
-        <div 
-            className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}`}
+        <div
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}`}
         >
           <div className={`pb-6 pt-2 flex flex-col gap-2 ${isSolidBackground ? 'border-t border-border' : 'border-t border-white/10'}`}>
-            
             {links.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                  isActive(link.path)
-                    ? "bg-gradient-to-br from-primary to-primary/40 text-[white]"
-                    : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
-                }`}
+                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${isActive(link.path)
+                  ? "bg-gradient-to-br from-primary to-primary/40 text-[white]"
+                  : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
+                  }`}
               >
                 {link.name}
               </Link>
@@ -122,15 +168,27 @@ const Navigation = () => {
               <Link
                 to={aboutPath}
                 onClick={() => setIsOpen(false)}
-                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                  isActive(aboutPath)
-                    ? "bg-gradient-to-br from-secondary to-primary/60 text-[white]"
-                    : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
-                }`}
+                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${isActive(aboutPath)
+                  ? "bg-gradient-to-br from-secondary to-primary/60 text-[white]"
+                  : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
+                  }`}
               >
                 {aboutLabel}
               </Link>
             )}
+
+            <div className="border-t border-gray-200 pt-2">
+              <span className="block px-4 py-2 text-xs text-gray-500">Language</span>
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => changeLanguage(lang.code)}
+                  className="block w-full text-left px-4 py-2 rounded-lg hover:bg-gray-100 text-sm"
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

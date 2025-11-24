@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import { useLocation } from "react-router-dom";
 import CreatorAbout from "./pages/AboutPages/CreatorAbout";
 import BrandAbout from "./pages/AboutPages/BrandAbout";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const MainContent = () => {
         <Route path="/brand/about" element={<BrandAbout />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
       
       {/* Conditionally render the Footer: Render ONLY if NOT on the home page */}

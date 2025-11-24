@@ -1,8 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap&subset=cyrillic');
+
+body {
+  font-family: 'Rubik', sans-serif;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* === Brand Palette: Deep Space Blue, Arctic Blue, Soft White === */
+
+
 
 @layer base {
   :root {

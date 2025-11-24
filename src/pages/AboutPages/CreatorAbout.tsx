@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import GlassSection from "@/components/ui/glass-section";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
     Accordion,
     AccordionContent,
@@ -100,6 +101,7 @@ const CreatorAbout = () => {
     const [quizStep, setQuizStep] = useState(1);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const isMobile = useIsMobile();
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -212,13 +214,13 @@ const CreatorAbout = () => {
 
     return (
         <div
-            className="min-h-screen pt-20"
+            className="min-h-dvh pt-20 w-full overflow-x-hidden"
             style={{ position: "relative", top: "-80px" }}
         >
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4">
                     <h1 className="text-5xl md:text-6xl font-bold text-center mb-6 animate-fade-in text-muted">
-                        За създатели
+                        {t("creatorAbout.hero.title")}
                         <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></span>
                     </h1>
                     <p
@@ -234,16 +236,16 @@ const CreatorAbout = () => {
             {!isMobile ? (
                 <DisplayCards />
             ) : (
-                <DisplaySection accountType="creator"/>
+                <DisplaySection accountType="creator" />
             )}
 
             <section className="flex pt-20 pb-[20px] md:pb-20 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto text-center mb-16">
                         <h2 className="text-4xl md:text-7xl font-bold mb-6">
-                            Създадена за{" "}
+                            {t("about.creator.createdForFirstPart")}{" "}
                             <span className="custom-curved-underline2 bg-gradient-to-r from-primary to-secondary text-transparent bg-clip-text">
-                                Вас
+                                {t("about.creator.createdForSecondPart")}
                             </span>
                         </h2>
                         <p className="text-xl text-text max-w-2xl mx-auto">
@@ -269,7 +271,7 @@ const CreatorAbout = () => {
                             </p>
                         </div>
 
-                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8 h-[50vh]">
+                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8 h-[50dvh]">
                             <div className="transition duration-300 ease-in-out hover:scale-105 bg-gradient-to-tr from-[#90d5f3ff] via-secondary to-primary text-white p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden">
                                 <img
                                     src={cardPay}
@@ -331,7 +333,7 @@ const CreatorAbout = () => {
                             <CardContent className="p-6 md:p-12">
                                 <div className="flex flex-col md:flex-row items-center gap-8">
                                     <div className="flex-1">
-                                        <h3 className="text-2xl font-bold mb-4">
+                                        <h3 className="text-2xl md:text-3xl font-bold mb-4">
                                             Как да станете VIP?
                                         </h3>
                                         <ol className="space-y-4 text-muted-foreground">
@@ -339,7 +341,7 @@ const CreatorAbout = () => {
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     1
                                                 </span>
-                                                <span>
+                                                <span className="text-[20px]">
                                                     Свалете нашето брандирано видео (ще го получите след
                                                     записване)
                                                 </span>
@@ -348,7 +350,7 @@ const CreatorAbout = () => {
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     2
                                                 </span>
-                                                <span>
+                                                <span className="text-[20px]">
                                                     Публикувайте го в Instagram и Facebook story с таг
                                                     @influlink.bg
                                                 </span>
@@ -357,13 +359,15 @@ const CreatorAbout = () => {
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     3
                                                 </span>
-                                                <span>Нашият екип ще прегледа и одобри акаунта ви</span>
+                                                <span className="text-[20px]">
+                                                    Нашият екип ще прегледа и одобри акаунта ви
+                                                </span>
                                             </li>
                                             <li className="flex items-start gap-3">
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     4
                                                 </span>
-                                                <span>
+                                                <span className="text-[20px]">
                                                     Получете VIP статус с 30% отстъпка за първите 3 месеца
                                                 </span>
                                             </li>
@@ -378,23 +382,23 @@ const CreatorAbout = () => {
                                             <ul className="space-y-3">
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span>30% отстъпка за 3 месеца</span>
+                                                    <span className="text-[18px]">30% отстъпка за 3 месеца</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span>Приоритет при избор на кампании</span>
+                                                    <span className="text-[18px]">Приоритет при избор на кампании</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span>Ексклузивни партньорства</span>
+                                                    <span className="text-[18px]">Ексклузивни партньорства</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span>Персонален акаунт мениджър</span>
+                                                    <span className="text-[18px]">Персонален акаунт мениджър</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span>VIP бадж на профила</span>
+                                                    <span className="text-[18px]">VIP бадж на профила</span>
                                                 </li>
                                             </ul>
 
@@ -440,7 +444,7 @@ const CreatorAbout = () => {
                                             {faq.question}
                                         </span>
                                     </AccordionTrigger>
-                                    <AccordionContent className="text-muted-foreground pb-6 text-base">
+                                    <AccordionContent className="text-muted-foreground pb-6 text-[18px]">
                                         {faq.answer}
                                     </AccordionContent>
                                 </AccordionItem>

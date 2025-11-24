@@ -9,7 +9,7 @@ export function DisplaySection({ accountType = "creator" }: DisplaySectionProps)
   const isCreator = accountType === "creator";
 
   return (
-    <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-background">
+    <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-[white]">
       <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Left Column: Statement with Gradient Text */}
         <div className="order-1 lg:pl-10">
@@ -23,8 +23,8 @@ export function DisplaySection({ accountType = "creator" }: DisplaySectionProps)
               </>
             ) : (
               <>
-                <span className="block text-foreground">Не губете време.</span>
-                <span className="block text-3xl sm:text-4xl md:text-5xl mt-2 bg-gradient-to-r from-primary to-secondary text-gradient">
+                <span className="block text-4xl text-foreground">Не губете време.</span>
+                <span className="block text-3xl sm:text-4xl md:text-5xl mt-2 bg-gradient-to-r from-secondary to-primary text-gradient">
                   Свържете се с инфлуенсъри моментално.
                 </span>
               </>

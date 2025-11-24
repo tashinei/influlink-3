@@ -108,7 +108,7 @@ export function HeroSection({
       <div style={{ paddingTop: "50px" }} className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
         <div className="text-center">
           <h1
-            className={`text-white font-bold text-foreground text-balance text-5xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 ${titleClassName}`}
+            className={`text-white font-bold text-foreground text-balance text-[2.7rem] sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 ${titleClassName}`}
             style={{ fontFamily, fontWeight }}
           >
             {title}{" "}
@@ -117,7 +117,7 @@ export function HeroSection({
             </span>
           </h1>
           <p
-            className={`text-white text-xl sm:text-xl text-foreground text-pretty max-w-2xl mx-auto leading-relaxed mb-10 px-4 ${descriptionClassName}`}
+            className={`text-white text-[1.15rem] sm:text-xl text-foreground text-pretty max-w-2xl mx-auto leading-relaxed mb-10 px-4 ${descriptionClassName}`}
           >
             {description}
           </p>
