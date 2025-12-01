@@ -1,13 +1,35 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  profileImage?: string;
+  isVIP: boolean;
+  accountType: string;
+}
+
 interface UserState {
   isRegistered: boolean;
   accountType: "creator" | "brand" | null;
-  language: "bg" | "en" | "de";
+  language: "bg" | "en";
+
+  token: string | null;
+  user: User | null;
+
+  isVIP: boolean;
+
   setRegistered: (value: boolean) => void;
   setAccountType: (type: "creator" | "brand" | null) => void;
-  setLanguage: (lang: "bg" | "en" ) => void;
+  setLanguage: (lang: "bg" | "en") => void;
+
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
+
+  setVIP: (value: boolean) => void;
+
+  logout: () => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -16,11 +38,30 @@ export const useUserStore = create<UserState>()(
       isRegistered: false,
       accountType: null,
       language: "bg",
+
+      token: null,
+      user: null,
+
+      isVIP: false,
+
       setRegistered: (value) => set({ isRegistered: value }),
       setAccountType: (type) => set({ accountType: type }),
       setLanguage: (lang) => set({ language: lang }),
+
+      setUser: (user) => set({ user }),
+      setToken: (token) => set({ token }),
+
+      setVIP: (value) => set({ isVIP: value }), // ⭐
+
+      logout: () =>
+        set({
+          token: null,
+          user: null,
+          isRegistered: false,
+          accountType: null,
+          isVIP: false,
+        }),
     }),
-    { name: "user" }
+    { name: "user-storage" }
   )
 );
-

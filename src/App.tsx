@@ -13,27 +13,32 @@ import { useLocation } from "react-router-dom";
 import CreatorAbout from "./pages/AboutPages/CreatorAbout";
 import BrandAbout from "./pages/AboutPages/BrandAbout";
 import Profile from "./pages/Profile";
+import RegisterCreator from "./pages/RegisterCreator";
+import RegisterBrand from "./pages/RegisterBrand";
 
 const queryClient = new QueryClient();
 
 const MainContent = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-
+  const isRegisterPage = location.pathname === "/register/creator" || location.pathname === "/register/brand";
   return (
     <>
-      <Navigation />
+      {!isRegisterPage && <Navigation />}
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home/>} />
         <Route path="/creator/about" element={<CreatorAbout />} />
         <Route path="/brand/about" element={<BrandAbout />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/me" element={<Profile />} />
+        <Route path="/profile/:identifier" element={<Profile />} />
+        <Route path="/register/creator" element={<RegisterCreator />} />
+        <Route path="/register/brand" element={<RegisterBrand />} />
       </Routes>
       
       {/* Conditionally render the Footer: Render ONLY if NOT on the home page */}
-      {!isHomePage && <Footer />}
+      {!isHomePage && !isRegisterPage && <Footer />}
     </>
   );
 };

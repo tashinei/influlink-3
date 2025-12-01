@@ -1,0 +1,527 @@
+// server.js (ES Modules)
+import 'dotenv/config';
+import express from 'express';
+import mysql from 'mysql2/promise';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+import multer from 'multer';
+const upload = multer({ dest: path.join(__dirname, 'uploads/') });
+
+// --- Middleware ---
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// --- Database Connection Pool ---
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+// Test DB connection
+pool.getConnection()
+    .then(conn => { console.log('✅ Connected to MariaDB/MySQL database via Pool!'); conn.release(); })
+    .catch(err => console.error('❌ Database connection failed:', err.message));
+
+// =======================
+// AUTH ROUTES
+// =======================
+
+// Registration
+app.post('/api/register', async (req, res) => {
+    try {
+        const { name, email, password, accountType } = req.body;
+        if (!name || !email || !password || !accountType)
+            return res.status(400).json({ message: 'Missing required fields' });
+
+        // Check existing user
+        const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (existing.length > 0) return res.status(409).json({ message: 'Email already exists' });
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Insert user
+        const [result] = await pool.query(
+            'INSERT INTO users (name, email, password_hash, account_type, created_at) VALUES (?, ?, ?, ?, NOW())',
+            [name, email, hashedPassword, accountType]
+        );
+        const newUserId = result.insertId;
+
+        // Create profile for user
+        const handle = name.replace(/\s+/g, '').toLowerCase();
+        await pool.query(
+            'INSERT INTO profiles (id, name, handle, type, created_at) VALUES (?, ?, ?, ?, NOW())',
+            [newUserId, name, handle, accountType]
+        );
+
+        // Create JWT token
+        const token = jwt.sign({ id: newUserId, email, accountType }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        // Set cookie
+        res.cookie('token', token, { httpOnly: true, secure: isProduction, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+        res.status(201).json({ message: 'Account created successfully', user: { id: newUserId, name, email, accountType } });
+    } catch (err) {
+        console.error('Registration error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Login
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        if (rows.length === 0) return res.status(401).json({ message: 'Invalid credentials' });
+
+        const user = rows[0];
+        const isValid = await bcrypt.compare(password, user.password_hash);
+        if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
+
+        const token = jwt.sign({ id: user.id, email: user.email, accountType: user.account_type }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        // Set HTTP-only cookie
+        res.cookie('token', token, { httpOnly: true, secure: isProduction, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
+
+        res.json({ message: 'Logged in successfully', user: { id: user.id, email: user.email, accountType: user.account_type } });
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Middleware to verify JWT from cookie
+const authenticate = (req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: 'Not authenticated' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch {
+        return res.status(401).json({ message: 'Invalid token' });
+    }
+};
+
+// =======================
+// PROFILE ROUTES
+// =======================
+const formatNumberShort = (num) => {
+    // Ensure num is a number
+    const n = Number(num) || 0;
+
+    // Numbers below 1,000 are returned as-is (e.g., 999)
+    if (n < 1000) {
+        return n.toString();
+    }
+
+    // Thousands (K)
+    if (n >= 1000 && n < 1000000) {
+        // Divide by 1000 and round to 1 decimal place if needed
+        const val = n / 1000;
+        return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + 'K';
+    }
+
+    // Millions (M)
+    if (n >= 1000000) {
+        // Divide by 1,000,000 and round to 1 decimal place
+        const val = n / 1000000;
+        return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + 'M';
+    }
+};
+
+// Get profile (UPDATED: Added isFollowing status)
+app.get('/api/profiles/:profileId', authenticate, async (req, res) => {
+    try {
+        const { profileId } = req.params;
+        const currentUserId = req.user.id;
+
+        let query, queryParam;
+
+        if (!isNaN(Number(profileId))) {
+            query = 'SELECT * FROM profiles WHERE id = ?';
+            queryParam = profileId;
+        } else {
+            // It's a string handle (e.g., "johndoe" or "@johndoe")
+            // Clean the handle by removing an optional leading '@'
+            const cleanedHandle = profileId.startsWith('@') ? profileId.substring(1) : profileId;
+            query = 'SELECT * FROM profiles WHERE handle = ?';
+            queryParam = cleanedHandle;
+        }
+
+        // 1. Fetch Profile Data
+        const [rows] = await pool.query(query, [queryParam]);
+        if (rows.length === 0) return res.status(404).json({ message: 'Profile not found' });
+
+        const profile = rows[0];
+
+        const [followStatus] = await pool.query(
+            'SELECT EXISTS(SELECT 1 FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?) AS isFollowing',
+            [currentUserId, profile.id]
+        );
+        const isFollowing = followStatus[0].isFollowing === 1;
+
+        // 3. Format Response
+        const formattedProfile = {
+            id: profile.id.toString(),
+            name: profile.name,
+            handle: profile.handle,
+            type: profile.type,
+            niche: profile.niche,
+            location: profile.location,
+            verified: profile.verified === 1,
+            bio: profile.bio,
+            avatar: profile.avatar,
+            isVIP: profile.isVIP === 1,
+            isFollowing: isFollowing,
+            stats: {
+                followers: formatNumberShort(profile.followers),
+                following: (profile.following || 0).toString(),
+                engagementRate: ((Number(profile.engagement_rate) || 0).toFixed(1)) + '%',
+                totalReach: formatNumberShort(profile.total_reach),
+            },
+            socialLinks: JSON.parse(profile.social_links_json || '{}')
+        };
+
+        res.json(formattedProfile);
+    } catch (err) {
+        console.error('Error fetching profile:', err);
+        res.status(500).json({ error: 'Failed to fetch profile data' });
+    }
+});
+
+// Toggle follow
+app.post('/api/profiles/:profileId/follow', authenticate, async (req, res) => {
+    const { profileId } = req.params;
+    const followerId = req.user.id;
+
+    if (String(followerId) === profileId) {
+        return res.status(400).json({ message: "Cannot follow your own profile" });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        // 1. Check if the user is already following the profile
+        const [existingFollow] = await connection.query(
+            'SELECT * FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?',
+            [followerId, profileId]
+        );
+
+        const isCurrentlyFollowing = existingFollow.length > 0;
+        let message;
+
+        if (isCurrentlyFollowing) {
+            // UNFOLLOW
+            await connection.query(
+                'DELETE FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?',
+                [followerId, profileId]
+            );
+            // Decrement profile's follower count
+            await connection.query(
+                'UPDATE profiles SET followers = GREATEST(followers - 1, 0) WHERE id = ?',
+                [profileId]
+            );
+            message = 'Unfollowed successfully';
+        } else {
+            // FOLLOW
+            await connection.query(
+                'INSERT INTO user_follows (follower_user_id, following_profile_id) VALUES (?, ?)',
+                [followerId, profileId]
+            );
+            // Increment profile's follower count
+            await connection.query(
+                'UPDATE profiles SET followers = followers + 1 WHERE id = ?',
+                [profileId]
+            );
+            message = 'Followed successfully';
+        }
+
+        // Get the updated count for the response
+        const [updatedProfile] = await connection.query('SELECT followers FROM profiles WHERE id = ?', [profileId]);
+
+        await connection.commit();
+
+        res.json({
+            message: message,
+            isFollowing: !isCurrentlyFollowing, // Send the new status
+            followers: updatedProfile[0].followers // Send the new count
+        });
+
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error('Error toggling follow:', err);
+        res.status(500).json({ message: 'Failed to update follow status' });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+// Get portfolio
+app.get('/api/profiles/:profileId/portfolio', authenticate, async (req, res) => {
+    const { profileId } = req.params;
+    try {
+        const [rows] = await pool.query(
+            'SELECT * FROM portfolio WHERE profile_id = ? ORDER BY id DESC',
+            [profileId]
+        );
+
+        const formatted = rows.map(item => ({
+            id: item.id.toString(),
+            profileId: item.profile_id.toString(),
+            title: item.title,
+            brand: item.brand,
+            type: item.type,
+            description: item.description,
+            image: item.image,
+            createdAt: item.created_at,
+            stats: {
+                likes: item.likes || 0,   // send numeric value
+                views: item.views || 0    // send numeric value
+            }
+        }));
+
+        res.json(formatted);
+    } catch (err) {
+        console.error('Error fetching portfolio:', err);
+        res.status(500).json({ message: 'Failed to fetch portfolio' });
+    }
+});
+// Add portfolio post
+app.post('/api/profiles/:profileId/portfolio', authenticate, async (req, res) => {
+    const { profileId } = req.params;
+    const { title, brand, type, description, imagePreview } = req.body;
+    try {
+        const defaultStats = JSON.stringify({ likes: '0', views: '0' });
+        const [result] = await pool.query(
+            `INSERT INTO portfolio (profile_id, title, brand, type, image, description, stats_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+            [profileId, title, brand, type, imagePreview, description, defaultStats]
+        );
+        res.status(201).json({
+            id: result.insertId.toString(),
+            title, brand, type, description, image: imagePreview,
+            stats: JSON.parse(defaultStats),
+            createdAt: new Date().toISOString()
+        });
+    } catch (err) {
+        console.error('Error adding portfolio post:', err);
+        res.status(500).json({ message: 'Failed to add portfolio post' });
+    }
+});
+
+// Delete portfolio post
+app.delete('/api/profiles/:profileId/portfolio/:postId', authenticate, async (req, res) => {
+    const { profileId, postId } = req.params;
+    try {
+        const [result] = await pool.query('DELETE FROM portfolio WHERE id = ? AND profile_id = ?', [postId, profileId]);
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Post not found or unauthorized' });
+        res.status(204).send();
+    } catch (err) {
+        console.error('Error deleting portfolio post:', err);
+        res.status(500).json({ message: 'Failed to delete post' });
+    }
+});
+
+// Like/unlike portfolio post
+app.post('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+    const { postId } = req.params;
+    try {
+        // Increment likes by 1 (or create a separate likes table if needed)
+        const [result] = await pool.query('UPDATE portfolio SET likes = likes + 1 WHERE id = ?', [postId]);
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Post not found' });
+
+        // Return new likes count
+        const [updatedRows] = await pool.query('SELECT likes FROM portfolio WHERE id = ?', [postId]);
+        res.json({ likes: updatedRows[0].likes });
+    } catch (err) {
+        console.error('Error liking post:', err);
+        res.status(500).json({ message: 'Failed to like post' });
+    }
+});
+
+// Optional: unlike
+app.delete('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+    const { postId } = req.params;
+    try {
+        const [result] = await pool.query('UPDATE portfolio SET likes = GREATEST(likes - 1, 0) WHERE id = ?', [postId]);
+        if (result.affectedRows === 0) return res.status(404).json({ message: 'Post not found' });
+
+        const [updatedRows] = await pool.query('SELECT likes FROM portfolio WHERE id = ?', [postId]);
+        res.json({ likes: updatedRows[0].likes });
+    } catch (err) {
+        console.error('Error unliking post:', err);
+        res.status(500).json({ message: 'Failed to unlike post' });
+    }
+});
+
+app.post('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+    const { profileId, postId } = req.params;
+    try {
+        const [rows] = await pool.query('SELECT likes FROM portfolio WHERE id = ? AND profile_id = ?', [postId, profileId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
+
+        const newLikes = (rows[0].likes || 0) + 1;
+        await pool.query('UPDATE portfolio SET likes = ? WHERE id = ?', [newLikes, postId]);
+
+        res.json({ likes: newLikes });
+    } catch (err) {
+        console.error('Error liking post:', err);
+        res.status(500).json({ message: 'Failed to like post' });
+    }
+});
+
+// Unlike a post
+app.delete('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+    const { profileId, postId } = req.params;
+    try {
+        const [rows] = await pool.query('SELECT likes FROM portfolio WHERE id = ? AND profile_id = ?', [postId, profileId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
+
+        const newLikes = Math.max((rows[0].likes || 0) - 1, 0);
+        await pool.query('UPDATE portfolio SET likes = ? WHERE id = ?', [newLikes, postId]);
+
+        res.json({ likes: newLikes });
+    } catch (err) {
+        console.error('Error unliking post:', err);
+        res.status(500).json({ message: 'Failed to unlike post' });
+    }
+});
+
+// Get analytics
+app.get('/api/profiles/:profileId/analytics', authenticate, async (req, res) => {
+    const { profileId } = req.params;
+
+    try {
+        const [portfolioTotals] = await pool.query(
+            'SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?',
+            [profileId]
+        );
+
+        const totalLikes = Number(portfolioTotals[0].totalLikes || 0);
+        const totalViews = Number(portfolioTotals[0].totalViews || 0);
+
+        const [topPostsRows] = await pool.query(
+            'SELECT id, title, (likes + views) as engagement FROM portfolio WHERE profile_id = ? ORDER BY engagement DESC LIMIT 5',
+            [profileId]
+        );
+
+        const topPerformingPosts = topPostsRows.map(post => ({
+            id: post.id.toString(),
+            title: post.title,
+            engagement: Number(post.engagement)
+        }));
+
+        // 3. Prepare Chart Data (Using the live totals for placeholders)
+        const viewsByPlatform = [
+            { platform: 'Web', views: Math.round(totalViews * 0.7) },
+            { platform: 'Mobile', views: Math.round(totalViews * 0.3) },
+        ];
+
+        // trend charts
+        const engagementOverTime = [];
+        const reachTrend = [];
+
+        const analyticsData = {
+            // Live Totals (used by key metrics)
+            totalLikes: totalLikes.toString(),
+            totalViews: totalViews.toString(),
+
+            // Chart/List data (used by charts and list)
+            engagementOverTime,
+            viewsByPlatform,
+            reachTrend,
+            topPerformingPosts,
+
+            newFollowersCount: 0
+        };
+
+        res.json(analyticsData);
+
+    } catch (err) {
+        console.error('Error fetching analytics:', err);
+        res.status(500).json({ message: 'Failed to fetch analytics' });
+    }
+});
+
+
+app.post('/api/profiles/me/avatar', authenticate, upload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+        const avatarPath = `/uploads/${req.file.filename}`; // path to save in DB
+
+        await pool.query('UPDATE profiles SET avatar = ? WHERE id = ?', [avatarPath, req.user.id]);
+
+        // Return updated profile
+        const [rows] = await pool.query('SELECT * FROM profiles WHERE id = ?', [req.user.id]);
+        if (rows.length === 0) return res.status(404).json({ message: 'Profile not found' });
+
+        res.json({ ...rows[0], avatar: avatarPath });
+    } catch (err) {
+        console.error('Error updating avatar:', err);
+        res.status(500).json({ message: 'Failed to update avatar' });
+    }
+});
+
+// Increment views
+app.post('/api/profiles/:profileId/portfolio/:postId/view', authenticate, async (req, res) => {
+    const { postId } = req.params;
+
+    // We don't check profileId ownership here, as we assume any authenticated user viewing
+    // the post should increment the view count.
+    try {
+        const [result] = await pool.query(
+            'UPDATE portfolio SET views = views + 1 WHERE id = ?',
+            [postId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+
+        // Fetch the updated view count to return to the client
+        const [updatedRows] = await pool.query('SELECT views FROM portfolio WHERE id = ?', [postId]);
+
+        res.status(200).json({
+            message: 'View recorded successfully',
+            views: updatedRows[0].views
+        });
+
+    } catch (err) {
+        console.error('Error tracking view:', err);
+        res.status(500).json({ message: 'Failed to record view' });
+    }
+});
+
+app.use('/uploads', express.static('uploads'));
+
+// =======================
+// START SERVER
+// =======================
+app.listen(PORT, () => {
+    console.log(`\n🎉 Backend running on http://localhost:${PORT}`);
+    console.log(`   (MariaDB port: ${process.env.DB_PORT})`);
+});

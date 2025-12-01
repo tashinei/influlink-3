@@ -294,7 +294,7 @@ const Home = () => {
         distortion={2.5}
         speed={0.8}
         swirl={1.5}
-        veilOpacity="bg-black/40"
+        veilOpacity="bg-black/80"
       />
 
       {!isRegistered && accountType && (
