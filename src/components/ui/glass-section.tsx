@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import { MeshGradient } from "@paper-design/shaders-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const GlassSection: React.FC = () => {
+interface GlassSectionProps {
+  onOpenDialog: () => void;
+}
+
+const GlassSection: React.FC<GlassSectionProps> = ({ onOpenDialog }) => {
   const [dimensions, setDimensions] = useState({ width: 480, height: 270 });
   const [mounted, setMounted] = useState(false);
   const [offsetX, setOffsetX] = useState(0.5); // initial offset
@@ -138,6 +142,7 @@ const GlassSection: React.FC = () => {
               boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
               border: "4px solid rgba(255,255,255,0.25)",
             }}
+            onClick={onOpenDialog}
             onMouseEnter={(e) =>
             (e.currentTarget.style.background =
               "linear-gradient(150deg, rgba(120, 120, 120, 0.2), rgba(45, 143, 230, 0.52)")

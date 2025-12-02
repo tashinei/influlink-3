@@ -100,8 +100,13 @@ const CreatorAbout = () => {
     const { toast } = useToast();
     const [quizStep, setQuizStep] = useState(1);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const isMobile = useIsMobile();
     const { t } = useTranslation();
+    const [statusEmail, setStatusEmail] = useState("");
+    const [statusCode, setStatusCode] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -142,6 +147,68 @@ const CreatorAbout = () => {
                 description: "Проверете интернет връзката си и опитайте пак.",
                 className: "bg-red-600 text-white border-none",
             });
+        }
+    };
+
+    const validateEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        return regex.test(email);
+    };
+
+    const handleStatusSubmit = async () => {
+        if (!validateEmail(statusEmail)) {
+            toast({
+                title: "Невалиден имейл",
+                description: "Моля, въведете валиден имейл адрес.",
+                className: "bg-yellow-600 text-white border-none",
+            });
+            return;
+        }
+
+        if (!statusCode.trim()) {
+            toast({
+                title: "Невалиден код",
+                description: "Моля, въведете вашия статус код.",
+                className: "bg-yellow-600 text-white border-none",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const response = await fetch("https://influ-link.com/api/checkStatus.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: statusEmail, status_code: statusCode }),
+            });
+            const result = await response.json();
+
+            if (response.ok && result.status === "success") {
+                toast({
+                    title: "Статус на акаунта",
+                    description: (
+                        <span>
+                            Вашият VIP статус: <strong>{result.statusCode}</strong>
+                        </span>
+                    ),
+                    className: "bg-green-600 text-white border-none",
+                });
+            } else {
+                toast({
+                    title: "Грешка",
+                    description: result.message || "Неуспешна проверка на статус код.",
+                    className: "bg-red-600 text-white border-none",
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            toast({
+                title: "Грешка",
+                description: "Неуспешно свързване със сървъра. Опитайте отново по-късно.",
+                className: "bg-red-600 text-white border-none",
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -217,6 +284,46 @@ const CreatorAbout = () => {
             className="min-h-dvh pt-20 w-full overflow-x-hidden"
             style={{ position: "relative", top: "-80px" }}
         >
+            <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Проверете VIP статус</DialogTitle>
+                        <DialogDescription>
+                            Въведете Вашия имейл и статус код, за да проверите текущия статус на акаунта си.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="mt-4 space-y-4">
+                        <div>
+                            <Label htmlFor="statusEmail">Имейл</Label>
+                            <Input
+                                id="statusEmail"
+                                type="email"
+                                placeholder="your@email.com"
+                                value={statusEmail}
+                                onChange={(e) => setStatusEmail(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <Label htmlFor="statusCode">Статус код</Label>
+                            <Input
+                                id="statusCode"
+                                type="text"
+                                placeholder="INFU-XXXXX"
+                                value={statusCode}
+                                onChange={(e) => setStatusCode(e.target.value)}
+                            />
+                        </div>
+                        <Button
+                            onClick={handleStatusSubmit}
+                            disabled={isSubmitting}
+                            className="w-full mt-2"
+                        >
+                            {isSubmitting ? "Моля, изчакайте..." : "Проверете статуса"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
             {/* Hero Section */}
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4">
@@ -425,7 +532,7 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            <GlassSection></GlassSection>
+            <GlassSection onOpenDialog={() => setIsDialogOpen(true)}></GlassSection>
 
             {/* FAQ Section */}
             <section className="py-20 bg-background">
