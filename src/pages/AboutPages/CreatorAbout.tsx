@@ -102,6 +102,13 @@ const CreatorAbout = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const isMobile = useIsMobile();
     const { t } = useTranslation();
+    const [emailError, setEmailError] = useState("");
+
+    const validateEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+        return regex.test(email);
+    };
+
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -141,29 +148,6 @@ const CreatorAbout = () => {
                 title: "Възникна грешка",
                 description: "Проверете интернет връзката си и опитайте пак.",
                 className: "bg-red-600 text-white border-none",
-            });
-        }
-    };
-
-    const handleQuizSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (quizStep < 3) {
-            setQuizStep(quizStep + 1);
-        } else {
-            toast({
-                title: "Успешно се записахте!",
-                description: "Ще се свържем с вас скоро.",
-            });
-            await sendEmail();
-            setIsDialogOpen(false);
-            setQuizStep(1);
-            setFormData({
-                name: "",
-                email: "",
-                accountType: "",
-                businessName: "",
-                followers: "",
-                niche: "",
             });
         }
     };

@@ -7,11 +7,11 @@ import { Label } from "@/components/ui/label";
 import { AlertCircle, AtSign, CheckCircle2, Info, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserStore } from "@/store/useUserStore";
-
+import ReCAPTCHA from "react-google-recaptcha";
 import { HeroSection } from "@/components/ui/hero-section-with-smooth-bg-shader";
 import MultiSelectListBox from "@/components/MultiSelectListBox";
 import CountryPickerModal from "@/components/CountryPickerModal";
-
+import process from "process";
 import waitlistHero from "@/assets/hero-grad3.jpg";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -21,6 +21,38 @@ const Home = () => {
   const { toast } = useToast();
   const setRegistered = useUserStore(state => state.setRegistered);
   const isRegistered = useUserStore(state => state.isRegistered);
+  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+  const validTLDs = [
+    "com", "net", "org", "edu", "gov", "mil", "int", "info", "biz",
+    "co", "io", "ai", "me", "tv", "us", "uk", "ca", "de", "fr", "jp",
+    "au", "ru", "ch", "it", "nl", "se", "no", "es", "in", "cn", "br",
+    "za", "nz", "mx", "kr", "be", "at", "dk", "fi", "pl", "gr", "pt",
+    "tr", "ar", "cl", "sg", "hk", "ie", "my", "th", "vn"
+    // You can expand this list with more TLDs if needed
+  ];
+
+
+  function isValidEmail(email: string) {
+    const [localPart, domainPart] = email.split("@");
+
+    if (!localPart || !domainPart) return false;
+
+    // Local part validation
+    const localRegex = /^[A-Za-z0-9._%+-]+$/;
+    if (!localRegex.test(localPart)) return false;
+
+    // Domain part validation
+    const domainRegex = /^(?!-)(?!.*--)(?!.*\.\.)[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
+    if (!domainRegex.test(domainPart)) return false;
+
+    // Check if domain has a valid TLD
+    const domainParts = domainPart.split(".");
+    const tld = domainParts[domainParts.length - 1].toLowerCase();
+    if (!validTLDs.includes(tld)) return false;
+
+    return true;
+  }
 
   const { t } = useTranslation();
 
@@ -115,6 +147,8 @@ const Home = () => {
     setStepError(null);
   };
 
+  const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+
   const handleOpenDialog = (type: "creator" | "brand") => {
     setAccountType(type);
     resetForm();
@@ -123,9 +157,16 @@ const Home = () => {
 
   // 4. Translated Validation Messages
   const validateStep = () => {
-    if (step === 1 && (!formData.name.trim() || !formData.email.trim())) {
-      setStepError(t("form.validation.nameEmailRequired") || "Моля, въведете име и имейл");
-      return false;
+    if (step === 1) {
+      if (!formData.name.trim() || !formData.email.trim()) {
+        setStepError(t("form.validation.nameEmailRequired") || "Моля, въведете име и имейл");
+        return false;
+      }
+
+      if (!isValidEmail(formData.email)) {
+        setStepError("Моля, въведете валиден имейл адрес.");
+        return false;
+      }
     }
 
     if (step === 2) {
@@ -220,6 +261,11 @@ const Home = () => {
 
     if (!accountType) return;
 
+    if (!captchaValue) {
+      setStepError("Моля, потвърдете, че не сте робот.");
+      return;
+    }
+
     // ... (API submission logic remains the same)
     try {
       const payload = accountType === "creator" ? {
@@ -232,7 +278,8 @@ const Home = () => {
         primary_platform: formData.platform,
         social_tag: formData.socialTag,
         followers: formData.followers,
-        audience_description: formData.audience
+        audience_description: formData.audience,
+        captcha: captchaValue,
       } : {
         full_name: formData.name,
         email: formData.email,
@@ -240,7 +287,8 @@ const Home = () => {
         target_countries: formData.targetCountries,
         categories: formData.businessCategories.includes("Друго") && formData.otherCategory ? [...formData.businessCategories.filter(c => c !== "Друго"), formData.otherCategory] : formData.businessCategories,
         collab_types: formData.collabTypes.includes("Друго") && formData.otherCollab ? [...formData.collabTypes.filter(c => c !== "Друго"), formData.otherCollab] : formData.collabTypes,
-        ideal_client_description: formData.idealClient
+        ideal_client_description: formData.idealClient,
+        captcha: captchaValue,
       };
 
       const endpoint = accountType === "creator" ? "https://influ-link.com/api/registerCreator.php" : "https://influ-link.com/api/registerBrand.php";
@@ -353,6 +401,7 @@ const Home = () => {
                               value={formData.email}
                               onChange={e => setFormData({ ...formData, email: e.target.value })}
                               className="mt-1.5"
+                              pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
                             />
                           </div>
                         </div>
@@ -586,6 +635,15 @@ const Home = () => {
                       )}
                     </div>
 
+                    {step === (accountType === "creator" ? 6 : 5) && (
+                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 mb-4 flex justify-center">
+                          <ReCAPTCHA
+                            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                            onChange={(value) => setCaptchaValue(value)}
+                          />
+                        </div>
+                      )}
+
                     <div className="flex gap-3 mt-6 pt-2 border-t border-gray-100 md:border-none">
                       {step > 1 && (
                         <Button
@@ -597,7 +655,12 @@ const Home = () => {
                           {t("common.back")}
                         </Button>
                       )}
-                      <Button type="submit" className={`flex-1 ${step === 1 ? 'w-full' : ''}`}>
+
+                      <Button
+                        type="submit"
+                        className={`flex-1 ${step === 1 ? 'w-full' : ''} ${step === (accountType === "creator" ? 6 : 5) && !captchaValue ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={step === (accountType === "creator" ? 6 : 5) && !captchaValue}
+                      >
                         {step === (accountType === "creator" ? 6 : 5) ? t("common.submit") : t("common.next")}
                       </Button>
                     </div>
