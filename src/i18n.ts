@@ -184,7 +184,7 @@ export const translations = {
         audienceRequired: "Моля, опишете Вашата аудитория",
       },
 
-      country: {
+      countries: {
         "AL": "Албания",
         "AD": "Андора",
         "AT": "Австрия",
