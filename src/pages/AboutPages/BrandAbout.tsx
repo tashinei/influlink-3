@@ -35,6 +35,7 @@ import {
 import { DisplaySection } from "@/components/ui/display-section";
 import { useIsMobile } from "@/hooks/use-mobile";
 import GlassSection from "@/components/ui/glass-section";
+import VipStatusDialog from "@/components/VipStatusDialog";
 
 const creatorBenefits = [
     { icon: "TicketCheck", title: "Ранен достъп", description: "Използвайте платформата преди официалния старт", iconColor: "text-primary" },
@@ -284,46 +285,10 @@ const CreatorAbout = () => {
             className="min-h-dvh pt-20 w-full overflow-x-hidden"
             style={{ position: "relative", top: "-80px" }}
         >
-            <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Проверете VIP статус</DialogTitle>
-                        <DialogDescription>
-                            Въведете Вашия имейл и статус код, за да проверите текущия статус на акаунта си.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="mt-4 space-y-4">
-                        <div>
-                            <Label htmlFor="statusEmail">Имейл</Label>
-                            <Input
-                                id="statusEmail"
-                                type="email"
-                                placeholder="your@email.com"
-                                value={statusEmail}
-                                onChange={(e) => setStatusEmail(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="statusCode">Статус код</Label>
-                            <Input
-                                id="statusCode"
-                                type="text"
-                                placeholder="INFU-XXXXX"
-                                value={statusCode}
-                                onChange={(e) => setStatusCode(e.target.value)}
-                            />
-                        </div>
-                        <Button
-                            onClick={handleStatusSubmit}
-                            disabled={isSubmitting}
-                            className="w-full mt-2"
-                        >
-                            {isSubmitting ? "Моля, изчакайте..." : "Проверете статуса"}
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <VipStatusDialog
+                open={isStatusDialogOpen}
+                onOpenChange={setIsStatusDialogOpen}
+            />
             {/* Hero Section */}
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4">
@@ -532,7 +497,7 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            <GlassSection onOpenDialog={() => setIsDialogOpen(true)}></GlassSection>
+           <GlassSection onOpenDialog={() => { setIsStatusDialogOpen(true);}}></GlassSection>
 
             {/* FAQ Section */}
             <section className="py-20 bg-background">

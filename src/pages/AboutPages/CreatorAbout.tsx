@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Heart, Zap, Shield, Users, TrendingUp, Award, Clock } from "lucide-react";
+import { Target, Heart, Zap, Shield, Users, TrendingUp, Award, Clock, ShieldCheck, Mail, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Benefits } from "@/components/Benefits";
 import { DisplayCards } from "@/components/DisplayCards";
@@ -106,9 +106,6 @@ const CreatorAbout = () => {
     const isMobile = useIsMobile();
     const { t } = useTranslation();
     const [emailError, setEmailError] = useState("");
-    const [statusEmail, setStatusEmail] = useState("");
-    const [statusCode, setStatusCode] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const validateEmail = (email) => {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -123,63 +120,6 @@ const CreatorAbout = () => {
         followers: "",
         niche: "",
     });
-
-    const handleStatusSubmit = async () => {
-        if (!validateEmail(statusEmail)) {
-            toast({
-                title: "Невалиден имейл",
-                description: "Моля, въведете валиден имейл адрес.",
-                className: "bg-yellow-600 text-white border-none",
-            });
-            return;
-        }
-
-        if (!statusCode.trim()) {
-            toast({
-                title: "Невалиден код",
-                description: "Моля, въведете вашия статус код.",
-                className: "bg-yellow-600 text-white border-none",
-            });
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const response = await fetch("https://influ-link.com/api/checkStatus.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: statusEmail, status_code: statusCode }),
-            });
-            const result = await response.json();
-
-            if (response.ok && result.status === "success") {
-                toast({
-                    title: "Статус на акаунта",
-                    description: (
-                        <span>
-                            Вашият VIP статус: <strong>{result.statusCode}</strong>
-                        </span>
-                    ),
-                    className: "bg-green-600 text-white border-none",
-                });
-            } else {
-                toast({
-                    title: "Грешка",
-                    description: result.message || "Неуспешна проверка на статус код.",
-                    className: "bg-red-600 text-white border-none",
-                });
-            }
-        } catch (err) {
-            console.error(err);
-            toast({
-                title: "Грешка",
-                description: "Неуспешно свързване със сървъра. Опитайте отново по-късно.",
-                className: "bg-red-600 text-white border-none",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     const sendEmail = async () => {
         try {
@@ -473,7 +413,7 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            <GlassSection onOpenDialog={() => { setIsStatusDialogOpen(true); console.log("Clicked status!") }}></GlassSection>
+            <GlassSection onOpenDialog={() => { setIsStatusDialogOpen(true);}}></GlassSection>
 
             <section className="py-20 bg-background">
                 <div className="container mx-auto px-4">
