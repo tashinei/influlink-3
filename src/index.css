@@ -482,3 +482,27 @@ body {
   mix-blend-mode: overlay;
   z-index: 1;
 } */
+
+/* Smooth floating animation */
+@keyframes dockFloat {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}
+
+.dock-float {
+  animation: dockFloat 5s ease-in-out infinite;
+}
+
+/* Hover scale without JS */
+.dock-item {
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.dock-item:hover {
+  transform: translateY(-4px) scale(1.08);
+}
+
+.dock-item:active {
+  transform: scale(0.95);
+}

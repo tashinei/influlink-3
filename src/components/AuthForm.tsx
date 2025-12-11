@@ -26,9 +26,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ic
   const [error, setError] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  if (!API_BASE_URL) {
+    throw new Error("API_BASE_URL environment variable is not set.");
+  }
+
   const API_URL = mode === 'register'
-    ? 'http://localhost:3000/api/register'
-    : 'http://localhost:3000/api/login';
+    ? `${API_BASE_URL}/register`
+    : `${API_BASE_URL}/login`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -72,7 +78,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ic
       setAccountType(accountType);
 
       if (mode === 'register') setIsSuccessModalOpen(true);
-      else navigate('/profile');
+      else navigate('/profile/me');
 
     } catch (err) {
       console.error(err);
@@ -214,7 +220,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ic
                 <Button
                   onClick={() => {
                     setIsSuccessModalOpen(false);
-                    navigate('/profile');
+                    navigate('/profile/me');
                   }}
                   className="bg-white text-black rounded-full px-8 py-6 text-[16px] font-semibold shadow-md shadow-primary transition duration-300 ease-in-out hover:scale-105 hover:text-white hover:bg-white/30"
                 >

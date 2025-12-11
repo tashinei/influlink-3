@@ -4,7 +4,7 @@ export const translations = {
       title: "Присъединете се към бъдещето на",
       highlightText: "инфлуенсър маркетинга",
       description:
-        "Запишете се в чакащата листа за ранен достъп до първата българска платформа",
+        "Запишете се за ранен достъп и бъдете сред първите.",
       creatorButton: "Създател",
       brandButton: "Бизнес",
     },
@@ -32,6 +32,11 @@ export const translations = {
         createdForFirstPart: "Създадена за",
         createdForSecondPart: "Вашия бизнес",
       }
+    },
+
+    editProfile :{
+      title: "Редактиране на профил",
+      subtitle: "Изберете промени"
     },
 
     form: {
@@ -268,7 +273,8 @@ export const translations = {
         country: "Вашата държава",
         otherNiche: "Моля опишете",
         selectCountries: "+ Изберете до 3 държави",
-        otherCollab: "Моля опишете"
+        otherCollab: "Моля опишете",
+        yourNiche: "Вашата ниша..."
       },
 
       misc: {
@@ -286,7 +292,7 @@ export const translations = {
     creatorAbout: {
       hero: {
         title: "За създатели",
-        subtitle: "Първата платформа в България, която свързва брандове с инфлуенсъри за истински и измерим растеж"
+        subtitle: "Свържете се с брандове, които търсят вашата аудитория, и превърнете влиянието си в реални възможности."
       },
       section_title_1: "Създадена за Вас",
       section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
@@ -388,6 +394,11 @@ export const translations = {
         createdForFirstPart: "Created for",
         createdForSecondPart: "Your business",
       }
+    },
+
+    editProfile :{
+      title: "Edit profile",
+      subtitle: "Enter desired changes"
     },
 
     form: {
@@ -624,7 +635,8 @@ export const translations = {
         followers: "Please enter",
         select: "Please choose",
         otherNiche: "Please enter",
-        otherCollab: "Please enter"
+        otherCollab: "Please enter",
+        yourNiche: "Your niche..."
       },
 
       misc: {

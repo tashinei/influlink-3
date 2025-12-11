@@ -215,7 +215,7 @@ export const AddPostDialog = ({ isOpen, onClose, onSubmit }: AddPostDialogProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="p-0 overflow-hidden max-w-[95vw] sm:max-w-[700px] max-h-[90vh] flex flex-col">
+      <DialogContent className="overflow-hidden max-w-[95vw] sm:max-w-[700px] max-h-[90vh] flex flex-col p-[20px]">
         <div className="px-5 py-4 sm:px-7 sm:py-5 border-b flex-shrink-0">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">Add New Work</DialogTitle>

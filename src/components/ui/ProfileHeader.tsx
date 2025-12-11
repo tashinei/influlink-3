@@ -10,9 +10,10 @@ interface ProfileHeaderProps {
   isFollowing: boolean;
   onToggleFollow: () => void;
   onChangeProfilePic?: (file: File) => void;
+  onEditProfile?: () => void;
 }
 
-export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic, onEditProfile }: ProfileHeaderProps) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -20,6 +21,12 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
       .join("")
       .toUpperCase();
   };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(profile.name);
+  const [editBio, setEditBio] = useState(profile.bio);
+  const [editNiche, setEditNiche] = useState(profile.niche);
+  const [loading, setLoading] = useState(false);
 
   // The presence of onChangeProfilePic means the logged-in user is viewing their own profile.
   const isOwner = !!onChangeProfilePic;
@@ -128,9 +135,9 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                   // Case 2: Owner - Show Edit Profile button
                   <Button
                     variant="default"
-                    className="flex-1 md:flex-none rounded-full px-6 bg-gradient-to-br from-primary to-secondary"
+                    className="flex-1 md:flex-none rounded-full px-6 bg-gradient-to-br from-primary to-secondary hover:scale-105 transition duration-300 ease-in-out"
                     // You would replace the onClick with navigation to your Edit Profile route/modal
-                    onClick={() => console.log("Navigate to Edit Profile")}
+                    onClick={onEditProfile}
                   >
                     <UserCog className="w-5 h-5 m-0" />
                     Edit Profile
@@ -160,15 +167,15 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                       <Instagram className="w-5 h-5 text-pink-600" />
                     </a>
                   )}
-                  {profile.socialLinks.twitter && (
+                  {profile.socialLinks.x && (
                     <a
-                      href={profile.socialLinks.twitter}
+                      href={profile.socialLinks.x}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform"
-                      aria-label="Twitter"
+                      aria-label="X"
                     >
-                      <Twitter className="w-5 h-5" />
+                      <i className="fa-brands fa-x-twitter absolute left-3 top-1/2 -translate-y-1/2 text-xl text-gray-500"></i>
                     </a>
                   )}
                   {profile.socialLinks.youtube && (

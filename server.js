@@ -46,6 +46,28 @@ pool.getConnection()
 // AUTH ROUTES
 // =======================
 
+// Generate base handle from name
+const generateHandleFromName = (name) => {
+    return name
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '')       // remove spaces
+        .replace(/[^a-z0-9]/g, ''); // remove special chars
+};
+
+// Ensure handle is unique in DB
+const generateUniqueHandle = async (baseHandle) => {
+    let handle = baseHandle;
+    let count = 0;
+
+    while (true) {
+        const [rows] = await pool.query('SELECT id FROM profiles WHERE handle = ?', [handle]);
+        if (rows.length === 0) return handle;
+        count++;
+        handle = `${baseHandle}${count}`;
+    }
+};
+
 // Registration
 app.post('/api/register', async (req, res) => {
     try {
@@ -68,7 +90,8 @@ app.post('/api/register', async (req, res) => {
         const newUserId = result.insertId;
 
         // Create profile for user
-        const handle = name.replace(/\s+/g, '').toLowerCase();
+        const baseHandle = generateHandleFromName(name);
+        const handle = await generateUniqueHandle(baseHandle);
         await pool.query(
             'INSERT INTO profiles (id, name, handle, type, created_at) VALUES (?, ?, ?, ?, NOW())',
             [newUserId, name, handle, accountType]
@@ -486,33 +509,171 @@ app.post('/api/profiles/me/avatar', authenticate, upload.single('avatar'), async
     }
 });
 
-// Increment views
-app.post('/api/profiles/:profileId/portfolio/:postId/view', authenticate, async (req, res) => {
-    const { postId } = req.params;
+const analyticsBuffer = {}; // { [profileId]: { views: number, likes: number } }
 
-    // We don't check profileId ownership here, as we assume any authenticated user viewing
-    // the post should increment the view count.
+function bufferAnalytics(profileId, type = 'views', amount = 1) {
+    if (!analyticsBuffer[profileId]) analyticsBuffer[profileId] = { views: 0, likes: 0 };
+    analyticsBuffer[profileId][type] += amount;
+}
+
+const postViewsBuffer = {};
+// { [postId]: number of pending views }
+
+function bufferPostView(postId, amount = 1) {
+    if (!postViewsBuffer[postId]) postViewsBuffer[postId] = 0;
+    postViewsBuffer[postId] += amount;
+}
+
+setInterval(async () => {
+    const analyticsEntries = Object.entries(analyticsBuffer);
+    const postEntries = Object.entries(postViewsBuffer);
+
+    if (analyticsEntries.length === 0 && postEntries.length === 0) return;
+
+    const connection = await pool.getConnection();
     try {
-        const [result] = await pool.query(
-            'UPDATE portfolio SET views = views + 1 WHERE id = ?',
-            [postId]
-        );
+        await connection.beginTransaction();
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Post not found' });
+        // --- 1. Flush post views ---
+        for (const [postId, pendingViews] of postEntries) {
+            await connection.query(
+                'UPDATE portfolio SET views = views + ? WHERE id = ?',
+                [pendingViews, postId]
+            );
         }
 
-        // Fetch the updated view count to return to the client
-        const [updatedRows] = await pool.query('SELECT views FROM portfolio WHERE id = ?', [postId]);
+        // --- 2. Flush profile analytics (reach + engagement rate) ---
+        for (const [profileId, { views, likes }] of analyticsEntries) {
+            const reachIncrement = views + likes;
+            await connection.query(
+                'UPDATE profiles SET total_reach = total_reach + ? WHERE id = ?',
+                [reachIncrement, profileId]
+            );
 
-        res.status(200).json({
-            message: 'View recorded successfully',
-            views: updatedRows[0].views
+            const [totalsRows] = await connection.query(
+                'SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?',
+                [profileId]
+            );
+
+            const totalLikes = Number(totalsRows[0].totalLikes || 0);
+            const totalViews = Number(totalsRows[0].totalViews || 0);
+
+            const [followersRows] = await connection.query('SELECT followers FROM profiles WHERE id = ?', [profileId]);
+            const followersCount = Number(followersRows[0]?.followers || 0);
+
+            let rawRate = followersCount > 0 ? (totalLikes + totalViews) / followersCount : 0;
+            if (followersCount < 50) rawRate *= 0.5;
+            const engagementRatePercent = Math.min(rawRate * 100, 100).toFixed(1);
+
+            await connection.query(
+                'UPDATE profiles SET engagement_rate = ? WHERE id = ?',
+                [engagementRatePercent, profileId]
+            );
+        }
+
+        await connection.commit();
+
+        // Clear buffers
+        analyticsEntries.forEach(([profileId]) => delete analyticsBuffer[profileId]);
+        postEntries.forEach(([postId]) => delete postViewsBuffer[postId]);
+
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error('Batch update failed', err);
+    } finally {
+        if (connection) connection.release();
+    }
+}, 60_000); // every 60s
+
+// Increment views and update engagement rate
+app.post('/api/profiles/:profileId/portfolio/:postId/view', authenticate, async (req, res) => {
+    const { profileId, postId } = req.params;
+    try {
+        // 1. Buffer profile analytics (reach)
+        bufferAnalytics(profileId, 'views', 1);
+
+        // 2. Buffer post views
+        bufferPostView(postId, 1);
+
+        res.json({ message: 'View recorded (buffered)' });
+    } catch (err) {
+        console.error('Error recording view:', err);
+        res.status(500).json({ message: 'Failed to record view' });
+    }
+});
+
+// =======================
+// UPDATE PROFILE ROUTE
+// =======================
+app.post('/api/profiles/me/update', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        let { name, bio, niche, location } = req.body;
+
+        // Fetch current profile
+        const [rows] = await pool.query('SELECT * FROM profiles WHERE id = ?', [userId]);
+        if (rows.length === 0) return res.status(404).json({ message: "Profile not found" });
+
+        const currentProfile = rows[0];
+
+        // Use current name if none provided
+        if (!name || name.trim() === "") {
+            name = currentProfile.name;
+        }
+
+        // Use current bio/niche/location if missing
+        bio = bio ?? currentProfile.bio;
+        niche = niche ?? currentProfile.niche;
+        location = location ?? currentProfile.location;
+
+        // Generate unique handle only if the name changed
+        let handle = currentProfile.handle;
+        if (name !== currentProfile.name) {
+            const baseHandle = generateHandleFromName(name);
+            handle = await generateUniqueHandle(baseHandle);
+        }
+
+        // Update profile
+        await pool.query(
+            `UPDATE profiles 
+            SET name = ?, bio = ?, niche = ?, location = ?, handle = ?
+            WHERE id = ?`,
+            [name, bio, niche, location, handle, userId]
+        );
+
+        // Fetch updated profile
+        const [updatedRows] = await pool.query(
+            'SELECT * FROM profiles WHERE id = ?',
+            [userId]
+        );
+
+        if (updatedRows.length === 0) {
+            return res.status(404).json({ message: "Profile not found" });
+        }
+
+        // Return updated profile
+        const profile = updatedRows[0];
+
+        res.json({
+            message: "Profile updated successfully",
+            profile: {
+                id: profile.id,
+                name: profile.name,
+                handle: profile.handle,
+                bio: profile.bio,
+                niche: profile.niche,
+                location: profile.location,
+                avatar: profile.avatar,
+                type: profile.type,
+                isVIP: profile.isVIP,
+                followers: profile.followers,
+                following: profile.following
+            }
         });
 
     } catch (err) {
-        console.error('Error tracking view:', err);
-        res.status(500).json({ message: 'Failed to record view' });
+        console.error("Error updating profile:", err);
+        res.status(500).json({ message: "Failed to update profile" });
     }
 });
 

@@ -3,7 +3,12 @@ import { useState, useEffect, useCallback } from "react";
 import { PortfolioItem, NewPostData } from "@/types/profile";
 import { useUserStore } from "@/store/useUserStore";
 
-const API_BASE_URL = "http://localhost:3000/api/profiles";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!API_BASE_URL) {
+  throw new Error("API_BASE_URL environment variable is not set.");
+}
+
 
 // ✅ 1. Accept an optional targetProfileId parameter
 export const usePortfolio = (targetProfileId?: string) => {
@@ -38,7 +43,7 @@ export const usePortfolio = (targetProfileId?: string) => {
       setError(null);
 
       // Use the ID determined from targetProfileId or currentUserId
-      const response = await fetch(`${API_BASE_URL}/${idToFetch}/portfolio`, {
+      const response = await fetch(`${API_BASE_URL}/profiles/${idToFetch}/portfolio`, {
         credentials: 'include',
       });
 
@@ -78,7 +83,7 @@ export const usePortfolio = (targetProfileId?: string) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${currentUserId}/portfolio`, { // Use currentUserId
+      const response = await fetch(`${API_BASE_URL}/profiles/${currentUserId}/portfolio`, { // Use currentUserId
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: 'include',
@@ -117,7 +122,7 @@ export const usePortfolio = (targetProfileId?: string) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/${currentUserId}/portfolio/${postId}`, { // Use currentUserId
+      const response = await fetch(`${API_BASE_URL}/profiles/${currentUserId}/portfolio/${postId}`, { // Use currentUserId
         method: "DELETE",
         credentials: 'include',
       });

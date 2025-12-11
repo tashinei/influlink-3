@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { ProfileData } from "@/types/profile";
 import { useUserStore } from "@/store/useUserStore";
 
-const API_BASE_URL = "http://localhost:3000/api/profiles";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// 🔄 ADDED PARAMETER: profileIdentifier allows fetching by handle or ID
+if (!API_BASE_URL) {
+  throw new Error("API_BASE_URL environment variable is not set.");
+}
+
 export const useProfile = (profileIdentifier?: string) => {
   const user = useUserStore(state => state.user);
-  // ID of the currently logged-in user, used for authentication and default profile view
   const currentUserId = user?.id ?? null;
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -50,7 +52,7 @@ export const useProfile = (profileIdentifier?: string) => {
     try {
       setIsLoading(true);
 
-      const res = await fetch(`${API_BASE_URL}/${identifier}`, {
+      const res = await fetch(`${API_BASE_URL}/profiles/${identifier}`, {
         method: "GET",
         credentials: "include",
       });
@@ -92,7 +94,7 @@ export const useProfile = (profileIdentifier?: string) => {
     try {
       setIsFollowing(prev => !prev);
 
-      const res = await fetch(`${API_BASE_URL}/${targetProfileId}/follow`, {
+      const res = await fetch(`${API_BASE_URL}/profiles/${targetProfileId}/follow`, {
         method: 'POST',
         credentials: 'include',
       });

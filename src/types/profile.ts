@@ -12,7 +12,7 @@ export interface ProfileData {
   isVIP: boolean;
   socialLinks: {
     instagram?: string;
-    twitter?: string;
+    x?: string;
     youtube?: string;
     website?: string;
   };

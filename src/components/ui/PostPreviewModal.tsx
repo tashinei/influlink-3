@@ -17,14 +17,18 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
   const [likesCount, setLikesCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
-  const API_BASE_URL = "http://localhost:3000/api/profiles";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  if (!API_BASE_URL) {
+    throw new Error("API_BASE_URL environment variable is not set.");
+  }
 
   const trackView = async (postToTrack: PortfolioItem) => {
     if (!currentPost) return;
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/${currentPost.profileId}/portfolio/${currentPost.id}/view`,
+        `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}/view`,
         {
           method: "POST",
           credentials: "include",
@@ -65,7 +69,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
     const fetchPost = async () => {
       try {
         const res = await fetch(
-          `${API_BASE_URL}/${post.profileId}/portfolio`,
+          `${API_BASE_URL}/profiles/${post.profileId}/portfolio`,
           { credentials: "include" }
         );
         if (!res.ok) throw new Error("Failed to fetch portfolio");

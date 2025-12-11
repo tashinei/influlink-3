@@ -89,16 +89,15 @@ export function DisplayCards() {
           >
             {isCreator ? (
               <>
-                <span className="block">Не чакайте с месеци.</span>
                 <span className="block text-5xl bg-gradient-to-l from-secondary to-primary text-gradient">
-                  Започнете кариерата си сега.
+                  Започнете кариерата си сега!
                 </span>
               </>
             ) : (
               <>
-                <span className="block">Не губете време.</span>
+                <span className="block">Не чакайте.</span>
                 <span className="block text-5xl bg-gradient-to-l from-primary to-secondary text-gradient">
-                  Свържете се с инфлуенсъри моментално.
+                  Започнете да печелите от съдържанието си.
                 </span>
               </>
             )}

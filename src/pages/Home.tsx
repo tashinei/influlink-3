@@ -76,13 +76,10 @@ const Home = () => {
   useEffect(() => {
     if (!accountType) return;
 
-    // 1. Get the array of step names for the current accountType
     const flowStepNames = getArrayTranslation(stepNamesKey);
 
-    // 2. Get the title for the current step index (step is 1-based, array is 0-based)
     const newStepTitle = flowStepNames[step - 1];
 
-    // 3. Update the state
     if (newStepTitle) {
       setCurrentStepTitle(newStepTitle);
     }
