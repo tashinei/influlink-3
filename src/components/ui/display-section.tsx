@@ -1,5 +1,6 @@
 import { PhoneMockup } from "./phone-mockup";
 import { CollaborationChat } from "./collaboration-chat";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DisplaySectionProps {
   accountType?: "creator" | "brand";
@@ -7,6 +8,7 @@ interface DisplaySectionProps {
 
 export function DisplaySection({ accountType = "creator" }: DisplaySectionProps) {
   const isCreator = accountType === "creator";
+  const { t } = useTranslation();
 
   return (
     <section className="py-12 sm:py-16 md:py-24 lg:py-32 bg-[white]">
@@ -16,16 +18,16 @@ export function DisplaySection({ accountType = "creator" }: DisplaySectionProps)
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
             {isCreator ? (
               <>
-                <span className="block text-4xl text-foreground">Не чакайте с месеци.</span>
+                <span className="block text-4xl text-foreground">{t("creatorAbout.displayCards.title")}</span>
                 <span className="block text-3xl sm:text-4xl md:text-5xl mt-2 bg-gradient-to-r from-secondary to-primary text-gradient">
-                  Започнете кариерата си сега.
+                  {t("creatorAbout.displayCards.coloredTitle")}
                 </span>
               </>
             ) : (
               <>
-                <span className="block text-4xl text-foreground">Не губете време.</span>
+                <span className="block text-4xl text-foreground">{t("brandAbout.displayCards.title")}</span>
                 <span className="block text-3xl sm:text-4xl md:text-5xl mt-2 bg-gradient-to-r from-secondary to-primary text-gradient">
-                  Свържете се с инфлуенсъри моментално.
+                  {t("brandAbout.displayCards.coloredTitle")}
                 </span>
               </>
             )}
@@ -33,14 +35,14 @@ export function DisplaySection({ accountType = "creator" }: DisplaySectionProps)
 
           <p className="mt-6 sm:mt-8 text-xl sm:text-2xl font-semibold text-foreground max-w-lg">
             {isCreator
-              ? "Бъдете избрани от стотици бизнеси."
-              : "Управлявайте кампаниите си ефективно и лесно."}
+              ? t("creatorAbout.displayCards.subtitle")
+              : t("brandAbout.displayCards.subtitle")}
           </p>
 
           <p className="mt-3 sm:mt-4 text-base sm:text-lg text-muted-foreground max-w-lg">
             {isCreator
-              ? "Фокусирайте се върху създаването на съдържание, а ние ще се погрижим за сътрудничеството и плащанията."
-              : "Ние Ви улесняваме да откривате подходящи инфлуенсъри, да създавате кампании и да управлявате плащанията бързо и прозрачно."}
+              ? t("creatorAbout.displayCards.description")
+              : t("brandAbout.displayCards.description")}
           </p>
         </div>
 

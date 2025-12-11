@@ -11,8 +11,9 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp"
 import { ArrowLeft, CheckCircle2, Clock, Mail, ShieldCheck, XCircle } from "lucide-react"
+import { useTranslation } from "@/hooks/useTranslation"
 
-export default function VipStatusDialog({ open, onOpenChange }) {
+export default function VipStatusDialog({ open, onOpenChange, accountType }) {
   const [step, setStep] = useState(1) // 1 = Имейл, 2 = Код
   const [statusEmail, setStatusEmail] = useState("");
   const [statusCode, setStatusCode] = useState("");
@@ -20,6 +21,10 @@ export default function VipStatusDialog({ open, onOpenChange }) {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [modalType, setModalType] = useState("success");
   const [modalMessage, setModalMessage] = useState("");
+  const {t} = useTranslation();
+
+  const isCreator = accountType === "creator";
+  const accountAbout = isCreator ? "creatoAbout" : "brandAbout";
 
   useEffect(() => {
     if (!open) {
@@ -146,13 +151,13 @@ export default function VipStatusDialog({ open, onOpenChange }) {
             </div>
 
             <DialogTitle className="text-xl lg:text-3xl font-bold transition-all">
-              {step === 1 ? "Проверете статус" : "Статус код"}
+              {step === 1 ? t(`${accountAbout}.statusSection.modalFirstTitle`) : t(`${accountAbout}.statusSection.modalSecondTitle`)}
             </DialogTitle>
 
             <DialogDescription className="mt-2 text-center max-w-[280px] lg:text-[15px]">
               {step === 1
-                ? "Моля, въведете вашия имейл адрес, за да продължите."
-                : <>Въведете кодa, който сте получили при регистрация на <span className="font-medium text-foreground">{statusEmail}</span></>
+                ? t(`${accountAbout}.statusSection.modalFirstSubtitle`)
+                : <>{t(`${accountAbout}.statusSection.modalSecondSubtitle`)}<span className="font-medium text-foreground"> {statusEmail}</span></>
               }
             </DialogDescription>
           </div>
@@ -162,7 +167,7 @@ export default function VipStatusDialog({ open, onOpenChange }) {
             {step === 1 && (
               <form onSubmit={handleNextStep} className="space-y-4 animate-in slide-in-from-left-4 fade-in duration-300 w-full flex flex-col justify-center">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="sr-only">Имейл</Label>
+                  <Label htmlFor="email" className="sr-only">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -176,7 +181,7 @@ export default function VipStatusDialog({ open, onOpenChange }) {
                   />
                 </div>
                 <Button type="submit" className="bg-gradient-to-tl from-primary to-secondary w-[40%] h-10 font-medium" style={{ alignSelf: "center", justifySelf: "center" }}>
-                  Продължи
+                  {t(`${accountAbout}.statusSection.modalFirstButton`)}
                 </Button>
               </form>
             )}
@@ -206,7 +211,7 @@ export default function VipStatusDialog({ open, onOpenChange }) {
                   className="h-10 font-medium bg-gradient-to-tr from-primary to-secondary w-[50%]"
                   disabled={statusCode.length < 11 || isSubmitting}
                 >
-                  {isSubmitting ? "Проверка..." : "Потвърди кода"}
+                  {isSubmitting ? "Проверка..." : t(`${accountAbout}.statusSection.modalSecondButton`)}
                 </Button>
 
                 <div className="flex justify-between w-full text-xs text-muted-foreground px-1">
@@ -214,13 +219,13 @@ export default function VipStatusDialog({ open, onOpenChange }) {
                     onClick={() => setStep(1)}
                     className="flex items-center hover:text-foreground transition-colors"
                   >
-                    <ArrowLeft className="mr-1 h-3 w-3" /> Промяна на имейл
+                    <ArrowLeft className="mr-1 h-3 w-3" /> {t(`${accountAbout}.statusSection.modalBackButton`)}
                   </button>
                   <button
                     onClick={() => console.log("Resend code")}
                     className="hover:underline hover:text-foreground transition-colors"
                   >
-                    Изпрати нов код
+                    {t(`${accountAbout}.statusSection.modalResendButton`)}
                   </button>
                 </div>
               </div>

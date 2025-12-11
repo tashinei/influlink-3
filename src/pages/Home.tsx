@@ -78,6 +78,7 @@ const Home = () => {
 
   const [countryModalOpen, setCountryModalOpen] = useState(false);
   const [businessCountryModalOpen, setBusinessCountryModalOpen] = useState(false);
+  const [ownCountryModalOpen, setOwnCountryModalOpen] = useState(false);
 
   const [stepError, setStepError] = useState<string | null>(null);
 
@@ -101,7 +102,7 @@ const Home = () => {
     otherCollab: "",
     otherNiche: "",
     otherCategory: "",
-    yourCountry: "",
+    yourCountry: null as any,
   });
 
   // Update step title on step/accountType change
@@ -141,7 +142,7 @@ const Home = () => {
       otherCollab: "",
       otherNiche: "",
       otherCategory: "",
-      yourCountry: "",
+      yourCountry: null
     });
     setStep(1);
     setStepError(null);
@@ -194,25 +195,43 @@ const Home = () => {
     }
 
     if (step === 3) {
+      if (!formData.yourCountry) {
+        setStepError(t("form.validation.yourCountryRequired") || "Моля, изберете Вашата държава");
+        return false;
+      }
+
       if (accountType === "creator" && formData.topCountries.length === 0) {
-        setStepError(t("form.validation.countriesRequired") || "Моля, въведете поне една държава");
+        setStepError(t("form.validation.topCountriesRequired") || "Моля, изберете поне една държава, където имате най-много последователи");
         return false;
       }
       if (accountType === "brand" && formData.targetCountries.length === 0) {
-        setStepError(t("form.validation.countriesRequired") || "Моля, изберете поне една държава");
+        setStepError(t("form.validation.targetCountriesRequired") || "Моля, изберете поне една целева държава");
         return false;
       }
     }
 
     if (step === 4) {
-      if (formData.collabTypes.length === 0) {
-        setStepError(t("form.validation.collabRequired") || "Моля, изберете поне един вид сътрудничество");
-        return false;
+      if (accountType === "creator") {
+        if (formData.collabTypes.length === 0) {
+          setStepError(t("form.validation.collabRequired") || "Моля, изберете поне един вид сътрудничество");
+          return false;
+        }
+        if (formData.collabTypes.includes("Друго") && !formData.otherCollab.trim()) {
+          setStepError(t("form.validation.otherCollabRequired") || "Моля, опишете другия вид колаборация");
+          return false;
+        }
       }
-      if (formData.collabTypes.includes("Друго") && !formData.otherCollab.trim()) {
-        setStepError(t("form.validation.otherCollabRequired") || "Моля, опишете другия вид колаборация");
-        return false;
+      else {
+        if (formData.niches.length === 0) {
+          setStepError(t("form.validation.nicheRequired") || "Моля, изберете поне една ниша");
+          return false;
+        }
+        if (formData.niches.includes("Друго") && !formData.otherNiche.trim()) {
+          setStepError(t("form.validation.nicheRequired") || "Моля, опишете другата ниша");
+          return false;
+        }
       }
+
     }
 
     if (step === 5) {
@@ -410,7 +429,7 @@ const Home = () => {
                       {step === 2 && (
                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                           <MultiSelectListBox
-                            label={accountType === "creator" ? t("form.steps.creator2.title") : t("form.steps[2].title")} // "Категория и ниша"
+                            label={accountType === "creator" ? t("form.steps.creator2.title") : t("form.steps.2.title")} // "Категория и ниша"
                             options={
                               accountType === "creator"
                                 ? getArrayTranslation("form.arrays.creatorNiches")
@@ -451,14 +470,30 @@ const Home = () => {
 
                       {step === 3 && (
                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 flex gap-4 flex-col">
-                          <div>
-                            <Label>{t("form.labels.country")}</Label>
-                            <Input
-                              placeholder={t("form.placeholders.country") || "Например: България"}
-                              value={formData.yourCountry}
-                              onChange={e => setFormData({ ...formData, yourCountry: e.target.value })}
-                              className="mt-1.5"
-                            />
+                          <div className="mb-4">
+                            <Label>{t("form.labels.country") || "Вашата държава"}</Label>
+                            <div
+                              onClick={() => setOwnCountryModalOpen(true)}
+                              className="group justify-center cursor-pointer border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md p-3 min-h-[3rem] flex flex-wrap gap-2 items-center transition-colors"
+                            >
+                              {(() => {
+                                const country = formData.yourCountry;
+                                if (!country) {
+                                  return (
+                                    <span className="text-muted-foreground text-sm flex items-center gap-2">
+                                      {t("form.placeholders.selectCountry") || "+ Изберете държава"}
+                                    </span>
+                                  );
+                                }
+
+                                return (
+                                  <span key={country.code} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                                    <img src={country.flag} alt="" className="w-3.5 h-2.5 object-cover rounded-[1px]" />
+                                    {country.name}
+                                  </span>
+                                );
+                              })()}
+                            </div>
                           </div>
 
                           <div>
@@ -492,6 +527,18 @@ const Home = () => {
                           </div>
 
                           <CountryPickerModal
+                            open={ownCountryModalOpen} // <--- New state variable
+                            onClose={() => setOwnCountryModalOpen(false)}
+                            selected={formData.yourCountry ? [formData.yourCountry] : []}
+                            setSelected={(newCountries) => {
+                              const selectedCountry = Array.isArray(newCountries) && newCountries.length > 0 ? newCountries[0] : null;
+                              setFormData({ ...formData, yourCountry: selectedCountry });
+                            }}
+                            onSave={() => setOwnCountryModalOpen(false)}
+                            isTargets={false}
+                            maxSelection={1}
+                          />
+                          <CountryPickerModal
                             open={countryModalOpen}
                             onClose={() => setCountryModalOpen(false)}
                             selected={formData.topCountries || []}
@@ -499,6 +546,7 @@ const Home = () => {
                               setFormData({ ...formData, topCountries: Array.isArray(newCountries) ? newCountries : [] })
                             }
                             onSave={() => setCountryModalOpen(false)}
+                            isTargets={true}
                           />
                           <CountryPickerModal
                             open={businessCountryModalOpen}
@@ -508,33 +556,73 @@ const Home = () => {
                               setFormData({ ...formData, targetCountries: Array.isArray(newCountries) ? newCountries : [] })
                             }
                             onSave={() => setBusinessCountryModalOpen(false)}
+                            isTargets={true}
                           />
                         </div>
                       )}
 
                       {step === 4 && (
                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                          <MultiSelectListBox
-                            label={t("form.labels.collabTypes") || "Предпочитани колаборации"}
-                            options={
-                              accountType === "creator"
-                                ? getArrayTranslation("form.arrays.creatorCollabOptions")
-                                : getArrayTranslation("form.arrays.brandCollabOptions")
-                            }
-                            selected={formData.collabTypes}
-                            onSelectionChange={newSelection => setFormData({ ...formData, collabTypes: newSelection })}
-                          />
-
-                          {formData.collabTypes.includes(t("form.misc.other")) && (
-                            <div className="mt-2">
-                              <Label>{t("form.misc.other")}</Label>
-                              <Input
-                                placeholder={t("form.placeholders.otherCollab") || "Опишете друг вид колаборация..."}
-                                value={formData.otherCollab}
-                                onChange={e => setFormData({ ...formData, otherCollab: e.target.value })}
-                                className="mt-1.5"
+                          {accountType === "creator" ? (
+                            <>
+                              {/* Creator's Collaboration Types */}
+                              <MultiSelectListBox
+                                label={t("form.labels.collabTypes") || "Предпочитани колаборации"}
+                                options={getArrayTranslation("form.arrays.creatorCollabOptions")}
+                                selected={formData.collabTypes}
+                                onSelectionChange={(newSelection) =>
+                                  setFormData({ ...formData, collabTypes: newSelection })
+                                }
                               />
-                            </div>
+
+                              {formData.collabTypes.includes(t("form.misc.other")) && (
+                                <div className="mt-2">
+                                  <Label>{t("form.misc.other")}</Label>
+                                  <Input
+                                    placeholder={
+                                      t("form.placeholders.otherCollab") ||
+                                      "Опишете друг вид колаборация..."
+                                    }
+                                    value={formData.otherCollab}
+                                    onChange={(e) =>
+                                      setFormData({ ...formData, otherCollab: e.target.value })
+                                    }
+                                    className="mt-1.5"
+                                  />
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {/* Brand's Niche/Sector (assuming this is the logic you wanted for Brand on step 4) */}
+                              <MultiSelectListBox
+                                label={
+                                  t("form.steps.4.title") || "В кой сектор/ниша оперирате?"
+                                }
+                                options={getArrayTranslation("form.arrays.creatorNiches")}
+                                selected={formData.niches}
+                                onSelectionChange={(newSelection) =>
+                                  setFormData({ ...formData, niches: newSelection })
+                                }
+                              />
+
+                              {formData.businessCategories.includes(t("form.misc.other")) && (
+                                <div className="mt-2">
+                                  <Label>{t("form.misc.other")}</Label>
+                                  <Input
+                                    placeholder={
+                                      t("form.placeholders.otherCategory") ||
+                                      "Опишете друга категория..."
+                                    }
+                                    value={formData.otherCategory}
+                                    onChange={(e) =>
+                                      setFormData({ ...formData, otherCategory: e.target.value })
+                                    }
+                                    className="mt-1.5"
+                                  />
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
@@ -584,7 +672,7 @@ const Home = () => {
                       {accountType === "brand" && step === 5 && (
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                           <div className="flex items-center justify-between">
-                            <Label className="text-base">{t("form.labels.audience")}</Label>
+                            <Label className="text-base">{t("form.labels.client")}</Label>
                             <span className="text-xs text-muted-foreground">{formData.idealClient.length}/400</span>
                           </div>
                           <Textarea
@@ -597,7 +685,7 @@ const Home = () => {
                           <div className="bg-transparent rounded-lg p-3 flex gap-3 items-center">
                             <Info className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" />
                             <p className="text-xs text-gray-500">
-                              {t("form.steps[4].helperText") || "Ще използваме тази информация, за да Ви предложим най-подходящите профили."}
+                              {t("form.steps.4.helperText") || "Ще използваме тази информация, за да Ви предложим най-подходящите профили."}
                             </p>
                           </div>
                         </div>
@@ -636,13 +724,13 @@ const Home = () => {
                     </div>
 
                     {step === (accountType === "creator" ? 6 : 5) && (
-                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 mb-4 flex justify-center">
-                          <ReCAPTCHA
-                            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-                            onChange={(value) => setCaptchaValue(value)}
-                          />
-                        </div>
-                      )}
+                      <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 mb-4 flex justify-center">
+                        <ReCAPTCHA
+                          sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+                          onChange={(value) => setCaptchaValue(value)}
+                        />
+                      </div>
+                    )}
 
                     <div className="flex gap-3 mt-6 pt-2 border-t border-gray-100 md:border-none">
                       {step > 1 && (

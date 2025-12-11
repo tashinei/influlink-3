@@ -9,6 +9,8 @@ export default function CountryPickerModal({
   selected,
   setSelected,
   onSave,
+  isTargets,
+  maxSelection = 3
 }) {
   const [search, setSearch] = useState("");
   const [isShaking, setIsShaking] = useState(false);
@@ -55,7 +57,7 @@ export default function CountryPickerModal({
     if (exists) {
       setSelected(selected.filter((p) => p.code !== country.code));
     } else {
-      if (selected.length < 3) {
+      if (selected.length < maxSelection) {
         setSelected([...selected, country]);
         setSearch("");
       } else {
@@ -87,7 +89,7 @@ export default function CountryPickerModal({
         <div className="px-4 py-3 border-b border-gray-100 shrink-0">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
-              {t("form.countryPick.title")}
+              {isTargets ? t("form.countryPick.titleTargets") : t("form.countryPick.titleOwn") }
             </h2>
             <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition">
               <X className="w-5 h-5 text-gray-500" />
@@ -95,7 +97,7 @@ export default function CountryPickerModal({
           </div>
 
           <p className="text-xs text-gray-500 mt-1">
-            {t("form.countryPick.subTitle")}
+            {isTargets ? t("form.countryPick.subTitleTargets") : t("form.countryPick.subTitleOwn") }
           </p>
 
           {/* CHIPS: More compact */}

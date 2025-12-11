@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { MeshGradient } from "@paper-design/shaders-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface GlassSectionProps {
   onOpenDialog: () => void;
+  isCreator: boolean;
 }
 
-const GlassSection: React.FC<GlassSectionProps> = ({ onOpenDialog }) => {
+const GlassSection: React.FC<GlassSectionProps> = ({ onOpenDialog, isCreator }) => {
   const [dimensions, setDimensions] = useState({ width: 480, height: 270 });
   const [mounted, setMounted] = useState(false);
   const [offsetX, setOffsetX] = useState(0.5); // initial offset
   const isMobile = useIsMobile();
-
+  const { t }= useTranslation();
   useEffect(() => {
     setMounted(true);
     const container = document.getElementById("glass-wrapper");
@@ -115,7 +117,7 @@ const GlassSection: React.FC<GlassSectionProps> = ({ onOpenDialog }) => {
               marginBottom: "1rem",
             }}
           >
-            Готови да се присъедините?
+            {isCreator ? t("creatorAbout.statusSection.title") : t("brandAbout.statusSection.title")}
           </h2>
           <p
             style={{
@@ -124,7 +126,7 @@ const GlassSection: React.FC<GlassSectionProps> = ({ onOpenDialog }) => {
               marginBottom: "2rem",
             }}
           >
-            Запишете се сега и бъдете част от революцията в инфлуенсър маркетинга.
+            {isCreator ? t("creatorAbout.statusSection.subtitle") : t("brandAbout.statusSection.subtitle")}
           </p>
           <button
             className="glass-button hover:scale-105"
@@ -152,7 +154,7 @@ const GlassSection: React.FC<GlassSectionProps> = ({ onOpenDialog }) => {
               "linear-gradient(150deg, rgba(255, 255, 255, 0.15), rgba(45, 143, 230, 0.52)")
             }
           >
-            Проверете статуса си
+            {isCreator ? t("creatorAbout.statusSection.button") : t("brandAbout.statusSection.button")}
           </button>
         </div>
       </section>

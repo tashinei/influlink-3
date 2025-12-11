@@ -7,6 +7,8 @@ import waitlistHero from "@/assets/hero-gradient-portrait.jpg";
 import firstPlaceholder from "@/assets/firstPlaceholder.jpg";
 import cardPay from "@/assets/cardPay.jpg";
 import support from "@/assets/support.jpg";
+import handshake from "@/assets/handshake.png";
+import globe from "@/assets/globe.jpg";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import GlassSection from "@/components/ui/glass-section";
@@ -183,19 +185,19 @@ const CreatorAbout = () => {
             icon: Target,
             title: "Нашата мисия",
             description:
-                "Да създадем най-добрата платформа за свързване на брандове и инфлуенсъри в България, като улесним процеса на колаборация и осигурим измерими резултати.",
+                "Да улесним сътрудничеството между бизнеси и създатели на съдържание чрез прозрачна, ефективна и ориентирана към качество платформа, която създава реална стойност и измерими резултати.",
         },
         {
             icon: Heart,
             title: "Нашите ценности",
             description:
-                "Прозрачност, иновация и качество са в основата на всичко, което правим. Вярваме в истински връзки и дългосрочни партньорства.",
+                "Качество, прозрачност и автентичност. Вярваме в силата на нишовото влияние и устойчивите партньорства.",
         },
         {
             icon: Zap,
             title: "Нашата визия",
             description:
-                "Да бъдем водещата платформа за инфлуенсър маркетинг в България и да помогнем на бизнеса да расте чрез автентични връзки.",
+                "Да зададем нов стандарт в инфлуенсър маркетинга чрез качество, доверие и устойчив растеж.",
         },
     ];
 
@@ -207,6 +209,7 @@ const CreatorAbout = () => {
             <VipStatusDialog
                 open={isStatusDialogOpen}
                 onOpenChange={setIsStatusDialogOpen}
+                accountType={"creator"}
             />
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4">
@@ -218,8 +221,7 @@ const CreatorAbout = () => {
                         className="text-xl text-center text-white max-w-3xl mx-auto animate-fade-in"
                         style={{ animationDelay: "0.2s" }}
                     >
-                        Първата платформа в България, която свързва брандове с инфлуенсъри
-                        за истински и измерим растеж
+                        {t("creatorAbout.hero.subtitle")}
                     </p>
                 </div>
             </section>
@@ -246,7 +248,8 @@ const CreatorAbout = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
 
-                        <div className="transition duration-300 ease-in-out hover:scale-105 col-span-1 md:col-span-2 bg-gradient-to-t from-[#90d5f3ff] via-secondary to-primary text-white p-8 lg:p-12 rounded-3xl shadow-2xl min-h-[450px] flex flex-col justify-end relative overflow-hidden">
+                        <div className="transition duration-300 ease-in-out hover:scale-105 col-span-1 md:col-span-2 bg-gradient-to-t from-[#90d5f3ff] via-secondary to-primary text-white p-8 lg:p-12 rounded-3xl shadow-2xl min-h-[450px] flex flex-col justify-end relative overflow-hidden h-[80%]"
+                            style={{ alignSelf: "center" }}>
                             <img
                                 src={firstPlaceholder}
                                 alt="Abstract background"
@@ -254,28 +257,29 @@ const CreatorAbout = () => {
                             />
 
                             <h3 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight z-10 relative">
-                                Активирайте влиянието <br />си и печелете
+                                {t("creatorAbout.card_1.title")}
                             </h3>
                             <p className="mb-10 text-lg max-w-2xl z-10 relative">
-                                Нашата платформа свързва създателите на съдържание с бизнеси,
-                                гарантирайки максимална ефективност и полза за двете страни.
+                                {t("creatorAbout.card_1.description")}
                             </p>
                         </div>
 
-                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8 h-[50dvh]">
-                            <div className="transition duration-300 ease-in-out hover:scale-105 bg-gradient-to-tr from-[#90d5f3ff] via-secondary to-primary text-white p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden">
+                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8 h-[85dvh] lg:h-[75vh]">
+                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
+                                {/* Background image */}
                                 <img
                                     src={cardPay}
-                                    alt="Tech"
-                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-30 z-0"
+                                    alt="Community"
+                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
                                 />
 
+                                {/* Text content */}
                                 <div className="relative z-10">
-                                    <h4 className="text-2xl font-bold mb-3 leading-snug">
-                                        Прозрачни плащания
+                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
+                                        {t("creatorAbout.card_2.title")}
                                     </h4>
-                                    <p className="text-white font-bold text-lg mb-2">
-                                        Получавайте парите си сигурно
+                                    <p className="text-white font-bold text-2xl mb-2">
+                                        {t("creatorAbout.card_2.subtitle")}
                                     </p>
                                 </div>
                             </div>
@@ -291,14 +295,51 @@ const CreatorAbout = () => {
 
                                 {/* Text content */}
                                 <div className="relative z-10">
-                                    <p className="text-white font-bold text-sm mb-2">ПОДДРЪЖКА</p>
-                                    <h4 className="text-white text-2xl font-bold mb-3 leading-snug">
-                                        24/7 Приоритет
+                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
+                                        {t("creatorAbout.card_3.subtitle")}
                                     </h4>
+                                    <p className="text-white font-bold text-2xl mb-2">
+                                        {t("creatorAbout.card_3.title")}
+                                    </p>
                                 </div>
                             </div>
 
+                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
+                                {/* Background image */}
+                                <img
+                                    src={handshake}
+                                    alt="Community"
+                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
+                                />
 
+                                {/* Text content */}
+                                <div className="relative z-10">
+                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
+                                        {t("creatorAbout.card_4.subtitle")}
+                                    </h4>
+                                    <p className="text-white font-bold text-2xl mb-2">
+                                        {t("creatorAbout.card_4.title")}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
+                                {/* Background image */}
+                                <img
+                                    src={globe}
+                                    alt="Community"
+                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
+                                />
+
+                                <div className="relative z-10">
+                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
+                                       {t("creatorAbout.card_5.subtitle")}
+                                    </h4>
+                                    <p className="text-white font-bold text-2xl mb-2">
+                                        {t("creatorAbout.card_5.title")}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -316,7 +357,7 @@ const CreatorAbout = () => {
                                 </span>
                             </h2>
                             <p className="text-xl text-muted-foreground">
-                                Получете специални привилегии и отстъпки
+                                {t("creatorAbout.vip.subtitle")}
                             </p>
                         </div>
 
@@ -325,41 +366,39 @@ const CreatorAbout = () => {
                                 <div className="flex flex-col md:flex-row items-center gap-8">
                                     <div className="flex-1">
                                         <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                                            Как да станете VIP?
+                                            {t("creatorAbout.vip.howToTitle")}
                                         </h3>
                                         <ol className="space-y-4 text-muted-foreground">
                                             <li className="flex items-start gap-3">
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     1
                                                 </span>
-                                                <span className="text-[20px]">
-                                                    Свалете нашето брандирано видео (ще го получите след
-                                                    записване)
+                                                <span className="text-[18px]">
+                                                    {t("creatorAbout.vip.step_1")}
                                                 </span>
                                             </li>
                                             <li className="flex items-start gap-3">
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     2
                                                 </span>
-                                                <span className="text-[20px]">
-                                                    Публикувайте го в Instagram и Facebook story с таг
-                                                    @influlink.bg
+                                                <span className="text-[18px]">
+                                                    {t("creatorAbout.vip.step_2")}
                                                 </span>
                                             </li>
                                             <li className="flex items-start gap-3">
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     3
                                                 </span>
-                                                <span className="text-[20px]">
-                                                    Нашият екип ще прегледа и одобри акаунта ви
+                                                <span className="text-[18px]">
+                                                    {t("creatorAbout.vip.step_3")}
                                                 </span>
                                             </li>
                                             <li className="flex items-start gap-3">
                                                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                                                     4
                                                 </span>
-                                                <span className="text-[20px]">
-                                                    Получете VIP статус с 30% отстъпка за първите 3 месеца
+                                                <span className="text-[18px]">
+                                                    {t("creatorAbout.vip.step_4")}
                                                 </span>
                                             </li>
                                         </ol>
@@ -368,28 +407,24 @@ const CreatorAbout = () => {
                                     <div className="flex-1">
                                         <div className="relative group bg-gradient-to-br from-primary to-secondary p-9 rounded-2xl text-white w-full">
                                             <h4 className="text-xl font-bold mb-4">
-                                                VIP Привилегии:
+                                                {t("creatorAbout.vip.privilegesTitle")}
                                             </h4>
                                             <ul className="space-y-3">
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span className="text-[18px]">30% отстъпка за 3 месеца</span>
+                                                    <span className="text-[18px]">{t("creatorAbout.vip.privilege_1")}</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span className="text-[18px]">Приоритет при избор на кампании</span>
+                                                    <span className="text-[18px]">{t("creatorAbout.vip.privilege_2")}</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span className="text-[18px]">Ексклузивни партньорства</span>
+                                                    <span className="text-[18px]">{t("creatorAbout.vip.privilege_3")}</span>
                                                 </li>
                                                 <li className="flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" />
-                                                    <span className="text-[18px]">Персонален акаунт мениджър</span>
-                                                </li>
-                                                <li className="flex items-center gap-2">
-                                                    <CheckCircle2 className="w-5 h-5" />
-                                                    <span className="text-[18px]">VIP бадж на профила</span>
+                                                    <span className="text-[18px]">{t("creatorAbout.vip.privilege_4")}</span>
                                                 </li>
                                             </ul>
 
@@ -413,7 +448,7 @@ const CreatorAbout = () => {
                 </div>
             </section>
 
-            <GlassSection onOpenDialog={() => { setIsStatusDialogOpen(true);}}></GlassSection>
+            <GlassSection isCreator={true} onOpenDialog={() => { setIsStatusDialogOpen(true); }}></GlassSection>
 
             <section className="py-20 bg-background">
                 <div className="container mx-auto px-4">

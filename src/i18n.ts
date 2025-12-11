@@ -64,7 +64,7 @@ export const translations = {
           "Знаменитост и обществена личност",
           "Друго"
         ],
-        brandCategories: ["Дрехи", "Козметика", "Технологии", "Храни", "Услуги", "Друго"],
+        brandCategories: ["Онлайн магазин", "Физически магазин", "Услуги", "Ресторант/Кафене", "Хотел / Туризъм ", "Уебсайт / Приложение", "Друго"],
         creatorCollabOptions: ["Продуктово ревю", "Гласова реклама", "UGC видео", "Публикация", "Стори", "Друго"],
         brandCollabOptions: ["Кратко видео", "Ревю", "Ънбоксинг", "UGC реклама", "Фото пост", "Гласово видео", "Друго"],
       },
@@ -75,14 +75,14 @@ export const translations = {
           "Държава и аудитория",
           "Начини за колаборация",
           "Платформа и последователи",
-          "Потвърждение",
+          "Вашата аудитория",
         ],
         brand: [
           "Основна информация",
-          "Категория и ниша",
-          "Държави и бюджет",
-          "Начини за сътрудничество",
-          "Потвърждение",
+          "Категория и тип",
+          "Държави",
+          "Сектор / ниша",
+          "Вашите клиенти",
         ],
       },
       stepIndicator: {
@@ -107,31 +107,31 @@ export const translations = {
             "Попълнете Вашите данни, за да създадем Вашия профил във InfluAi.",
         },
         2: {
-          title: "Категория и ниша",
+          title: "Какъв тип бизнес сте?",
           description:
             "Изберете сферата, в която се развива Вашият бранд.",
         },
         3: {
-          title: "Начини за сътрудничество",
+          title: "В кой сектор/ниша оперирате?",
           description:
             "Изберете как искате да работите със създатели.",
         },
         4: {
-          title: "Аудитория и описание",
+          title: "В кой сектор/ниша оперирате?",
           description:
             "Помогнете ни да Ви свържем с най-подходящите създатели.",
           helperText:
-            "Ще използваме тази информация, за да Ви предложим най-подходящите профили.",
+            "Ще използваме тази информация, за да Ви предложим най-подходящите създатели.",
         },
         5: {
-          title: "Потвърждение",
+          title: "Вашите клиенти",
           description:
             "Потвърдете, че всичко е наред, преди да изпратите.",
         },
 
         // Creator-only steps
         creator2: {
-          title: "Категория и ниша",
+          title: "Коя е Вашата ниша?",
           description:
             "Изберете нишата, към която принадлежи Вашето съдържание.",
         },
@@ -165,8 +165,10 @@ export const translations = {
       },
 
       countryPick: {
-        title: "Изберете целеви държави",
-        subTitle: "Максимум 3 държави.",
+        titleOwn: "Изберете Вашата държава",
+        subTitleOwn: "Максимум 1 държава.",
+        titleTargets: "Изберете целеви държави",
+        subTitleTargets: "Максимум 3 държави.",
         save: "Запази"
       },
 
@@ -182,6 +184,7 @@ export const translations = {
         platformFollowersRequired: "Моля, изберете платформа и въведете последователи",
         idealClientRequired: "Моля, опишете Вашия идеален клиент",
         audienceRequired: "Моля, опишете Вашата аудитория",
+        yourCountryRequired: "Моля, изберете Вашата държава"
       },
 
       countries: {
@@ -242,11 +245,12 @@ export const translations = {
         niche: "Ниша",
         contentCategory: "Категория съдържание",
         audience: "Опишете Вашата аудитория",
+        client: "Опишете Вашия \"идеален\" клиент",
         description: "Описание",
-        collabTypes: "Начини за сътрудничество",
+        collabTypes: "Кои начини за сътрудничество предпочитате?",
         website: "Уебсайт",
         socialLinks: "Социални мрежи",
-        country: "Държава",
+        country: "Вашата държава",
         of: "от",
         username: "Потребителско име",
         platform: "Платформа",
@@ -262,11 +266,13 @@ export const translations = {
         website: "https://example.com",
         description: "Кратко описание...",
         audience: "Предимно жени (35-50)...",
+        client: "Предимно мъже (35-50)...",
         socialLink: "Въведете връзка",
         select: "Моля изберете",
         followers: "Моля посочете",
         country: "Вашата държава",
         otherNiche: "Моля опишете",
+        selectCountry: "+ Изберете Вашата държава",
         selectCountries: "+ Изберете до 3 държави",
         otherCollab: "Моля опишете"
       },
@@ -286,13 +292,13 @@ export const translations = {
     creatorAbout: {
       hero: {
         title: "За създатели",
-        subtitle: "Първата платформа в България, която свързва брандове с инфлуенсъри за истински и измерим растеж"
+        subtitle: "Свържете се с брандове, които търсят вашата аудитория, и превърнете влиянието си в реални възможности."
       },
       section_title_1: "Създадена за Вас",
       section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
       card_1: {
-        title: "Активирайте влиянието си и печелете",
-        description: "Our platform connects content creators with businesses, guaranteeing maximum efficiency and benefit for both parties."
+        title: "Активирайте влиянието си и печелете!",
+        description: "Свързваме Ви с правилните брандове, за да превърнете влиянието си в реална стойност."
       },
       card_2: {
         title: "Transparent Payments",
@@ -303,20 +309,32 @@ export const translations = {
         title: "24/7 Priority"
       },
       vip: {
-        title: "Become a VIP Member",
-        subtitle: "Get special privileges and discounts",
-        howToTitle: "How to become VIP?",
-        step_1: "Download our branded video (you will receive it after signing up)",
-        step_2: "Publish it on Instagram and Facebook story with tag @influlink.bg",
-        step_3: "Our team will review and approve your account",
-        step_4: "Get VIP status with 30% discount for the first 3 months",
-        privilegesTitle: "VIP Privileges:",
-        privilege_1: "30% discount for 3 months",
-        privilege_2: "Priority in campaign selection",
-        privilege_3: "Exclusive partnerships",
-        privilege_4: "Personal account manager",
-        privilege_5: "VIP badge on the profile",
-        button: "Get Video"
+        title: "Станете VIP член",
+        subtitle: "Получете специални привилегии и отстъпки",
+        howToTitle: "Как да станете VIP?",
+        step_1: "Свалете нашето брандирано видео (ще го получите след записване)",
+        step_2: "Публикувайте го в Instagram и Facebook с таг @influlink.bg",
+        step_3: "Нашият екип ще прегледа и одобри акаунта Ви",
+        step_4: "Получете VIP статус с 30% остъпка за първите 6 месеца",
+        privilegesTitle: "VIP привилегии:",
+        privilege_1: "30% остъпка за 6 месеца",
+        privilege_2: "Персонален акаунт мениджър",
+        privilege_3: "VIP бадж на профила",
+        privilege_4: "Ранен достъп до платформата",
+        button: "Получи видео"
+      },
+      statusSection: {
+        title: "Готови да се присъедините?",
+        subtitle: "Запишете се сега и станете част от революцията в инфлуенсър маркетинга.",
+        button: "Проверете статуса си",
+        modalFirstTitle:"Проерете статуса",
+        modalFirstSubtitle:"Моля, въведете имейл за да продължите.",
+        modalFirstButton:"Продължи",
+        modalSecondTitle:"Статус код",
+        modalSecondSubtitle:"Въведете кода, който сте получили при регистрация на",
+        modalSecondButton:"Провери код",
+        modalBackButton:"Промени имейл",
+        modalResendButton:"Изпрати нов код",
       },
       values: {
         title: "What drives us",
@@ -336,20 +354,118 @@ export const translations = {
       faq: {
         title: "Frequently Asked Questions",
         q1: {
-          question: "What is InfluLink?",
-          answer: "The first platform in Bulgaria that connects brands with influencers for authentic campaigns."
+          question: "Какво е InfluLink?",
+          answer: "InfluLink е дигитален маркетплейс, който свързва бизнеси със създатели на съдържание с фокус върху нишово влияние и качество."
         },
         q2: {
-          question: "When will the platform launch?",
-          answer: "Expect the launch in early 2026. Sign up for the waiting list for early access."
+          question: "Кога ще стартира платформата?",
+          answer: "Очаквайте старта в началото на 2026. Запишете се в списъка с чакащи за ранен достъп."
         },
         q3: {
-          question: "How does the special account work?",
-          answer: "Post our video in your Instagram story and receive a discount upon approval."
+          question: "Как работи специалният акаунт?",
+          answer: "Публикувайте нашето видео в Instagram и Facebook и получете специални предложения и отстъпки."
         },
         q4: {
-          question: "Is there a registration fee?",
-          answer: "Registration is free. Fees are only applied for active campaigns."
+          question: "Кой може да се регистрира като създател?",
+          answer: "Отговор скоро..."
+        },
+        q5: {
+          question: "“Има ли минимални изисквания за последователи?",
+          answer: "Отговор скоро..."
+        }
+      },
+    },
+    brandAbout: {
+      hero: {
+        title: "За бизнеси",
+        subtitle: "Свържете се с точните създатели. Изградете автентични кампании с реални резултати. "
+      },
+      section_title_1: "Създадена за Вашия бизнес",
+      section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
+      card_1: {
+        title: "Развийте бизнеса си и изградете нови партньорства.",
+        description: "InfluLink свързва вашия бизнес със създатели, които отговарят на вашата аудитория, като гарантира максимална ефективност и ясно измерими резултати."
+      },
+      card_2: {
+        title: "Прозрачни плащания",
+        subtitle: "Получете парите си сигурно"
+      },
+      card_3: {
+        subtitle: "Поддръжка",
+        title: "24/7 приоритет"
+      },
+      card_4: {
+        subtitle: "Доверие",
+        title: "Достъп до проверени от нас създатели "
+      },
+      card_5: {
+        subtitle: "Растеж",
+        title: "Ясни, измерими резултати"
+      },
+      statusSection: {
+        title: "Готови да се присъедините?",
+        subtitle: "Запишете се сега и станете част от революцията в инфлуенсър маркетинга.",
+        button: "Проверете статуса си",
+        modalFirstTitle:"Проерете статуса",
+        modalFirstSubtitle:"Моля, въведете имейл за да продължите.",
+        modalFirstButton:"Продължи",
+        modalSecondTitle:"Статус код",
+        modalSecondSubtitle:"Въведете кода, който сте получили при регистрация на",
+        modalSecondButton:"Провери код",
+        modalBackButton:"Промени имейл",
+        modalResendButton:"Изпрати нов код",
+      },
+      vip: {
+        title: "Станете VIP член",
+        subtitle: "Получете специални привилегии и отстъпки",
+        howToTitle: "Как да станете VIP?",
+        step_1: "Свалете нашето брандирано видео (ще го получите след записване)",
+        step_2: "Публикувайте го в Instagram и Facebook с таг @influlink.bg",
+        step_3: "Нашият екип ще прегледа и одобри акаунта Ви",
+        step_4: "Получете VIP статус с 30% остъпка за първите 6 месеца",
+        privilegesTitle: "VIP привилегии:",
+        privilege_1: "30% остъпка за 6 месеца",
+        privilege_2: "Персонален акаунт мениджър",
+        privilege_3: "VIP бадж на профила",
+        privilege_4: "Ранен достъп до платформата",
+        button: "Получи видео"
+      },
+      values: {
+        title: "What drives us",
+        mission: {
+          title: "Our Mission",
+          description: "To create the best platform for connecting brands and influencers in Bulgaria, by simplifying the collaboration process and ensuring measurable results."
+        },
+        values: {
+          title: "Our Values",
+          description: "Transparency, innovation, and quality are the foundation of everything we do. We believe in true connections and long-term partnerships."
+        },
+        vision: {
+          title: "Our Vision",
+          description: "To be the leading influencer marketing platform in Bulgaria and to help businesses grow through authentic connections."
+        }
+      },
+      faq: {
+        title: "Frequently Asked Questions",
+        q1: {
+          question: "Какво е InfluLink?",
+          answer: "InfluLink е дигитален маркетплейс, който свързва бизнеси със създатели на съдържание с фокус върху нишово влияние и качество."
+        },
+        q2: {
+          question: "Кога ще стартира платформата?",
+          answer: "Очаквайте старта в началото на 2026. Запишете се в списъка с чакащи за ранен достъп."
+        },
+        q3: {
+          question: "Как работи специалният акаунт?",
+          answer: "Публикувайте нашето видео в Instagram и Facebook и получете специални предложения и отстъпки."
+        },
+        q4: {
+          question: "Кой може да се регистрира като създател?",
+          answer: "Отговор скоро..."
+        },
+        q5: {
+          question: "“Има ли минимални изисквания за последователи?",
+          answer: "Отговор скоро..."
         }
       },
     },
@@ -421,7 +537,7 @@ export const translations = {
           "Celebrity & Public Figure",
           "Other"
         ],
-        brandCategories: ["Clothing", "Cosmetics", "Technology", "Food", "Services", "Other"],
+        brandCategories: ["Online store", "Retail store", "Services", "Restaurant / Cafe", "Hotel / Tourism", "Website / App", "Other"],
         creatorCollabOptions: ["Product Review", "Voice Ad", "UGC Video", "Post", "Story", "Other"],
         brandCollabOptions: ["Short Video", "Review", "Unboxing", "UGC Ad", "Photo Post", "Voiceover Video", "Other"],
       },
@@ -432,14 +548,14 @@ export const translations = {
           "Country & Audience",
           "Collaboration Methods",
           "Platform & Followers",
-          "Confirmation",
+          "Your audience",
         ],
         brand: [
           "Basic Information",
-          "Category & Niche",
-          "Target Countries & Budget",
-          "Collaboration Methods",
-          "Confirmation",
+          "Category & Type",
+          "Target Countries",
+          "Sector / niche",
+          "Your clients",
         ],
       },
       // --- END: Added English Arrays and Step Names ---
@@ -469,8 +585,10 @@ export const translations = {
 
 
       countryPick: {
-        title: "Choose target countries",
-        subTitle: "Maximum 3 countries.",
+        titleOwn: "Choose your country",
+        subTitleOwn: "Maximum 1 selection.",
+        titleTargets: "Choose target countries",
+        subTitleTargets: "Maximum 3 selections.",
         save: "Submit"
       },
 
@@ -486,6 +604,7 @@ export const translations = {
         platformFollowersRequired: "Please select a platform and enter followers",
         idealClientRequired: "Please describe your ideal client",
         audienceRequired: "Please describe your audience",
+        yourCountryRequired: "Please, select your country"
       },
 
       countries: {
@@ -544,7 +663,7 @@ export const translations = {
             "Fill in your details so we can set up your InfluAi profile.",
         },
         2: {
-          title: "Category & Niche",
+          title: "What type of business are you?",
           description: "Select the area in which your brand operates.",
         },
         3: {
@@ -552,11 +671,11 @@ export const translations = {
           description: "Choose how you want to work with creators.",
         },
         4: {
-          title: "Audience & Description",
+          title: "Within which niche do you operate?",
           description:
             "Help us connect you with the most relevant creators.",
           helperText:
-            "We use this information to match you with the right profiles.",
+            "We use this information to match you with the right creators.",
         },
         5: {
           title: "Confirmation",
@@ -597,6 +716,7 @@ export const translations = {
         niche: "Niche",
         contentCategory: "Content category",
         audience: "Describe your audience",
+        client:"Describe your \"ideal\" client",
         description: "Description",
         collabTypes: "Collaboration types",
         website: "Website",
@@ -620,11 +740,13 @@ export const translations = {
         audience: "Mostly women (35-50)...",
         socialLink: "Enter a link",
         country: "Your country",
+        selectCountry: "+ Choose your country",
         selectCountries: "+ Choose up to 3 countries",
         followers: "Please enter",
         select: "Please choose",
         otherNiche: "Please enter",
-        otherCollab: "Please enter"
+        otherCollab: "Please enter",
+        otherCategory: "Please enter the type of business.."
       },
 
       misc: {
@@ -648,16 +770,43 @@ export const translations = {
       section_title_1: "Built for You",
       section_subtitle_1: "Become part of the future of collaborations between businesses and content creators.",
       card_1: {
-        title: "Activate your influence and earn",
-        description: "Our platform connects content creators with businesses, guaranteeing maximum efficiency and benefit for both parties."
+        title: "Activate your influence and earn!",
+        description: "We connect you with the right brands, so that you can turn your influence into real value."
       },
       card_2: {
         title: "Transparent Payments",
         subtitle: "Receive your money securely"
       },
       card_3: {
-        subtitle: "SUPPORT",
+        subtitle: "Support",
         title: "24/7 Priority"
+      },
+      card_4: {
+        subtitle: "Trust",
+        title: "Create real partnernships"
+      },
+      card_5: {
+        subtitle: "Perspective",
+        title: "Global access to possibilities"
+      },
+      displayCards: {
+        title: "Begin your career now!",
+        coloredTitle: "Connect with the right creators immediately.",
+        subtitle: "Quit waiting. Earn from your content.",
+        description: "Focus on creating content, we'll handle the collaborations and payments.",
+      },
+      statusSection: {
+        title: "Ready to join?",
+        subtitle: "Sign up now and become a part of the revolution of influencer marketing.",
+        button: "Check your status",
+        modalFirstTitle:"Check your status",
+        modalFirstSubtitle:"Please, enter your email address to continue.",
+        modalFirstButton:"Continue",
+        modalSecondTitle:"Status code",
+        modalSecondSubtitle:"Enter the code you received upon registration on",
+        modalSecondButton:"Submit code",
+        modalBackButton:"Change email",
+        modalResendButton:"Resend code",
       },
       vip: {
         title: "Become a VIP Member",
@@ -666,13 +815,12 @@ export const translations = {
         step_1: "Download our branded video (you will receive it after signing up)",
         step_2: "Publish it on Instagram and Facebook story with tag @influlink.bg",
         step_3: "Our team will review and approve your account",
-        step_4: "Get VIP status with 30% discount for the first 3 months",
+        step_4: "Get VIP status with 30% discount for the first 6 months",
         privilegesTitle: "VIP Privileges:",
-        privilege_1: "30% discount for 3 months",
-        privilege_2: "Priority in campaign selection",
-        privilege_3: "Exclusive partnerships",
-        privilege_4: "Personal account manager",
-        privilege_5: "VIP badge on the profile",
+        privilege_1: "30% discount for 6 months",
+        privilege_2: "Personal account manager",
+        privilege_3: "VIP badge on the profile",
+        privilege_4: "Early acccess to the platform",
         button: "Get Video"
       },
       values: {
@@ -719,6 +867,107 @@ export const translations = {
         quiz_success_title: "Successfully signed up!",
         quiz_success_description: "We will contact you soon."
       }
+    },
+
+    brandAbout: {
+      hero: {
+        title: "For Businesses",
+        subtitle: "Connect with the right creators. Create authentic campaigns with measurable growth. "
+      },
+      section_title_1: "Created for your business",
+      section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
+      card_1: {
+        title: "Развийте бизнеса си и изградете нови партньорства.",
+        description: "InfluLink свързва вашия бизнес със създатели, които отговарят на вашата аудитория, като гарантира максимална ефективност и ясно измерими резултати."
+      },
+      card_2: {
+        title: "Transparent payments",
+        subtitle: "Get your money safely"
+      },
+      card_3: {
+        subtitle: "Support",
+        title: "24/7 priority"
+      },
+      card_4: {
+        subtitle: "Trust",
+        title: "Acess to verified creators "
+      },
+      card_5: {
+        subtitle: "Growth",
+        title: "Clear, measurable results"
+      },
+      displayCards: {
+        title: "Save time.",
+        coloredTitle: "Connect with the right creators immediately.",
+        subtitle: "Manage your campaigns effectively, with ease.",
+        description: "Find the right creators, create campaigns and manage payments in one transparent process.",
+      },
+      statusSection: {
+        title: "Ready to join?",
+        subtitle: "Sign up now and become a part of the revolution of influencer marketing.",
+        button: "Check your status",
+        modalFirstTitle:"Check your status",
+        modalFirstSubtitle:"Please, enter your email address to continue.",
+        modalFirstButton:"Continue",
+        modalSecondTitle:"Status code",
+        modalSecondSubtitle:"Enter the code you received upon registration on",
+        modalSecondButton:"Submit code",
+        modalBackButton:"Change email",
+        modalResendButton:"Resend code",
+      },
+      vip: {
+        title: "Become a VIP Member",
+        subtitle: "Get special privileges and discounts",
+        howToTitle: "How to become VIP?",
+        step_1: "Download our branded video (you will receive it after signing up)",
+        step_2: "Publish it on Instagram and Facebook story with tag @influlink.bg",
+        step_3: "Our team will review and approve your account",
+        step_4: "Get VIP status with 30% discount for the first 6 months",
+        privilegesTitle: "VIP Privileges:",
+        privilege_1: "30% discount for 6 months",
+        privilege_2: "Personal account manager",
+        privilege_3: "VIP badge on the profile",
+        privilege_4: "Early acccess to the platform",
+        button: "Get Video"
+      },
+      values: {
+        title: "What drives us",
+        mission: {
+          title: "Our Mission",
+          description: "To create the best platform for connecting brands and influencers in Bulgaria, by simplifying the collaboration process and ensuring measurable results."
+        },
+        values: {
+          title: "Our Values",
+          description: "Transparency, innovation, and quality are the foundation of everything we do. We believe in true connections and long-term partnerships."
+        },
+        vision: {
+          title: "Our Vision",
+          description: "To be the leading influencer marketing platform in Bulgaria and to help businesses grow through authentic connections."
+        }
+      },
+      faq: {
+        title: "Frequently Asked Questions",
+        q1: {
+          question: "Какво е InfluLink?",
+          answer: "InfluLink е дигитален маркетплейс, който свързва бизнеси със създатели на съдържание с фокус върху нишово влияние и качество."
+        },
+        q2: {
+          question: "Кога ще стартира платформата?",
+          answer: "Очаквайте старта в началото на 2026. Запишете се в списъка с чакащи за ранен достъп."
+        },
+        q3: {
+          question: "Как работи специалният акаунт?",
+          answer: "Публикувайте нашето видео в Instagram и Facebook и получете специални предложения и отстъпки."
+        },
+        q4: {
+          question: "Кой може да се регистрира като създател?",
+          answer: "Отговор скоро..."
+        },
+        q5: {
+          question: "“Има ли минимални изисквания за последователи?",
+          answer: "Отговор скоро..."
+        }
+      },
     },
   }
 };

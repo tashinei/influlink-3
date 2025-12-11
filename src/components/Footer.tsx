@@ -10,7 +10,7 @@ const Footer = () => {
               InfluLink
             </h3>
             <p className="text-muted">
-              Свързваме брандове с истински инфлуенсъри за истински растеж.
+              Глобален обхват. Локално въздействие.
             </p>
           </div>
 
@@ -26,7 +26,6 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4 text-muted text-lg">Контакти</h4>
             <ul className="space-y-2 text-muted">
-              <li>България</li>
               <li>influlink@gmail.com</li>
               <li>Поддръжка 24/7</li>
             </ul>
