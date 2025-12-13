@@ -4,7 +4,7 @@ export const translations = {
       title: "Присъединете се към бъдещето на",
       highlightText: "инфлуенсър маркетинга",
       description:
-        "Запишете се в чакащата листа за ранен достъп до първата българска платформа",
+        "Запишете се за ранен достъп и бъдете сред първите.",
       creatorButton: "Създател",
       brandButton: "Бизнес",
     },
@@ -32,6 +32,46 @@ export const translations = {
         createdForFirstPart: "Създадена за",
         createdForSecondPart: "Вашия бизнес",
       }
+    },
+
+    contacts:{
+      title:"Свържете се с нас",
+      subtitle:"Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне",
+      email:"Имейл",
+      location:"Локация",
+      locationValue:"България",
+      workHours:"Работно време",
+      workHoursValue:"Поддръжка 24/7",
+      sendMessage:"Изпратете ни съобщение",
+      name:"Име",
+      namePlaceholder:"Вашето име",
+      subject:"Тема",
+      subjectPlaceholder:"Относно какво е Вашето съобщение?",
+      message:"Съобщение",
+      messagePlaceholder:"Вашето съобщение...",
+      button:"Изпрати"
+    },
+
+    drivesUs:{
+      title:"Какво ни движи",
+      card1Title:"Нашата мисия",
+      card1Content:"Да улесним сътрудничеството между бизнеси и създатели на съдържание чрез прозрачна, ефективна и ориентирана към качество платформа, която създава реална стойност и измерими резултати.",
+      card2Title:"Нашите ценности",
+      card2Content:"Качество, прозрачност и автентичност.Вярваме в силата на нишовото влияние и устойчивите партньорства.",
+      card3Title:"Нашата визия",
+      card3Content:"Да зададем нов стандарт в инфлуенсър маркетинга чрез качество, доверие и устойчив растеж."
+    },
+
+    footer:{
+      slogan:"Глобален обхват. Локално въздействие.",
+      rights:"Всички права запазени",
+      nav:{
+        title:"Навигация",
+        home:"Начало",
+        contact:"Контакти",
+        about:"За нас"
+      },
+      support:"24/7 Поддръжка",
     },
 
     form: {
@@ -296,20 +336,29 @@ export const translations = {
       },
       section_title_1: "Създадена за Вас",
       section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
-      card_1: {
+       card_1: {
         title: "Активирайте влиянието си и печелете!",
-        description: "Свързваме Ви с правилните брандове, за да превърнете влиянието си в реална стойност."
+        description: "Свързваме ви с правилните брандове, за да превърнете влиянието си в реална стойност."
       },
       card_2: {
-        title: "Transparent Payments",
-        subtitle: "Receive your money securely"
+        title: "Прозрачни плащания",
+        subtitle: "Получете парите си сигурно"
       },
       card_3: {
-        subtitle: "SUPPORT",
-        title: "24/7 Priority"
+        subtitle: "Поддръжка",
+        title: "24/7 приоритет"
+      },
+      card_4: {
+        subtitle: "Доверие",
+        title: "Достъп до проверени от нас създатели "
+      },
+      card_5: {
+        subtitle: "Растеж",
+        title: "Ясни, измерими резултати"
       },
       vip: {
-        title: "Станете VIP член",
+        titleFirst: "Станете ",
+        titleSecond: "VIP член",
         subtitle: "Получете специални привилегии и отстъпки",
         howToTitle: "Как да станете VIP?",
         step_1: "Свалете нашето брандирано видео (ще го получите след записване)",
@@ -327,14 +376,34 @@ export const translations = {
         title: "Готови да се присъедините?",
         subtitle: "Запишете се сега и станете част от революцията в инфлуенсър маркетинга.",
         button: "Проверете статуса си",
-        modalFirstTitle:"Проерете статуса",
-        modalFirstSubtitle:"Моля, въведете имейл за да продължите.",
-        modalFirstButton:"Продължи",
-        modalSecondTitle:"Статус код",
-        modalSecondSubtitle:"Въведете кода, който сте получили при регистрация на",
-        modalSecondButton:"Провери код",
-        modalBackButton:"Промени имейл",
-        modalResendButton:"Изпрати нов код",
+        modalFirstTitle: "Проерете статуса си",
+        modalFirstSubtitle: "Моля, въведете имейл за да продължите.",
+        modalFirstButton: "Продължи",
+        modalSecondTitle: "Статус код",
+        modalSecondSubtitle: "Въведете кода, който сте получили при регистрация на",
+        modalSecondButton: "Провери код",
+        modalBackButton: "Промени имейл",
+        modalResendButton: "Изпрати нов код",
+      },
+      displayCards: {
+        title: "",
+        coloredTitle: "Започнете кариерата си сега!",
+        subtitle: "Не чакайте. Започнете да печелите от съдържанието си.",
+        description: "Фокусирайте се върху създаването на съдържание, а ние ще се погрижим за сътрудничеството и плащанията.",
+      },
+      displayCardsDesktop: {
+        card1: {
+          title: "Персонализирани кампании",
+          subtitle: "Създавайте кампании, съответстващи на вашия бранд."
+        },
+        card2: {
+          title: "Сигурност и прозрачност",
+          subtitle: "Всички транзакции и кампании са защитени."
+        },
+        card3: {
+          title: "Достъп до общност",
+          subtitle: "Свържете се с хиляди инфлуенсъри за кампании."
+        }
       },
       values: {
         title: "What drives us",
@@ -352,7 +421,7 @@ export const translations = {
         }
       },
       faq: {
-        title: "Frequently Asked Questions",
+        title: "Често задавани въпроси",
         q1: {
           question: "Какво е InfluLink?",
           answer: "InfluLink е дигитален маркетплейс, който свързва бизнеси със създатели на съдържание с фокус върху нишово влияние и качество."
@@ -406,17 +475,38 @@ export const translations = {
         title: "Готови да се присъедините?",
         subtitle: "Запишете се сега и станете част от революцията в инфлуенсър маркетинга.",
         button: "Проверете статуса си",
-        modalFirstTitle:"Проерете статуса",
-        modalFirstSubtitle:"Моля, въведете имейл за да продължите.",
-        modalFirstButton:"Продължи",
-        modalSecondTitle:"Статус код",
-        modalSecondSubtitle:"Въведете кода, който сте получили при регистрация на",
-        modalSecondButton:"Провери код",
-        modalBackButton:"Промени имейл",
-        modalResendButton:"Изпрати нов код",
+        modalFirstTitle: "Проерете статуса си",
+        modalFirstSubtitle: "Моля, въведете имейл за да продължите.",
+        modalFirstButton: "Продължи",
+        modalSecondTitle: "Статус код",
+        modalSecondSubtitle: "Въведете кода, който сте получили при регистрация на",
+        modalSecondButton: "Провери код",
+        modalBackButton: "Промени имейл",
+        modalResendButton: "Изпрати нов код",
+      },
+      displayCards: {
+        title: "Спестете време.",
+        coloredTitle: "Достигнете до правилните създатели мигновено.",
+        subtitle: "Управлявайте кампаниите си бързо, лесно и ефективно!",
+        description: "Откривайте подходящи инфлуенсъри, създавайте кампании и управлявайте плащанията в един ясен и прозрачен процес.",
+      },
+      displayCardsDesktop: {
+        card1: {
+          title: "Персонализирани кампании",
+          subtitle: "Създавайте кампании, съответстващи на вашия бранд."
+        },
+        card2: {
+          title: "Сигурност и прозрачност",
+          subtitle: "Всички транзакции и кампании са защитени."
+        },
+        card3: {
+          title: "Достъп до общност",
+          subtitle: "Свържете се с хиляди инфлуенсъри за кампании."
+        }
       },
       vip: {
-        title: "Станете VIP член",
+        titleFirst: "Станете ",
+        titleSecond: "VIP член",
         subtitle: "Получете специални привилегии и отстъпки",
         howToTitle: "Как да станете VIP?",
         step_1: "Свалете нашето брандирано видео (ще го получите след записване)",
@@ -446,7 +536,7 @@ export const translations = {
         }
       },
       faq: {
-        title: "Frequently Asked Questions",
+        title: "Често задавани въпроси",
         q1: {
           question: "Какво е InfluLink?",
           answer: "InfluLink е дигитален маркетплейс, който свързва бизнеси със създатели на съдържание с фокус върху нишово влияние и качество."
@@ -476,7 +566,7 @@ export const translations = {
       title: "Join the Future of",
       highlightText: "Influencer Marketing",
       description:
-        "Sign up for early access to the first Bulgarian influencer platform.",
+        "Sign up for early access and become one of the first.",
       creatorButton: "Creator",
       brandButton: "Business",
     },
@@ -504,6 +594,46 @@ export const translations = {
         createdForFirstPart: "Created for",
         createdForSecondPart: "Your business",
       }
+    },
+
+    drivesUs:{
+      title:"What drives us",
+      card1Title:"Our mission",
+      card1Content:"To make the collaboration between creators and brands an easy process, through an effective and oriented towards quality platform, that creates real value and measurable growth.",
+      card2Title:"Our values",
+      card2Content:"Quality, transparency and authenticity. We believe in niche influence and lasting partnerships.",
+      card3Title:"Our vision",
+      card3Content:"To set a new standard through quality, trust and lasting growth."
+    },
+
+    contacts:{
+      title:"Contact us",
+      subtitle:"Have any questions? Our team is available 24/7 to offer you assistance",
+      email:"Email",
+      location:"Location",
+      locationValue:"Bulgaria",
+      workHours:"Work hours",
+      workHoursValue:"Support 24/7",
+      sendMessage:"Send us a message",
+      name:"Name",
+      namePlaceholder:"Your name",
+      subject:"Subject",
+      subjectPlaceholder:"What is your message about?",
+      message:"Message",
+      messagePlaceholder:"Your message...",
+      button:"Send"
+    },
+
+    footer:{
+      slogan:"Global reach. Local impact.",
+      rights:"All rights reserved",
+      nav:{
+        title:"Navigation",
+        home:"Home",
+        contact:"Contacts",
+        about:"About us"
+      },
+      support:"24/7 Support",
     },
 
     form: {
@@ -716,7 +846,7 @@ export const translations = {
         niche: "Niche",
         contentCategory: "Content category",
         audience: "Describe your audience",
-        client:"Describe your \"ideal\" client",
+        client: "Describe your \"ideal\" client",
         description: "Description",
         collabTypes: "Collaboration types",
         website: "Website",
@@ -754,7 +884,6 @@ export const translations = {
         add: "Add",
       },
     },
-
     successModal: {
       title: "Registration Successful!",
       description:
@@ -765,7 +894,7 @@ export const translations = {
     creatorAbout: {
       hero: {
         title: "For Creators",
-        subtitle: "The first platform in Bulgaria connecting brands with influencers for genuine and measurable growth"
+        subtitle: "Connect with brands that target your audience and turn your influence into real possibilities"
       },
       section_title_1: "Built for You",
       section_subtitle_1: "Become part of the future of collaborations between businesses and content creators.",
@@ -790,26 +919,41 @@ export const translations = {
         title: "Global access to possibilities"
       },
       displayCards: {
-        title: "Begin your career now!",
-        coloredTitle: "Connect with the right creators immediately.",
+        title: "",
+        coloredTitle: "Start your career now!",
         subtitle: "Quit waiting. Earn from your content.",
         description: "Focus on creating content, we'll handle the collaborations and payments.",
+      },
+      displayCardsDesktop: {
+        card1: {
+          title: "Personalized account",
+          subtitle: "Your hub for collaborations, opportunities, and growth."
+        },
+        card2: {
+          title: "Security and transparency",
+          subtitle: "All of your transactions and campaigns are secure."
+        },
+        card3: {
+          title: "Access to a community",
+          subtitle: "Connect with thousands of brands for collaboration."
+        }
       },
       statusSection: {
         title: "Ready to join?",
         subtitle: "Sign up now and become a part of the revolution of influencer marketing.",
         button: "Check your status",
-        modalFirstTitle:"Check your status",
-        modalFirstSubtitle:"Please, enter your email address to continue.",
-        modalFirstButton:"Continue",
-        modalSecondTitle:"Status code",
-        modalSecondSubtitle:"Enter the code you received upon registration on",
-        modalSecondButton:"Submit code",
-        modalBackButton:"Change email",
-        modalResendButton:"Resend code",
+        modalFirstTitle: "Check your status",
+        modalFirstSubtitle: "Please, enter your email address to continue.",
+        modalFirstButton: "Continue",
+        modalSecondTitle: "Status code",
+        modalSecondSubtitle: "Enter the code you received upon registration on",
+        modalSecondButton: "Submit code",
+        modalBackButton: "Change email",
+        modalResendButton: "Resend code",
       },
       vip: {
-        title: "Become a VIP Member",
+        titleFirst: "Become a ",
+        titleSecond: "VIP Member",
         subtitle: "Get special privileges and discounts",
         howToTitle: "How to become VIP?",
         step_1: "Download our branded video (you will receive it after signing up)",
@@ -842,7 +986,7 @@ export const translations = {
         title: "Frequently Asked Questions",
         q1: {
           question: "What is InfluLink?",
-          answer: "The first platform in Bulgaria that connects brands with influencers for authentic campaigns."
+          answer: "InfluLink is a digital marketplace, which connects brands and creators with focus on niche influence and quality."
         },
         q2: {
           question: "When will the platform launch?",
@@ -850,11 +994,15 @@ export const translations = {
         },
         q3: {
           question: "How does the special account work?",
-          answer: "Post our video in your Instagram story and receive a discount upon approval."
+          answer: "Post our video on Instagram and Facebook and receive special offers and discounts."
         },
         q4: {
-          question: "Is there a registration fee?",
-          answer: "Registration is free. Fees are only applied for active campaigns."
+          question: "Are there any minimum requirements?",
+          answer: "Answers soon..."
+        },
+        q5: {
+          question: "Who can register as a creator?",
+          answer: "Answers soon..."
         }
       },
       toasts: {
@@ -902,21 +1050,36 @@ export const translations = {
         subtitle: "Manage your campaigns effectively, with ease.",
         description: "Find the right creators, create campaigns and manage payments in one transparent process.",
       },
+      displayCardsDesktop: {
+        card1: {
+          title: "Personalized account",
+          subtitle: "Easily manage all campaigns in one place."
+        },
+        card2: {
+          title: "Secure and transparent",
+          subtitle: "Trust every collaboration and transaction."
+        },
+        card3: {
+          title: "Vast influencer network",
+          subtitle: "Connect with thousands of creators instantly."
+        }
+      },
       statusSection: {
         title: "Ready to join?",
         subtitle: "Sign up now and become a part of the revolution of influencer marketing.",
         button: "Check your status",
-        modalFirstTitle:"Check your status",
-        modalFirstSubtitle:"Please, enter your email address to continue.",
-        modalFirstButton:"Continue",
-        modalSecondTitle:"Status code",
-        modalSecondSubtitle:"Enter the code you received upon registration on",
-        modalSecondButton:"Submit code",
-        modalBackButton:"Change email",
-        modalResendButton:"Resend code",
+        modalFirstTitle: "Check your status",
+        modalFirstSubtitle: "Please, enter your email address to continue.",
+        modalFirstButton: "Continue",
+        modalSecondTitle: "Status code",
+        modalSecondSubtitle: "Enter the code you received upon registration on",
+        modalSecondButton: "Submit code",
+        modalBackButton: "Change email",
+        modalResendButton: "Resend code",
       },
       vip: {
-        title: "Become a VIP Member",
+        titleFirst: "Become a ",
+        titleSecond: "VIP Member",
         subtitle: "Get special privileges and discounts",
         howToTitle: "How to become VIP?",
         step_1: "Download our branded video (you will receive it after signing up)",
@@ -948,24 +1111,24 @@ export const translations = {
       faq: {
         title: "Frequently Asked Questions",
         q1: {
-          question: "Какво е InfluLink?",
-          answer: "InfluLink е дигитален маркетплейс, който свързва бизнеси със създатели на съдържание с фокус върху нишово влияние и качество."
+          question: "What is InfluLink?",
+          answer: "InfluLink is a digital marketplace, which connects brands and creators with focus on niche influence and quality."
         },
         q2: {
-          question: "Кога ще стартира платформата?",
-          answer: "Очаквайте старта в началото на 2026. Запишете се в списъка с чакащи за ранен достъп."
+          question: "When will the platform launch?",
+          answer: "Expect the launch in early 2026. Sign up for the waiting list for early access."
         },
         q3: {
-          question: "Как работи специалният акаунт?",
-          answer: "Публикувайте нашето видео в Instagram и Facebook и получете специални предложения и отстъпки."
+          question: "How does the special account work?",
+          answer: "Post our video on Instagram and Facebook and receive special offers and discounts."
         },
         q4: {
-          question: "Кой може да се регистрира като създател?",
-          answer: "Отговор скоро..."
+          question: "Are there any minimum requirements?",
+          answer: "Answers soon..."
         },
         q5: {
-          question: "“Има ли минимални изисквания за последователи?",
-          answer: "Отговор скоро..."
+          question: "Who can register as a creator?",
+          answer: "Answers soon..."
         }
       },
     },

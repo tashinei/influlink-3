@@ -15,11 +15,11 @@ export function DisplaySection({ accountType = "creator" }: DisplaySectionProps)
       <div className="container grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Left Column: Statement with Gradient Text */}
         <div className="order-1 lg:pl-10">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
+          <h2 className="text-[2.5rem] md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
             {isCreator ? (
               <>
                 <span className="block text-4xl text-foreground">{t("creatorAbout.displayCards.title")}</span>
-                <span className="block text-3xl sm:text-4xl md:text-5xl mt-2 bg-gradient-to-r from-secondary to-primary text-gradient">
+                <span className="block text-[2.5rem] sm:text-4xl md:text-5xl mt-2 bg-gradient-to-r from-secondary to-primary text-gradient">
                   {t("creatorAbout.displayCards.coloredTitle")}
                 </span>
               </>
@@ -49,7 +49,7 @@ export function DisplaySection({ accountType = "creator" }: DisplaySectionProps)
         {/* Right Column: Phone Mockup with Analytics */}
         <div className="order-2 flex justify-center lg:justify-end">
           <PhoneMockup>
-            <CollaborationChat userType={accountType}/>
+            <CollaborationChat userType={accountType} />
           </PhoneMockup>
         </div>
       </div>

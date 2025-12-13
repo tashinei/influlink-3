@@ -159,45 +159,41 @@ const CreatorAbout = () => {
 
     const faqs = [
         {
-            question: "Какво е InfluLink?",
-            answer:
-                "Първата платформа в България, която свързва брандове с инфлуенсъри за автентични кампании.",
+            question: t("creatorAbout.faq.q1.question"),
+            answer: t("creatorAbout.faq.q1.answer"),
         },
         {
-            question: "Кога ще стартира платформата?",
-            answer:
-                "Очаквайте старта в началото на 2026. Запишете се в чакащата листа за ранен достъп.",
+            question: t("creatorAbout.faq.q2.question"),
+            answer: t("creatorAbout.faq.q2.answer"),
         },
         {
-            question: "Как работи специалният акаунт?",
-            answer:
-                "Публикувайте нашето видео в Instagram story и получете отстъпка при одобрение.",
+            question: t("creatorAbout.faq.q3.question"),
+            answer: t("creatorAbout.faq.q3.answer"),
         },
         {
-            question: "Има ли такса за регистрация?",
-            answer:
-                "Регистрацията е безплатна. Таксите се прилагат само при активни кампании.",
+            question: t("creatorAbout.faq.q4.question"),
+            answer: t("creatorAbout.faq.q4.answer"),
         },
+        {
+            question: t("creatorAbout.faq.q5.question"),
+            answer: t("creatorAbout.faq.q5.answer"),
+        }
     ];
-
     const values = [
         {
             icon: Target,
-            title: "Нашата мисия",
-            description:
-                "Да улесним сътрудничеството между бизнеси и създатели на съдържание чрез прозрачна, ефективна и ориентирана към качество платформа, която създава реална стойност и измерими резултати.",
-        },
+            title: t("drivesUs.card1Title"),
+            description: t("drivesUs.card1Content"),
+            },
         {
             icon: Heart,
-            title: "Нашите ценности",
-            description:
-                "Качество, прозрачност и автентичност. Вярваме в силата на нишовото влияние и устойчивите партньорства.",
+            title: t("drivesUs.card2Title"),
+            description: t("drivesUs.card2Content"),
         },
         {
             icon: Zap,
-            title: "Нашата визия",
-            description:
-                "Да зададем нов стандарт в инфлуенсър маркетинга чрез качество, доверие и устойчив растеж.",
+            title: t("drivesUs.card3Title"),
+            description: t("drivesUs.card3Content"),
         },
     ];
 
@@ -227,9 +223,9 @@ const CreatorAbout = () => {
             </section>
 
             {!isMobile ? (
-                <DisplayCards />
+                <DisplayCards isCreator={true} />
             ) : (
-                <DisplaySection accountType="creator" />
+                <DisplaySection accountType= "creator"/>
             )}
 
             <section className="flex pt-20 pb-[20px] md:pb-20 bg-white">
@@ -242,7 +238,7 @@ const CreatorAbout = () => {
                             </span>
                         </h2>
                         <p className="text-xl text-text max-w-2xl mx-auto">
-                            Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.
+                            {t("creatorAbout.section_subtitle_1")}
                         </p>
                     </div>
 
@@ -351,9 +347,9 @@ const CreatorAbout = () => {
                     <div className="max-w-4xl mx-auto">
                         <div className="text-center mb-12">
                             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-                                Станете{" "}
+                                {t("creatorAbout.vip.titleFirst")}
                                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                    VIP член
+                                    {t("creatorAbout.vip.titleSecond")}
                                 </span>
                             </h2>
                             <p className="text-xl text-muted-foreground">
@@ -454,7 +450,7 @@ const CreatorAbout = () => {
                 <div className="container mx-auto px-4">
                     <div className="max-w-3xl mx-auto">
                         <h2 className="text-4xl md:text-5xl font-bold text-center mb-12">
-                            Често задавани въпроси
+                            {t("creatorAbout.faq.title")}
                             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></span>
                         </h2>
 
@@ -470,7 +466,7 @@ const CreatorAbout = () => {
                                             {faq.question}
                                         </span>
                                     </AccordionTrigger>
-                                    <AccordionContent className="text-muted-foreground pb-6 text-[18px]">
+                                    <AccordionContent className="text-muted-foreground pb-6 text-[17px]">
                                         {faq.answer}
                                     </AccordionContent>
                                 </AccordionItem>
@@ -484,7 +480,7 @@ const CreatorAbout = () => {
             <section className="py-16 bg-muted/30">
                 <div className="container mx-auto px-4">
                     <h2 className="text-4xl font-bold text-center mb-12">
-                        Какво ни движи
+                        {t("drivesUs.title")}
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {values.map((value, index) => (
