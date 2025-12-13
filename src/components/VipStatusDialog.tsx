@@ -24,7 +24,7 @@ export default function VipStatusDialog({ open, onOpenChange, accountType }) {
   const {t} = useTranslation();
 
   const isCreator = accountType === "creator";
-  const accountAbout = isCreator ? "creatoAbout" : "brandAbout";
+  const accountAbout = isCreator ? "creatorAbout" : "brandAbout";
 
   useEffect(() => {
     if (!open) {
