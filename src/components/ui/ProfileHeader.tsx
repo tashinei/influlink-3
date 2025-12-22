@@ -1,9 +1,15 @@
-import { MapPin, LinkIcon, Instagram, Twitter, Youtube, CheckCircle2, MoreHorizontal, Camera, UserCog } from "lucide-react";
+import { MapPin, LinkIcon, Instagram, Twitter, Youtube, CheckCircle2, MoreHorizontal, Camera, UserCog, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileData } from "@/types/profile";
 import { useState } from "react";
+import { Info } from "lucide-react";
+
+// --- NEW IMPORTS for Dropdown Menu ---
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "./dialog";
+import { } from "./dialog";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -11,9 +17,11 @@ interface ProfileHeaderProps {
   onToggleFollow: () => void;
   onChangeProfilePic?: (file: File) => void;
   onEditProfile?: () => void;
+  // --- NEW PROP ADDED ---
+  onLogout: () => void;
 }
 
-export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic, onEditProfile }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic, onEditProfile, onLogout }: ProfileHeaderProps) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -27,8 +35,8 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
   const [editBio, setEditBio] = useState(profile.bio);
   const [editNiche, setEditNiche] = useState(profile.niche);
   const [loading, setLoading] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  // The presence of onChangeProfilePic means the logged-in user is viewing their own profile.
   const isOwner = !!onChangeProfilePic;
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -48,6 +56,11 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
     URL.revokeObjectURL(tempUrl);
   };
 
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+  
+  const API_BASE = "http://localhost:3000";
   return (
     <>
       {/* Header Background */}
@@ -63,13 +76,12 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
           <div className="relative group">
             <div className="h-44 w-44 md:h-52 md:w-52 rounded-[2rem] p-1.5 bg-background shadow-xl transition-transform group-hover:rotate-3">
               <Avatar className="h-full w-full rounded-[1.7rem]">
-                <AvatarImage src={`http://localhost:3000/uploads/${profile.avatar}`} alt={profile.name} style={{ objectFit: "cover" }} />
+                <AvatarImage src={`${API_BASE}${profile.avatar}`} alt={profile.name} style={{ objectFit: "cover" }} />
                 <AvatarFallback className="rounded-[1.7rem] text-2xl">{getInitials(profile.name)}</AvatarFallback>
               </Avatar>
             </div>
             <span className="absolute bottom-4 right-2 w-4 h-4 bg-green-500 border-2 border-background rounded-full" aria-label="Online" />
 
-            {/* ✅ Change Profile Pic Button (Only for Owner) */}
             {isOwner && (
               <label className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-background/80 p-1 rounded-full cursor-pointer hover:bg-background/90 transition-colors">
                 <Camera className="w-5 h-5 text-primary" />
@@ -78,7 +90,6 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             )}
           </div>
 
-          {/* Profile Info */}
           <div className="flex-1 pt-2 md:pt-20 space-y-4">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
@@ -98,7 +109,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                     {profile.location}
                   </div>
                   <a
-                    href={profile.socialLinks.website}
+                    href={`/${profile.handle.replace('@', '')}`}
                     className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -111,8 +122,6 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 w-full md:w-auto">
-                {/* --- START OF CHANGES --- */}
-
                 {/* Case 1: Viewer (Not Owner) - Show Follow & Contact buttons */}
                 {!isOwner ? (
                   <>
@@ -136,18 +145,42 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                   <Button
                     variant="default"
                     className="flex-1 md:flex-none rounded-full px-6 bg-gradient-to-br from-primary to-secondary hover:scale-105 transition duration-300 ease-in-out"
-                    // You would replace the onClick with navigation to your Edit Profile route/modal
                     onClick={onEditProfile}
                   >
-                    <UserCog className="w-5 h-5 m-0" />
+                    <UserCog className="w-5 h-5 mr-1" />
                     Edit Profile
                   </Button>
                 )}
-                <Button variant="ghost" size="icon" className="rounded-full" aria-label="More options">
-                  <MoreHorizontal className="w-5 h-5" />
-                </Button>
 
-                {/* --- END OF CHANGES --- */}
+                {/* --- DROPDOWN MENU IMPLEMENTATION --- */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full" aria-label="More options">
+                      <MoreHorizontal className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {/* Menu items for all users (e.g., Share Profile) */}
+                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.href)} className="cursor-pointer">
+                      <LinkIcon className="mr-2 h-4 w-4" />
+                      <span>Share Profile</span>
+                    </DropdownMenuItem>
+
+                    {/* Logout is only for the Profile Owner */}
+                    {isOwner && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={handleLogoutClick}
+                          className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Logout</span>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
@@ -210,6 +243,59 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
           </div>
         </div>
       </div>
+
+      <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
+        <DialogContent className="sm:max-w-[30dvw] p-8 pt-6 rounded-xl shadow-xl max-h-[30dvh] pb-0 gap-0">
+
+          {/* HEADER */}
+          <DialogHeader className="text-left space-y-4 p-0 min-h-0 mt-6">
+
+            <div className="flex flex-row gap-8 align-middle justify-start" style={{ alignItems: "center" }}>
+              <DialogTitle className="text-xl font-semibold w-[90%]">
+                Confirm Logout
+              </DialogTitle>
+            </div>
+
+
+            <DialogDescription className="text-sm text-muted-foreground max-w-sm">
+              Are you sure you want to log out of your account?
+            </DialogDescription>
+            <div className="rounded-md bg-transparent px-2 py-1 text-sm text-[gray] flex items-startt justify-start gap-2 pl-0">
+              <span><Info></Info></span>
+              You will be redirected to the home page.
+            </div>
+          </DialogHeader>
+
+          <DialogFooter className="mt-2
+            p-0
+            flex
+            flex-row
+            justify-end
+            items-center
+            gap-2
+            min-h-0
+            m-0
+            pb-4">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto bg-gradient-to-br from-primary to-secondary text-[white]"
+              onClick={() => setIsLogoutModalOpen(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto text-red-500"
+              onClick={onLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2 text-red-400" />
+              Log Out
+            </Button>
+          </DialogFooter>
+
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

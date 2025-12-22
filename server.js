@@ -147,6 +147,20 @@ const authenticate = (req, res, next) => {
     }
 };
 
+app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax',
+        path: '/'
+    });
+
+    // Respond with 204 No Content for successful deletion or 200 OK
+    // The frontend is expecting a successful response (status 200/204) to redirect.
+    res.status(200).json({ message: 'Logged out successfully' });
+});
+
+
 // =======================
 // PROFILE ROUTES
 // =======================
@@ -219,11 +233,14 @@ app.get('/api/profiles/:profileId', authenticate, async (req, res) => {
             isVIP: profile.isVIP === 1,
             isFollowing: isFollowing,
             stats: {
-                followers: formatNumberShort(profile.followers),
-                following: (profile.following || 0).toString(),
-                engagementRate: ((Number(profile.engagement_rate) || 0).toFixed(1)) + '%',
-                totalReach: formatNumberShort(profile.total_reach),
+                followers: Number(profile.followers || 0),
+                following: Number(profile.following || 0),
+                engagementRate: Number(profile.engagement_rate || 0), // just the numeric rate
+                totalReach: Number(profile.total_reach || 0),
             },
+            platforms: [],        // empty array if not in DB
+            contentTypes: [],
+            collabTypes: [],
             socialLinks: JSON.parse(profile.social_links_json || '{}')
         };
 
@@ -334,26 +351,46 @@ app.get('/api/profiles/:profileId/portfolio', authenticate, async (req, res) => 
     }
 });
 // Add portfolio post
-app.post('/api/profiles/:profileId/portfolio', authenticate, async (req, res) => {
-    const { profileId } = req.params;
-    const { title, brand, type, description, imagePreview } = req.body;
-    try {
-        const defaultStats = JSON.stringify({ likes: '0', views: '0' });
-        const [result] = await pool.query(
-            `INSERT INTO portfolio (profile_id, title, brand, type, image, description, stats_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-            [profileId, title, brand, type, imagePreview, description, defaultStats]
-        );
-        res.status(201).json({
-            id: result.insertId.toString(),
-            title, brand, type, description, image: imagePreview,
-            stats: JSON.parse(defaultStats),
-            createdAt: new Date().toISOString()
-        });
-    } catch (err) {
-        console.error('Error adding portfolio post:', err);
-        res.status(500).json({ message: 'Failed to add portfolio post' });
+app.post(
+    '/api/profiles/:profileId/portfolio',
+    authenticate,
+    upload.single('image'),
+    async (req, res) => {
+        const { profileId } = req.params;
+        const { title, brand, type, description } = req.body;
+
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'No image uploaded' });
+            }
+
+            const imagePath = `/uploads/${req.file.filename}`;
+            const defaultStats = { likes: 0, views: 0 };
+
+            const [result] = await pool.query(
+                `INSERT INTO portfolio 
+         (profile_id, title, brand, type, image, description, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+                [profileId, title, brand, type, imagePath, description]
+            );
+
+            res.status(201).json({
+                id: result.insertId.toString(),
+                title,
+                brand,
+                type,
+                description,
+                image: imagePath,
+                stats: defaultStats,
+                createdAt: new Date().toISOString()
+            });
+
+        } catch (err) {
+            console.error('Error adding portfolio post:', err);
+            res.status(500).json({ message: 'Failed to add portfolio post' });
+        }
     }
-});
+);
 
 // Delete portfolio post
 app.delete('/api/profiles/:profileId/portfolio/:postId', authenticate, async (req, res) => {
@@ -602,6 +639,201 @@ app.post('/api/profiles/:profileId/portfolio/:postId/view', authenticate, async 
     }
 });
 
+const FOLLOWER_RANGES = {
+    nano: { min: 0, max: 10_000 },
+    micro: { min: 10_001, max: 100_000 },
+    mid: { min: 100_001, max: 500_000 },
+    macro: { min: 500_001, max: 1_000_000 },
+    mega: { min: 1_000_001, max: null }, // no upper limit
+};
+
+// =======================
+// CREATOR SEARCH ROUTE
+// =======================
+app.post('/api/creators/search', async (req, res) => {
+    try {
+        console.log("Just a test");
+        const {
+            query = "",
+            niche = [],
+            country = "",
+            language = [],
+            platforms = [],
+            minFollowers = 0,
+            maxFollowers = 10000000,
+            isVIP = false,
+            availableNow = false,
+            budgetMin = 0,
+            budgetMax = 100000000,
+            page = 1,
+            limit = 12,
+            minEngagement,
+            maxEngagement,
+            contentTypes = [],
+            collabTypes = []
+        } = req.body;
+
+        console.log('Received body:', req.body);
+
+        const where = [];
+        const params = [];
+
+        // Only creators
+        // where.push(`accounttype = 'creator'`);
+
+        // 🔍 Text search
+        if (query.trim()) {
+            where.push(`(
+        name LIKE ? OR
+        handle LIKE ? OR
+        bio LIKE ?
+      )`);
+            const q = `%${query}%`;
+            params.push(q, q, q);
+        }
+
+        // Niche
+        if (niche.length > 0) {
+            where.push(`niche IN (${niche.map(() => '?').join(',')})`);
+            params.push(...niche);
+        }
+
+        // Country
+        if (country) {
+            where.push(`country = ?`);
+            params.push(country);  // we only pass the country name string
+        }
+
+        // Availability
+        if (availableNow) {
+            where.push(`available_now = 1`);
+        }
+
+        // Vip status
+        if (isVIP) {
+            where.push(`isVip = 1`);
+        }
+
+        const languages = Array.isArray(req.body.language) ? req.body.language : [];
+
+        // Language
+        if (languages.length > 0) {
+            const orClauses = languages.map(() => `JSON_SEARCH(LOWER(languages), 'one', LOWER(?)) IS NOT NULL`).join(' OR ');
+            where.push(`(${orClauses})`);
+            params.push(...languages);
+        }
+
+        // Platforms
+        if (platforms?.length > 0) {
+            const orClauses = platforms.map(() => `JSON_CONTAINS(platforms, ?)`).join(' OR ');
+            where.push(`(${orClauses})`);
+            params.push(...platforms.map(platform => `"${platform}"`));
+        }
+
+        // Followers (range OR explicit)
+        let minF = minFollowers ?? 0;
+        let maxF = maxFollowers ?? 10000000;
+
+        console.log("Using follower limits:", minF, maxF);
+
+        if (minF >= 0) {
+            where.push(`followers >= ?`);
+            params.push(minF);
+        }
+        if (maxF <= 10000000) {
+            where.push(`followers <= ?`);
+            params.push(maxF);
+        }
+
+        let minEng = minEngagement ?? 0;
+        let maxEng = maxEngagement ?? 100;
+
+        if (minEng >= 0) {
+            where.push(`engagement_rate >= ?`);
+            params.push(minEng);
+        }
+        if (maxEng <= 100) {
+            where.push(`engagement_rate <= ?`);
+            params.push(maxEng);
+        }
+
+        if (contentTypes.length > 0) {
+            const orClauses = contentTypes
+                .map(() => `JSON_CONTAINS(content_types, ?)`)
+                .join(' OR ');
+
+            where.push(`(${orClauses})`);
+            params.push(...contentTypes.map(t => `"${t.toLowerCase()}"`));
+        }
+
+        if (collabTypes.length > 0) {
+            const orClauses = collabTypes
+                .map(() => `JSON_CONTAINS(collab_types, ?)`)
+                .join(' OR ');
+
+            where.push(`(${orClauses})`);
+            params.push(...collabTypes.map(t => `"${t.toLowerCase()}"`));
+        }
+
+        // 💰 Budget (custom numeric)
+        // if (budgetMin !== null) {
+        //     where.push(`budget_min >= ?`);
+        //     params.push(budgetMin);
+        // }
+
+        // if (budgetMax !== null) {
+        //     where.push(`budget_max <= ?`);
+        //     params.push(budgetMax);
+        // }
+
+        // 📄 Pagination
+        const offset = (page - 1) * limit;
+
+        const sql = `
+      SELECT
+        id,
+        name,
+        handle,
+        niche,
+        location,
+        avatar,
+        followers,
+        engagement_rate,
+        isVIP,
+        budget_min,
+        budget_max,
+        country,
+        languages,
+        platforms,
+        content_types,
+        collab_types
+      FROM profiles
+      ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+      ORDER BY
+        isVIP DESC,
+        followers DESC
+      LIMIT ? OFFSET ?
+    `;
+
+        params.push(Number(limit), Number(offset));
+
+        const [rows] = await pool.query(sql, params);
+
+        res.json({
+            page,
+            limit,
+            count: rows.length,
+            results: rows
+        });
+
+        console.log(rows);
+    } catch (err) {
+        console.error('Creator search error:', err);
+        res.status(500).json({ message: 'Failed to search creators' });
+    }
+});
+
+
 // =======================
 // UPDATE PROFILE ROUTE
 // =======================
@@ -677,7 +909,7 @@ app.post('/api/profiles/me/update', authenticate, async (req, res) => {
     }
 });
 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // =======================
 // START SERVER

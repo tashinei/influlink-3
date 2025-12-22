@@ -1,19 +1,65 @@
+import { register } from "module";
+
 export const translations = {
   bg: {
     hero: {
-      title: "Присъединете се към бъдещето на",
-      highlightText: "инфлуенсър маркетинга",
+      title: "Глобален обхват",
+      highlightText: "Локално въздействие",
       description:
         "Запишете се за ранен достъп и бъдете сред първите.",
       creatorButton: "Създател",
       brandButton: "Бизнес",
+      mainCta: "Открийте създатели",
+      secondaryCta: ""
     },
 
     nav: {
       home: "Начало",
       contact: "Контакти",
       brandAbout: "За бизнеси",
-      creatorAbout: "За създатели"
+      creatorAbout: "За създатели",
+      register: "Регистрирай се",
+      profile: "Профил"
+    },
+
+    contacts: {
+      title: "Свържете се с нас",
+      subtitle: "Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне",
+      email: "Имейл",
+      location: "Локация",
+      locationValue: "България",
+      workHours: "Работно време",
+      workHoursValue: "Поддръжка 24/7",
+      sendMessage: "Изпратете ни съобщение",
+      name: "Име",
+      namePlaceholder: "Вашето име",
+      subject: "Тема",
+      subjectPlaceholder: "Относно какво е Вашето съобщение?",
+      message: "Съобщение",
+      messagePlaceholder: "Вашето съобщение...",
+      button: "Изпрати"
+    },
+
+    drivesUs: {
+      title: "Какво ни движи",
+      card1Title: "Нашата мисия",
+      card1Content: "Да улесним сътрудничеството между бизнеси и създатели на съдържание чрез прозрачна, ефективна и ориентирана към качество платформа, която създава реална стойност и измерими резултати.",
+      card2Title: "Нашите ценности",
+      card2Content: "Качество, прозрачност и автентичност.Вярваме в силата на нишовото влияние и устойчивите партньорства.",
+      card3Title: "Нашата визия",
+      card3Content: "Да зададем нов стандарт в инфлуенсър маркетинга чрез качество, доверие и устойчив растеж."
+    },
+
+    footer: {
+      slogan: "Глобален обхват. Локално въздействие.",
+      rights: "Всички права запазени",
+      nav: {
+        title: "Навигация",
+        home: "Начало",
+        contact: "Контакти",
+        about: "За нас"
+      },
+      support: "24/7 Поддръжка",
     },
 
     common: {
@@ -34,10 +80,12 @@ export const translations = {
       }
     },
 
-    editProfile :{
+    editProfile: {
       title: "Редактиране на профил",
       subtitle: "Изберете промени"
     },
+
+
 
     form: {
       arrays: {
@@ -375,7 +423,9 @@ export const translations = {
       home: "Home",
       contact: "Contacts",
       brandAbout: "For businesses",
-      creatorAbout: "For creators"
+      creatorAbout: "For creators",
+      register: "Register",
+      profile: "Profile"
     },
 
     common: {
@@ -396,9 +446,49 @@ export const translations = {
       }
     },
 
-    editProfile :{
+    editProfile: {
       title: "Edit profile",
       subtitle: "Enter desired changes"
+    },
+
+    drivesUs: {
+      title: "What drives us",
+      card1Title: "Our mission",
+      card1Content: "To make the collaboration between creators and brands an easy process, through an effective and oriented towards quality platform, that creates real value and measurable growth.",
+      card2Title: "Our values",
+      card2Content: "Quality, transparency and authenticity. We believe in niche influence and lasting partnerships.",
+      card3Title: "Our vision",
+      card3Content: "To set a new standard through quality, trust and lasting growth."
+    },
+
+    contacts: {
+      title: "Contact us",
+      subtitle: "Have any questions? Our team is available 24/7 to offer you assistance",
+      email: "Email",
+      location: "Location",
+      locationValue: "Bulgaria",
+      workHours: "Work hours",
+      workHoursValue: "Support 24/7",
+      sendMessage: "Send us a message",
+      name: "Name",
+      namePlaceholder: "Your name",
+      subject: "Subject",
+      subjectPlaceholder: "What is your message about?",
+      message: "Message",
+      messagePlaceholder: "Your message...",
+      button: "Send"
+    },
+
+    footer: {
+      slogan: "Global reach. Local impact.",
+      rights: "All rights reserved",
+      nav: {
+        title: "Navigation",
+        home: "Home",
+        contact: "Contacts",
+        about: "About us"
+      },
+      support: "24/7 Support",
     },
 
     form: {
@@ -632,6 +722,7 @@ export const translations = {
         socialLink: "Enter a link",
         country: "Your country",
         selectCountries: "+ Choose up to 3 countries",
+        selectOneCountry: "+ Choose 1 country",
         followers: "Please enter",
         select: "Please choose",
         otherNiche: "Please enter",

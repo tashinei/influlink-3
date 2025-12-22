@@ -15,6 +15,7 @@ export const PortfolioCard = ({ item, onClick, onShare }: PortfolioCardProps) =>
     e.stopPropagation();
     onShare?.();
   };
+  const API_BASE = "http://localhost:3000";
 
   return (
     <Card 
@@ -33,7 +34,7 @@ export const PortfolioCard = ({ item, onClick, onShare }: PortfolioCardProps) =>
       <CardContent className="p-0 bg-[white] rounded-[40px] group-hover:scale-105 transition-transform duration-500">
         <div className="relative aspect-[9//16] overflow-hidden h-[45dvh]">
           <img 
-            src={item.image} 
+            src={`${API_BASE}${item.image}`}
             alt={item.title}
             className="object-cover w-full h-full transform transition-transform duration-500 rounded-[40px]" 
             loading="lazy"

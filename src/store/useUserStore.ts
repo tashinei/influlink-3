@@ -53,14 +53,17 @@ export const useUserStore = create<UserState>()(
 
       setVIP: (value) => set({ isVIP: value }), // ⭐
 
-      logout: () =>
+      logout: () => {
         set({
           token: null,
           user: null,
           isRegistered: false,
           accountType: null,
           isVIP: false,
-        }),
+        });
+
+        useUserStore.persist.clearStorage();
+      },
     }),
     { name: "user-storage" }
   )

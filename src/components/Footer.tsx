@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Footer = () => {
+  const { t } = useTranslation();
+
   return (
     <footer className="bg-gradient-to-r from-secondary to-primary bg-card border-border mt-0">
       <div className="container mx-auto px-4 py-12">
@@ -10,31 +13,30 @@ const Footer = () => {
               InfluLink
             </h3>
             <p className="text-muted">
-              Свързваме брандове с истински инфлуенсъри за истински растеж.
+              {t("footer.slogan")}
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-muted text-lg">Навигация</h4>
+            <h4 className="font-semibold mb-4 text-muted text-lg">{t("footer.nav.title")}</h4>
             <ul className="space-y-2">
-              <li><Link to="/" className="text-muted hover:text-primary transition-colors">Начало</Link></li>
-              <li><Link to="/about" className="text-muted hover:text-primary transition-colors">За нас</Link></li>
-              <li><Link to="/contact" className="text-muted hover:text-primary transition-colors">Контакти</Link></li>
+              <li><Link to="/" className="text-muted hover:text-primary transition-colors">{t("footer.nav.home")}</Link></li>
+              <li><Link to="/about" className="text-muted hover:text-primary transition-colors">{t("footer.nav.about")}</Link></li>
+              <li><Link to="/contact" className="text-muted hover:text-primary transition-colors">{t("footer.nav.contact")}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4 text-muted text-lg">Контакти</h4>
+            <h4 className="font-semibold mb-4 text-muted text-lg">{t("footer.nav.contact")}</h4>
             <ul className="space-y-2 text-muted">
-              <li>България</li>
               <li>influlink@gmail.com</li>
-              <li>Поддръжка 24/7</li>
+              <li>{t("footer.support")}</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t border-border text-center text-muted">
-          <p>&copy; 2025 InfluLink. Всички права запазени.</p>
+          <p>&copy; 2025 InfluLink. {t("footer.rights")}</p>
         </div>
       </div>
     </footer>

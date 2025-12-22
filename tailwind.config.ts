@@ -27,6 +27,9 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        tertiary:{
+          DEFAULT: "hsl(var(--tertiary))",
+        },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -142,6 +145,26 @@ export default {
           '70%': { transform: 'translate(var(--tx), var(--ty)) scale(1)', opacity: '1' },
           '100%': { opacity: '0' },
         },
+        "circular-expand": {
+          "0%": {
+            clipPath: "circle(0% at 50% 50%)",
+            opacity: "0",
+          },
+          "100%": {
+            clipPath: "circle(150% at 50% 50%)",
+            opacity: "1",
+          },
+        },
+        "circular-collapse": {
+          "0%": {
+            clipPath: "circle(150% at 50% 50%)",
+            opacity: "1",
+          },
+          "100%": {
+            clipPath: "circle(0% at 50% 50%)",
+            opacity: "0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -155,6 +178,8 @@ export default {
         'scale-in': 'scale-in 0.5s cubic-bezier(0.5, 1.5, 0.5, 1) forwards',
         'splash-burst': 'splash-burst 1.2s ease-out forwards',
         'particle-burst': 'particle-burst 1s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+        "circular-expand": "circular-expand 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+        "circular-collapse": "circular-collapse 0.5s ease-in forwards",
       },
     },
   },

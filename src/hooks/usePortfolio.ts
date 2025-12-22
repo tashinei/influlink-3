@@ -75,19 +75,30 @@ export const usePortfolio = (targetProfileId?: string) => {
     fetchPortfolio();
   }, [fetchPortfolio]);
 
-  // ❌ 3. Management actions must use currentUserId
+  // hooks/usePortfolio.ts
   const addPost = async (postData: NewPostData): Promise<boolean> => {
-    if (!currentUserId) { // Use currentUserId for permission check
+    if (!currentUserId) {
       console.error("Cannot add post: User not logged in.");
       return false;
     }
 
+    if (!postData.imageFile) {
+      console.error("No file selected for upload.");
+      return false;
+    }
+
     try {
-      const response = await fetch(`${API_BASE_URL}/profiles/${currentUserId}/portfolio`, { // Use currentUserId
+      const formData = new FormData();
+      formData.append("image", postData.imageFile);
+      formData.append("title", postData.title);
+      formData.append("brand", postData.brand);
+      formData.append("type", postData.type);
+      formData.append("description", postData.description);
+
+      const response = await fetch(`${API_BASE_URL}/profiles/${currentUserId}/portfolio`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
-        body: JSON.stringify({ ...postData, imagePreview: postData.imagePreview }),
+        credentials: "include",
+        body: formData,
       });
 
       if (!response.ok) {
@@ -97,7 +108,6 @@ export const usePortfolio = (targetProfileId?: string) => {
 
       const newPost = await response.json();
 
-      // Format the new post stats immediately
       const formattedNewPost: PortfolioItem = {
         ...newPost,
         stats: {
@@ -106,7 +116,7 @@ export const usePortfolio = (targetProfileId?: string) => {
         }
       };
 
-      setPortfolio((prev) => [formattedNewPost, ...prev]);
+      setPortfolio(prev => [formattedNewPost, ...prev]);
       return true;
 
     } catch (err) {
@@ -114,6 +124,8 @@ export const usePortfolio = (targetProfileId?: string) => {
       return false;
     }
   };
+
+
 
   const deletePost = async (postId: string): Promise<boolean> => {
     if (!currentUserId) { // Use currentUserId for permission check
@@ -126,7 +138,6 @@ export const usePortfolio = (targetProfileId?: string) => {
         method: "DELETE",
         credentials: 'include',
       });
-
 
       if (!response.ok) throw new Error("Failed to delete post");
 

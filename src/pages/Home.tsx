@@ -279,8 +279,8 @@ const Home = () => {
         title={t("hero.title")}
         highlightText={t("hero.highlightText")}
         description={t("hero.description")}
-        buttonText={t("hero.creatorButton")}
-        secondaryButtonText={t("hero.brandButton")}
+        buttonText={t("hero.mainCta")}
+        secondaryButtonText={t("hero.secondaryCta")}
         onButtonClick={() =>
           !isRegistered ? handleOpenDialog("creator") : setIsSuccessModalOpen(true)
         }
@@ -447,6 +447,7 @@ const Home = () => {
                               setFormData({ ...formData, topCountries: Array.isArray(newCountries) ? newCountries : [] })
                             }
                             onSave={() => setCountryModalOpen(false)}
+                            shouldHaveOverlay={true}
                           />
                           <CountryPickerModal
                             open={businessCountryModalOpen}
@@ -456,6 +457,7 @@ const Home = () => {
                               setFormData({ ...formData, targetCountries: Array.isArray(newCountries) ? newCountries : [] })
                             }
                             onSave={() => setBusinessCountryModalOpen(false)}
+                            shouldHaveOverlay={true}
                           />
                         </div>
                       )}

@@ -17,17 +17,22 @@ import { useParams, useMatch, useNavigate } from "react-router-dom";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { PortfolioItem, ProfileData } from "@/types/profile";
 import NavigationDock from "@/components/NavigationDock";
+import { useUserStore } from "@/store/useUserStore";
 
 const Profile = () => {
   const navigate = useNavigate();
   const isMyProfileRoute = useMatch("/profile/me");
-  const { identifier } = useParams<{ identifier: string }>();
 
-  const identifierToFetch = isMyProfileRoute ? undefined : identifier;
+  const { identifier: profileIdentifierFromLegacyRoute } = useParams<{ identifier: string }>();
+  const { username: profileIdentifierFromNewRoute } = useParams<{ username: string }>();
+
+  const identifierToFetch = isMyProfileRoute
+    ? undefined
+    : profileIdentifierFromNewRoute || profileIdentifierFromLegacyRoute;
+
   const { profile: myProfile } = useProfile(undefined);
 
-  const { profile, isLoading: profileLoading, isFollowing, toggleFollow, refetch } =
-    useProfile(identifierToFetch);
+  const { profile, isLoading: profileLoading, isFollowing, toggleFollow, refetch } = useProfile(identifierToFetch);
 
   const isOwner =
     isMyProfileRoute ||
@@ -92,7 +97,7 @@ const Profile = () => {
         throw new Error(err.message || "Failed to update profile");
       }
 
-      await refetch(); // reload profile data
+      await refetch();
       setIsEditProfileOpen(false);
     } catch (error) {
       console.error("Profile update failed:", error);
@@ -124,6 +129,31 @@ const Profile = () => {
     } else {
       navigator.clipboard.writeText(window.location.href);
       alert("Link copied to clipboard!");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+      });
+
+      if (response.ok) {
+          console.log('Logout successful. Redirecting to home...');
+          useUserStore.getState().logout();
+          localStorage.removeItem('user-storage');
+          navigate("/");
+          
+      } else {
+          console.error('Logout failed on server:', response.status);
+          alert('Logout failed. Please try again.');
+      }
+    } catch (error) {
+        console.error('Network or fetch error during logout:', error);
     }
   };
 
@@ -185,6 +215,7 @@ const Profile = () => {
         onToggleFollow={toggleFollow}
         onChangeProfilePic={isOwner ? handleProfilePicChange : undefined}
         onEditProfile={isOwner ? () => setIsEditProfileOpen(true) : undefined}
+        onLogout={handleLogout}
       />
 
       {/* TABS */}

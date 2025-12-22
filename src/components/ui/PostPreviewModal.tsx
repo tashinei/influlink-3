@@ -18,6 +18,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
   const [isLiked, setIsLiked] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const API_BASE = "http://localhost:3000";
 
   if (!API_BASE_URL) {
     throw new Error("API_BASE_URL environment variable is not set.");
@@ -97,7 +98,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
   const handleLike = async () => {
     try {
       const res = await fetch(
-        `${API_BASE_URL}/${currentPost.profileId}/portfolio/${currentPost.id}/like`,
+        `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}/like`,
         {
           method: isLiked ? "DELETE" : "POST",
           credentials: "include",
@@ -123,7 +124,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
 
     try {
       const res = await fetch(
-        `${API_BASE_URL}/${currentPost.profileId}/portfolio/${currentPost.id}`,
+        `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}`,
         { method: "DELETE", credentials: "include" }
       );
       if (!res.ok) throw new Error("Failed to delete post");
@@ -157,7 +158,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
           <div className="relative w-full h-full max-w-[450px] mx-auto flex items-center justify-center">
             <div className="relative w-full aspect-[9/16] max-h-full bg-black/5">
               <img
-                src={currentPost.image}
+                src={`${API_BASE}${currentPost.image}`}
                 alt={currentPost.title}
                 className="w-full h-full object-cover"
               />

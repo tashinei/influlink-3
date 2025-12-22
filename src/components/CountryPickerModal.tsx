@@ -9,6 +9,7 @@ export default function CountryPickerModal({
   selected,
   setSelected,
   onSave,
+  shouldHaveOverlay
 }) {
   const [search, setSearch] = useState("");
   const [isShaking, setIsShaking] = useState(false);
@@ -71,7 +72,7 @@ export default function CountryPickerModal({
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all rounded-[30px]"
       onClick={onClose}
-      style={{ marginTop: "0" }}
+      style={!shouldHaveOverlay ? {marginTop: "0", background:"transparent"} : { marginTop: "0" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}

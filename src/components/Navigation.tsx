@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -92,7 +91,7 @@ const Navigation = () => {
           <div className="flex items-center justify-between h-16 md:h-20">
             <Link
               to="/"
-              className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${textColorClass}`}
+              className={`text-2xl font-bold tracking-tight transition-colors duration-300`}
             >
               <img
                 src={isSolidBackground ? "/influ11.svg" : "/influ7.svg"}
@@ -128,29 +127,43 @@ const Navigation = () => {
               </div>
 
               {/* Standard Links */}
-              {links.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300
-                  ${isActive(link.path)
-                      ? "bg-primary text-white shadow-md"
+              {links.map((link) => {
+                const activeClasses =
+                  // 1. Is Active AND Solid Background (Scrolled/Open)
+                  isActive(link.path) && isSolidBackground
+                    ? "border-primary text-primary" // Solid border, primary color
+
+                    // 2. Is Active BUT Transparent Background (Top of Page)
+                    : isActive(link.path)
+                      ? "border-white text-white" // Solid border, white color
+
+                      // 3. Not Active & Solid Background
                       : isSolidBackground
-                        ? "text-foreground hover:bg-secondary/10 hover:text-primary"
-                        : "text-white/90 hover:bg-white/20 hover:text-white"
-                    }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+                        ? "border-transparent text-primary hover:bg-muted" // No border
+
+                        // 4. Not Active & Transparent Background
+                        : "border-transparent text-white hover:bg-white/10"; // No border
+
+                const defaultClasses = "px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 border";
+
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`${defaultClasses} ${activeClasses}`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
 
               {/* Register Button (Triggers Dialog) */}
               {!isRegistered && (
                 <button
                   onClick={() => setIsRegisterOpen(true)}
-                  className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 bg-white text-black shadow-md hover:bg-gray-100 hover:scale-105`}
+                  className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 bg-gradient-to-br from-secondary to-primary text-[white] shadow-md hover:bg-gray-100 hover:scale-105`}
                 >
-                  Регистрирай се
+                  {t("nav.register")}
                 </button>
               )}
 
@@ -173,15 +186,23 @@ const Navigation = () => {
                 <Link
                   to={"/profile/me"}
                   onClick={() => setIsOpen(false)}
-                  className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 border
-                  ${isActive(aboutPath)
-                      ? "bg-primary text-white border-transparent shadow-md"
-                      : isSolidBackground
-                        ? "border-primary/20 text-primary hover:bg-primary hover:text-white"
-                        : "border-white/40 text-white hover:bg-white hover:text-black"
+                  className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300
+                  ${isActive("/profile/me") && isSolidBackground
+                      ? "border border-primary text-primary" // Solid border, primary color
+
+                      // 2. Is Active BUT Transparent Background (Top of Page)
+                      : isActive("/profile/me")
+                        ? "border border-white text-white" // Solid border, white color
+
+                        // 3. Not Active & Solid Background
+                        : isSolidBackground
+                          ? "border-transparent text-primary hover:bg-muted" // No border
+
+                          // 4. Not Active & Transparent Background
+                          : "border-transparent text-white hover:bg-white/10" // No border
                     }`}
                 >
-                  Профил
+                  {t("nav.profile")}
                 </Link>
               )}
             </div>
@@ -268,10 +289,10 @@ const Navigation = () => {
             </div>
           </div>
         </div>
-      </nav>
+      </nav >
 
       {/* --- REGISTRATION SELECTION DIALOG --- */}
-      <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
+      < Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen} >
         <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-primary to-secondary backdrop-blur-xl border-white/10 text-white shadow-2xl sm:rounded-3xl p-8">
           <DialogHeader className="space-y-4">
             <DialogTitle className="text-3xl font-bold text-center tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
@@ -328,7 +349,7 @@ const Navigation = () => {
             </Link>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog >
     </>
   );
 };
