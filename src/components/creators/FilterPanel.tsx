@@ -1,5 +1,5 @@
 import { FilterState } from '@/types/creator';
-import { useCreatorNiches } from '@/data/mockCreators';
+import { useCreatorCountries, useCreatorNiches } from '@/data/mockCreators';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -39,6 +39,7 @@ export const FilterPanel = ({
     const [countryModalOpen, setCountryModalOpen] = useState(false);
 
     const niches = useCreatorNiches();
+    const countries = useCreatorCountries();
 
     const followerPreset = filters.followerRange
         ? FOLLOWER_PRESETS[filters.followerRange]
@@ -344,9 +345,13 @@ export const FilterPanel = ({
                 open={countryModalOpen}
                 onClose={() => setCountryModalOpen(false)}
                 selected={filters.country ? [filters.country] : []}
-                setSelected={(country) =>
-                    updateFilter("country", country.name)
-                }
+                setSelected={(countryData) => {
+                    const country = Array.isArray(countryData) ? countryData[0] : countryData;
+
+                    if (country && country.name) {
+                        updateFilter("country", country.name);
+                    }
+                }}
                 onSave={() => setCountryModalOpen(false)}
                 shouldHaveOverlay={false}
             />

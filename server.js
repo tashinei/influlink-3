@@ -686,10 +686,17 @@ app.post('/api/creators/search', async (req, res) => {
             where.push(`(
         name LIKE ? OR
         handle LIKE ? OR
-        bio LIKE ?
-      )`);
+        bio LIKE ? OR
+        niche LIKE ? OR
+        location LIKE ? OR
+        country LIKE ? OR
+        JSON_SEARCH(collab_types, 'one', ?) IS NOT NULL OR
+        JSON_SEARCH(content_types, 'one', ?) IS NOT NULL OR
+        JSON_SEARCH(platforms, 'one', ?) IS NOT NULL
+    )`);
+
             const q = `%${query}%`;
-            params.push(q, q, q);
+            params.push(q, q, q, q, q, q, q, q, q);
         }
 
         // Niche
@@ -907,6 +914,122 @@ app.post('/api/profiles/me/update', authenticate, async (req, res) => {
         console.error("Error updating profile:", err);
         res.status(500).json({ message: "Failed to update profile" });
     }
+});
+
+// =======================
+// CAMPAIGN ROUTES
+// =======================
+
+// Create a campaign
+app.post(
+  '/api/campaigns/create',
+  authenticate,
+  upload.fields([
+    { name: 'companyLogo', maxCount: 1 },
+    { name: 'referenceImages', maxCount: 5 }
+  ]),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const {
+        name,
+        description,
+        type,
+        date,
+        budget,
+        goal
+      } = req.body;
+
+      if (!name || !description || !type || !date || !budget || !goal) {
+        return res.status(400).json({ message: 'Missing required campaign fields' });
+      }
+
+      // Handle uploaded files
+      const companyLogo = req.files['companyLogo']?.[0] ? `/uploads/${req.files['companyLogo'][0].filename}` : null;
+      const referenceImages = req.files['referenceImages']?.map(file => `/uploads/${file.filename}`) || [];
+
+      // Insert campaign into DB
+      const [result] = await pool.query(
+        `INSERT INTO campaigns
+          (creator_id, name, description, type, start_date, budget, goal, company_logo, reference_images, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [
+          userId,
+          name,
+          description,
+          type,
+          date,
+          budget,
+          goal,
+          companyLogo,
+          JSON.stringify(referenceImages)
+        ]
+      );
+
+      const campaignId = result.insertId;
+
+      res.status(201).json({
+        message: 'Campaign created successfully',
+        campaign: {
+          id: campaignId,
+          name,
+          description,
+          type,
+          date,
+          budget,
+          goal,
+          companyLogo,
+          referenceImages
+        }
+      });
+
+    } catch (err) {
+      console.error('Error creating campaign:', err);
+      res.status(500).json({ message: 'Failed to create campaign' });
+    }
+  }
+);
+
+app.get("/api/campaigns", authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [rows] = await pool.query(
+      "SELECT * FROM campaigns WHERE creator_id = ? ORDER BY created_at DESC",
+      [userId]
+    );
+
+    const campaigns = rows.map((row) => ({
+      ...row,
+      reference_images: row.reference_images ? JSON.parse(row.reference_images) : [],
+    }));
+
+    res.json(campaigns);
+  } catch (err) {
+    console.error("Failed to fetch campaigns:", err);
+    res.status(500).json({ message: "Failed to fetch campaigns" });
+  }
+});
+
+// DELETE campaign by ID
+app.delete("/api/campaigns/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [result] = await pool.query(
+      "DELETE FROM campaigns WHERE id = ? AND creator_id = ?",
+      [id, req.user.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Campaign not found or not yours" });
+    }
+
+    res.json({ message: "Campaign deleted successfully" });
+  } catch (err) {
+    console.error("Failed to delete campaign:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

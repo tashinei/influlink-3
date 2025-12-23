@@ -86,6 +86,8 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
     referenceImages: null,
   });
 
+  const API_BASE = "http://localhost:3000"
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -94,7 +96,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
   const handleSelectChange = (key: keyof CampaignForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
-  
+
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof CampaignForm) => {
     const files = e.target.files;
     if (!files) return;
@@ -110,12 +112,12 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
   const handleNext = () => {
     // Basic validation check for required fields on the current step
     if (currentStep === 1 && (!form.name || !form.description || !form.type || !form.date)) {
-        alert("Please fill in all required Core Campaign Details before proceeding.");
-        return;
+      alert("Please fill in all required Core Campaign Details before proceeding.");
+      return;
     }
     if (currentStep === 2 && (!form.budget || !form.goal)) {
-        alert("Please fill in all required Goals and Budget details before proceeding.");
-        return;
+      alert("Please fill in all required Goals and Budget details before proceeding.");
+      return;
     }
 
     if (currentStep < Steps.length) {
@@ -131,14 +133,57 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Final campaign data submitted:", {
-      ...form,
-      companyLogo: form.companyLogo ? form.companyLogo.name : 'No logo uploaded',
-      referenceImages: form.referenceImages?.length ? `${form.referenceImages.length} files uploaded` : 'No references uploaded'
-    });
-    // Close the modal after submission
-    onOpenChange(false);
+  const handleSubmit = async () => {
+    try {
+      const formData = new FormData();
+
+      // Append basic fields
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("type", form.type);
+      formData.append("date", form.date);
+      formData.append("budget", form.budget);
+      formData.append("goal", form.goal);
+
+      // Append files if present
+      if (form.companyLogo) {
+        formData.append("companyLogo", form.companyLogo);
+      }
+      if (form.referenceImages && form.referenceImages.length > 0) {
+        form.referenceImages.forEach((file, idx) => {
+          formData.append("referenceImages", file);
+        });
+      }
+
+      const res = await fetch(`${API_BASE}/api/campaigns/create`, {
+        method: "POST",
+        body: formData,
+        credentials: "include", // if using cookies for auth
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to create campaign");
+      }
+
+      const data = await res.json();
+      console.log("Campaign created successfully:", data);
+
+      // Close modal and optionally reset form
+      onOpenChange(false);
+      setForm({
+        name: "",
+        description: "",
+        type: "",
+        date: "",
+        budget: "",
+        goal: "reach",
+        companyLogo: null,
+        referenceImages: null,
+      });
+    } catch (err: any) {
+      console.error("Error submitting campaign:", err);
+    }
   };
 
   const currentStepData = Steps.find(step => step.key === currentStep);
@@ -268,44 +313,44 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
         return (
           <div className="space-y-8">
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-                {/* Company Logo (Optional) */}
-                <div className="space-y-3">
-                    <Label htmlFor="companyLogo" className="flex items-center gap-2 text-sm font-medium">
-                        <Camera className="h-4 w-4 text-primary/70" />
-                        Company Logo (PNG/JPG) <span className="text-muted-foreground text-xs">(Optional)</span>
-                    </Label>
-                    <Input
-                        id="companyLogo"
-                        name="companyLogo"
-                        type="file"
-                        accept=".png,.jpg,.jpeg"
-                        onChange={(e) => handleFileInputChange(e, 'companyLogo')}
-                        className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
-                    />
-                </div>
+              {/* Company Logo (Optional) */}
+              <div className="space-y-3">
+                <Label htmlFor="companyLogo" className="flex items-center gap-2 text-sm font-medium">
+                  <Camera className="h-4 w-4 text-primary/70" />
+                  Company Logo (PNG/JPG) <span className="text-muted-foreground text-xs">(Optional)</span>
+                </Label>
+                <Input
+                  id="companyLogo"
+                  name="companyLogo"
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  onChange={(e) => handleFileInputChange(e, 'companyLogo')}
+                  className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
+                />
+              </div>
 
-                {/* Reference Images (Optional) */}
-                <div className="space-y-3">
-                    <Label htmlFor="referenceImages" className="flex items-center gap-2 text-sm font-medium">
-                        <FileText className="h-4 w-4 text-primary/70" />
-                        Reference Images (Multiple allowed) <span className="text-muted-foreground text-xs">(Optional)</span>
-                    </Label>
-                    <Input
-                        id="referenceImages"
-                        name="referenceImages"
-                        type="file"
-                        multiple
-                        accept=".png,.jpg,.jpeg"
-                        onChange={(e) => handleFileInputChange(e, 'referenceImages')}
-                        className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
-                    />
-                </div>
+              {/* Reference Images (Optional) */}
+              <div className="space-y-3">
+                <Label htmlFor="referenceImages" className="flex items-center gap-2 text-sm font-medium">
+                  <FileText className="h-4 w-4 text-primary/70" />
+                  Reference Images (Multiple allowed) <span className="text-muted-foreground text-xs">(Optional)</span>
+                </Label>
+                <Input
+                  id="referenceImages"
+                  name="referenceImages"
+                  type="file"
+                  multiple
+                  accept=".png,.jpg,.jpeg"
+                  onChange={(e) => handleFileInputChange(e, 'referenceImages')}
+                  className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
+                />
+              </div>
             </div>
-            
+
             <div className="pt-4">
-                <p className="text-sm text-muted-foreground">
-                    * You can upload up to 5 reference images/documents. All fields in this section are optional and can be updated later.
-                </p>
+              <p className="text-sm text-muted-foreground">
+                * You can upload up to 5 reference images/documents. All fields in this section are optional and can be updated later.
+              </p>
             </div>
           </div>
         );
@@ -314,7 +359,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
         return null;
     }
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -334,10 +379,10 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
             </DialogDescription>
             {/* Simple Step Indicator */}
             <div className="w-full bg-muted rounded-full h-1.5 mt-4">
-                <div 
-                    className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-out" 
-                    style={{ width: `${(currentStep / Steps.length) * 100}%` }}
-                />
+              <div
+                className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${(currentStep / Steps.length) * 100}%` }}
+              />
             </div>
           </DialogHeader>
 
@@ -351,7 +396,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
 
           {/* Footer - Navigation Buttons */}
           <DialogFooter className="px-8 py-6 border-t border-border bg-muted/30 flex justify-between">
-            
+
             {/* Back Button */}
             <Button
               type="button"
@@ -364,7 +409,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
                 "Cancel"
               )}
             </Button>
-            
+
             {/* Next/Submit Button */}
             <Button
               type="submit"
@@ -374,7 +419,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
                 "Create Campaign"
               ) : (
                 <span className="flex items-center">
-                    Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                  Next Step <ArrowRight className="ml-2 h-4 w-4" />
                 </span>
               )}
             </Button>

@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Rocket, ExternalLink, Calendar as CalendarIcon, Target as TargetIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileHeader } from "@/components/ui/ProfileHeader";
 import { PortfolioCard } from "@/components/ui/PortfolioCard";
 import { PostPreviewModal } from "@/components/ui/PostPreviewModal";
 import { AddPostDialog } from "@/components/ui/AddPostDialog";
 import { AnalyticsTab } from "@/components/ui/AnalyticsTab";
+import CreateCampaignModal from "@/components/CampaignModal"; // Импорт на новия модал
 
 import { useProfile } from "@/hooks/useProfile";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -18,6 +20,7 @@ import { EditProfileModal } from "@/components/EditProfileModal";
 import { PortfolioItem, ProfileData } from "@/types/profile";
 import NavigationDock from "@/components/NavigationDock";
 import { useUserStore } from "@/store/useUserStore";
+import { CampaignDetailModal } from "@/components/campaigns/CampaignDetailModal";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -25,6 +28,9 @@ const Profile = () => {
 
   const { identifier: profileIdentifierFromLegacyRoute } = useParams<{ identifier: string }>();
   const { username: profileIdentifierFromNewRoute } = useParams<{ username: string }>();
+
+  const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
+  const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
 
   const identifierToFetch = isMyProfileRoute
     ? undefined
@@ -37,6 +43,20 @@ const Profile = () => {
   const isOwner =
     isMyProfileRoute ||
     (profile && myProfile && (profile.handle === myProfile.handle || profile.id === myProfile.id));
+
+  // Безопасно извличане на API_BASE_URL
+  const getApiBaseUrl = () => {
+    try {
+      // @ts-ignore
+      return (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) ||
+        (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
+        "http://localhost:3000";
+    } catch (e) {
+      return "http://localhost:3000";
+    }
+  };
+
+  const API_BASE_URL = getApiBaseUrl();
 
   useEffect(() => {
     if (!isMyProfileRoute && profile && myProfile) {
@@ -54,6 +74,33 @@ const Profile = () => {
   const portfolioLoading = isOwner ? ownerActions.isLoading : viewerData.isLoading;
   const addPostHandler = isOwner ? ownerActions.addPost : () => Promise.resolve(false);
 
+  // Campaigns State
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [isCreateCampaignOpen, setIsCreateCampaignOpen] = useState(false);
+
+  // Fetch Campaigns
+  const fetchCampaigns = async () => {
+    if (!isOwner) return;
+    setCampaignsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/campaigns`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCampaigns(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch campaigns:", err);
+    } finally {
+      setCampaignsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOwner) fetchCampaigns();
+  }, [isOwner]);
 
   // Analytics
   const { analytics, isLoading: analyticsLoading, isVIP, refetchAnalytics } = useAnalytics();
@@ -61,7 +108,7 @@ const Profile = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       refetchAnalytics();
-    }, 60_000); // match backend batch interval
+    }, 60_000);
     return () => clearInterval(interval);
   }, [refetchAnalytics]);
 
@@ -69,8 +116,6 @@ const Profile = () => {
   const [isAddPostOpen, setIsAddPostOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PortfolioItem | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-
-  // EDIT PROFILE MODAL
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const profileWithLiveStats: ProfileData = {
@@ -82,7 +127,7 @@ const Profile = () => {
         ? (analytics?.avgEngagement * 100).toFixed(1) + "%"
         : profile?.stats.engagementRate
     },
-  };
+  } as ProfileData;
 
   const handleSaveProfile = async (updated: Partial<ProfileData>) => {
     try {
@@ -96,7 +141,6 @@ const Profile = () => {
         const err = await res.json();
         throw new Error(err.message || "Failed to update profile");
       }
-
       await refetch();
       setIsEditProfileOpen(false);
     } catch (error) {
@@ -105,14 +149,10 @@ const Profile = () => {
     }
   };
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-
   const handlePostClick = (post: PortfolioItem) => {
     setSelectedPost(post);
     setIsPreviewOpen(true);
   };
-
 
   const handleSharePost = async (post?: PortfolioItem) => {
     const postToShare = post || selectedPost;
@@ -127,7 +167,12 @@ const Profile = () => {
         });
       } catch { }
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      const dummy = document.createElement('input');
+      document.body.appendChild(dummy);
+      dummy.value = window.location.href;
+      dummy.select();
+      document.execCommand('copy');
+      document.body.removeChild(dummy);
       alert("Link copied to clipboard!");
     }
   };
@@ -135,42 +180,30 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          credentials: 'include',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
-
       if (response.ok) {
-          console.log('Logout successful. Redirecting to home...');
-          useUserStore.getState().logout();
-          localStorage.removeItem('user-storage');
-          navigate("/");
-          
-      } else {
-          console.error('Logout failed on server:', response.status);
-          alert('Logout failed. Please try again.');
+        useUserStore.getState().logout();
+        localStorage.removeItem('user-storage');
+        navigate("/");
       }
     } catch (error) {
-        console.error('Network or fetch error during logout:', error);
+      console.error('Logout error:', error);
     }
   };
-
 
   const handleProfilePicChange = async (file: File) => {
     try {
       const formData = new FormData();
       formData.append("avatar", file);
-
       const res = await fetch(`${API_BASE_URL}/profiles/me/avatar`, {
         method: "POST",
         body: formData,
         credentials: "include",
       });
-
       if (!res.ok) throw new Error("Failed to update avatar");
-
       await refetch();
     } catch (err) {
       console.error(err);
@@ -178,8 +211,6 @@ const Profile = () => {
     }
   };
 
-
-  // LOADING STATES
   if (profileLoading) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
@@ -196,11 +227,8 @@ const Profile = () => {
     );
   }
 
-
-  // ---------------- RENDER ----------------
   return (
     <div className="min-h-dvh bg-background pb-20">
-      {/* EDIT PROFILE MODAL */}
       <EditProfileModal
         profile={profile}
         isOpen={isEditProfileOpen}
@@ -208,7 +236,12 @@ const Profile = () => {
         onSave={handleSaveProfile}
       />
 
-      {/* PROFILE HEADER */}
+      <CreateCampaignModal
+        open={isCreateCampaignOpen}
+        onOpenChange={setIsCreateCampaignOpen}
+        onSuccess={fetchCampaigns}
+      />
+
       <ProfileHeader
         profile={profileWithLiveStats}
         isFollowing={isFollowing}
@@ -218,7 +251,6 @@ const Profile = () => {
         onLogout={handleLogout}
       />
 
-      {/* TABS */}
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <Tabs defaultValue="portfolio" className="w-full">
           <div className="flex items-center justify-between mb-6 gap-3">
@@ -234,12 +266,23 @@ const Profile = () => {
               </TabsTrigger>
 
               {isOwner && (
-                <TabsTrigger
-                  value="analytics"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
-                >
-                  Analytics
-                </TabsTrigger>
+                <>
+                  <TabsTrigger
+                    value="campaigns"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
+                  >
+                    Campaigns
+                    <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground text-xs">
+                      {campaigns.length}
+                    </Badge>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="analytics"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
+                  >
+                    Analytics
+                  </TabsTrigger>
+                </>
               )}
             </TabsList>
 
@@ -249,20 +292,19 @@ const Profile = () => {
                 onClick={() => setIsAddPostOpen(true)}
                 className="gap-2 rounded-full bg-gradient-to-br from-primary to-secondary hover:scale-105 transition"
               >
-                <Plus className="w-8 h-8" />
+                <Plus className="w-5 h-5" />
                 <span className="hidden md:inline">Add Work</span>
               </Button>
             )}
           </div>
 
-          {/* Portfolio Tab */}
           <TabsContent value="portfolio">
             {portfolioLoading ? (
               <div className="flex justify-center py-20">
                 <div className="animate-spin h-12 w-12 border-b-2 border-primary rounded-full" />
               </div>
             ) : portfolioToDisplay.length === 0 ? (
-              <div className="text-center py-20">
+              <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed">
                 <p className="text-muted-foreground mb-4">No portfolio items yet</p>
                 {isOwner && <Button onClick={() => setIsAddPostOpen(true)}>Add Your First Work</Button>}
               </div>
@@ -280,16 +322,81 @@ const Profile = () => {
             )}
           </TabsContent>
 
-          {/* Analytics Tab */}
           {isOwner && (
-            <TabsContent value="analytics">
-              <AnalyticsTab analytics={analytics} isVIP={isVIP} isLoading={analyticsLoading} />
-            </TabsContent>
+            <>
+              <TabsContent value="campaigns">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">Your campaigns</h3>
+                      <p className="text-sm text-muted-foreground">Manage and tract the progress of your projects.</p>
+                    </div>
+                  </div>
+
+                  {campaignsLoading ? (
+                    <div className="flex justify-center py-10">
+                      <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full" />
+                    </div>
+                  ) : campaigns.length === 0 ? (
+                    <div className="text-center py-16 bg-muted/10 rounded-2xl border border-dashed flex flex-col items-center">
+                      <div className="p-4 bg-primary/5 rounded-full mb-4">
+                        <Rocket className="w-10 h-10 text-primary/40" />
+                      </div>
+                      <p className="text-muted-foreground mb-4">You don't have any campaigns yet.</p>
+                      <Button variant="outline" onClick={() => setIsCreateCampaignOpen(true)}>
+                        Start now
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {campaigns.map((camp) => (
+                        <Card
+                          key={camp.id}
+                          onClick={() => {
+                            setSelectedCampaign(camp);
+                            setIsCampaignModalOpen(true);
+                          }}
+                          className="hover:shadow-md transition-shadow group"
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex justify-between items-start">
+                              <Badge variant="outline" className="mb-2 bg-primary/5 text-primary border-primary/20 capitalize">
+                                {camp.type}
+                              </Badge>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition">
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <CardTitle className="text-lg">{camp.name}</CardTitle>
+                            <CardDescription className="line-clamp-2">{camp.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <CalendarIcon className="h-3 w-3" />
+                                {new Date(camp.date).toLocaleDateString('bg-BG')}
+                              </div>
+                              <div className="flex items-center gap-1 font-medium text-foreground">
+                                <TargetIcon className="h-3 w-3 text-primary" />
+                                ${Number(camp.budget).toLocaleString()}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="analytics">
+                <AnalyticsTab analytics={analytics} isVIP={isVIP} isLoading={analyticsLoading} />
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>
 
-      {/* MODALS */}
       <PostPreviewModal
         post={selectedPost}
         isOpen={isPreviewOpen}
@@ -300,9 +407,19 @@ const Profile = () => {
         onLikeSuccess={refetchAnalytics}
       />
 
-      <AddPostDialog isOpen={isAddPostOpen} onClose={() => setIsAddPostOpen(false)} onSubmit={addPostHandler} />
+      {selectedCampaign && (
+        <CampaignDetailModal
+          open={isCampaignModalOpen}
+          onOpenChange={setIsCampaignModalOpen}
+          campaign={selectedCampaign}
+          onEdit={() => console.log("Edit", selectedCampaign.id)}
+          onPauseResume={() => console.log("Pause/Resume", selectedCampaign.id)}
+          onDelete={fetchCampaigns}
+        />
+      )}
 
-      <NavigationDock></NavigationDock>
+      <AddPostDialog isOpen={isAddPostOpen} onClose={() => setIsAddPostOpen(false)} onSubmit={addPostHandler} />
+      <NavigationDock />
     </div>
   );
 };

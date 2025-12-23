@@ -9,7 +9,8 @@ export default function CountryPickerModal({
   selected,
   setSelected,
   onSave,
-  shouldHaveOverlay
+  shouldHaveOverlay,
+  maxCapacity = 3
 }) {
   const [search, setSearch] = useState("");
   const [isShaking, setIsShaking] = useState(false);
@@ -56,7 +57,7 @@ export default function CountryPickerModal({
     if (exists) {
       setSelected(selected.filter((p) => p.code !== country.code));
     } else {
-      if (selected.length < 3) {
+      if (selected.length < maxCapacity) {
         setSelected([...selected, country]);
         setSearch("");
       } else {
@@ -66,7 +67,7 @@ export default function CountryPickerModal({
     }
   };
 
-  const isLimitReached = selected.length >= 3;
+  const isLimitReached = selected.length >= maxCapacity;
 
   return (
     <div
@@ -184,7 +185,7 @@ export default function CountryPickerModal({
         {/* FOOTER: Compact */}
         <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 rounded-b-xl flex justify-between items-center shrink-0">
           <span className="text-xs bg-gradient-to-br from-secondary to-primary bg-clip-text text-transparent font-medium">
-            {selected.length}/3
+            {selected.length}/{maxCapacity}
           </span>
           <button
             type="button"

@@ -161,7 +161,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     {/* Menu items for all users (e.g., Share Profile) */}
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.href)} className="cursor-pointer">
+                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(`https://influ-link.com/${profile.handle}`)} className="cursor-pointer">
                       <LinkIcon className="mr-2 h-4 w-4" />
                       <span>Share Profile</span>
                     </DropdownMenuItem>
