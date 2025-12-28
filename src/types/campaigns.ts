@@ -31,3 +31,47 @@ export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   paused: "Paused",
   completed: "Completed",
 };
+
+export type CampaignFilterState = {
+  niches: string[];
+  platforms: string[];
+
+  contentTypes: string[];
+  collabTypes: string[];
+
+  budgetRange: string | null;
+
+  country: string | null;
+  language: string[];
+
+  status?: CampaignStatus | "any";
+};
+
+export const defaultCampaignFilters: CampaignFilterState = {
+  niches: [],
+  platforms: [],
+  contentTypes: [],
+  collabTypes: [],
+  budgetRange: null,
+  country: null,
+  language: [],
+  status: "any",
+};
+
+export type CampaignSearchFilters = {
+  query?: string;
+
+  niches?: string[];
+  platforms?: string[];
+
+  contentTypes?: string[];
+  collabTypes?: string[];
+
+  budgetRange?: string | null;
+  country?: string | null;
+  language?: string[];
+
+  status?: CampaignStatus | "any"; // active / paused / completed / any
+  startDateFrom?: string | null;
+  startDateTo?: string | null;
+};

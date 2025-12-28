@@ -1,15 +1,27 @@
 import { useEffect, useState } from "react";
-import { Plus, Rocket, ExternalLink, Calendar as CalendarIcon, Target as TargetIcon } from "lucide-react";
+import {
+  Plus,
+  Rocket,
+  ExternalLink,
+  Calendar as CalendarIcon,
+  Target as TargetIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ProfileHeader } from "@/components/ui/ProfileHeader";
 import { PortfolioCard } from "@/components/ui/PortfolioCard";
 import { PostPreviewModal } from "@/components/ui/PostPreviewModal";
 import { AddPostDialog } from "@/components/ui/AddPostDialog";
 import { AnalyticsTab } from "@/components/ui/AnalyticsTab";
-import CreateCampaignModal from "@/components/CampaignModal"; // Импорт на новия модал
+import CreateCampaignModal from "@/components/CampaignModal";
 
 import { useProfile } from "@/hooks/useProfile";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -21,13 +33,20 @@ import { PortfolioItem, ProfileData } from "@/types/profile";
 import NavigationDock from "@/components/NavigationDock";
 import { useUserStore } from "@/store/useUserStore";
 import { CampaignDetailModal } from "@/components/campaigns/CampaignDetailModal";
+import { EditCampaignModal } from "@/components/campaigns/EditCampaignModal";
 
 const Profile = () => {
   const navigate = useNavigate();
   const isMyProfileRoute = useMatch("/profile/me");
 
-  const { identifier: profileIdentifierFromLegacyRoute } = useParams<{ identifier: string }>();
-  const { username: profileIdentifierFromNewRoute } = useParams<{ username: string }>();
+  const [isEditCampaignOpen, setIsEditCampaignOpen] = useState(false);
+
+  const { identifier: profileIdentifierFromLegacyRoute } = useParams<{
+    identifier: string;
+  }>();
+  const { username: profileIdentifierFromNewRoute } = useParams<{
+    username: string;
+  }>();
 
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
@@ -38,19 +57,30 @@ const Profile = () => {
 
   const { profile: myProfile } = useProfile(undefined);
 
-  const { profile, isLoading: profileLoading, isFollowing, toggleFollow, refetch } = useProfile(identifierToFetch);
+  const {
+    profile,
+    isLoading: profileLoading,
+    isFollowing,
+    toggleFollow,
+    refetch,
+  } = useProfile(identifierToFetch);
 
   const isOwner =
     isMyProfileRoute ||
-    (profile && myProfile && (profile.handle === myProfile.handle || profile.id === myProfile.id));
+    (profile &&
+      myProfile &&
+      (profile.handle === myProfile.handle || profile.id === myProfile.id));
 
   // Безопасно извличане на API_BASE_URL
   const getApiBaseUrl = () => {
     try {
       // @ts-ignore
-      return (typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL) ||
-        (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) ||
-        "http://localhost:3000";
+      return (
+        (typeof process !== "undefined" && process.env?.VITE_API_BASE_URL) ||
+        (typeof import.meta !== "undefined" &&
+          import.meta.env?.VITE_API_BASE_URL) ||
+        "http://localhost:3000"
+      );
     } catch (e) {
       return "http://localhost:3000";
     }
@@ -70,9 +100,15 @@ const Profile = () => {
   const ownerActions = usePortfolio(isOwner ? profile?.id : undefined);
   const viewerData = usePortfolio(!isOwner ? profile?.id : undefined);
 
-  const portfolioToDisplay = isOwner ? ownerActions.portfolio : viewerData.portfolio;
-  const portfolioLoading = isOwner ? ownerActions.isLoading : viewerData.isLoading;
-  const addPostHandler = isOwner ? ownerActions.addPost : () => Promise.resolve(false);
+  const portfolioToDisplay = isOwner
+    ? ownerActions.portfolio
+    : viewerData.portfolio;
+  const portfolioLoading = isOwner
+    ? ownerActions.isLoading
+    : viewerData.isLoading;
+  const addPostHandler = isOwner
+    ? ownerActions.addPost
+    : () => Promise.resolve(false);
 
   // Campaigns State
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -103,7 +139,12 @@ const Profile = () => {
   }, [isOwner]);
 
   // Analytics
-  const { analytics, isLoading: analyticsLoading, isVIP, refetchAnalytics } = useAnalytics();
+  const {
+    analytics,
+    isLoading: analyticsLoading,
+    isVIP,
+    refetchAnalytics,
+  } = useAnalytics();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -122,10 +163,12 @@ const Profile = () => {
     ...profile,
     stats: {
       ...profile?.stats,
-      totalReach: analytics ? analytics?.totalViews.toString() : profile?.stats.totalReach,
+      totalReach: analytics
+        ? analytics?.totalViews.toString()
+        : profile?.stats.totalReach,
       engagementRate: analytics?.avgEngagement
         ? (analytics?.avgEngagement * 100).toFixed(1) + "%"
-        : profile?.stats.engagementRate
+        : profile?.stats.engagementRate,
     },
   } as ProfileData;
 
@@ -165,13 +208,13 @@ const Profile = () => {
           text: postToShare.description,
           url: window.location.href,
         });
-      } catch { }
+      } catch {}
     } else {
-      const dummy = document.createElement('input');
+      const dummy = document.createElement("input");
       document.body.appendChild(dummy);
       dummy.value = window.location.href;
       dummy.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(dummy);
       alert("Link copied to clipboard!");
     }
@@ -180,17 +223,37 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
       if (response.ok) {
         useUserStore.getState().logout();
-        localStorage.removeItem('user-storage');
+        localStorage.removeItem("user-storage");
         navigate("/");
       }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
+    }
+  };
+
+  const refreshSelectedCampaign = async (campaignId: string | number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/campaigns`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setCampaigns(data);
+
+      const updated = data.find((c: any) => c.id === campaignId);
+      if (updated) {
+        setSelectedCampaign(updated);
+      }
+    } catch (err) {
+      console.error("Failed to refresh campaign:", err);
     }
   };
 
@@ -252,19 +315,26 @@ const Profile = () => {
       />
 
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-        <Tabs defaultValue="portfolio" className="w-full">
+        <Tabs
+          defaultValue={profile.type === "creator" ? "portfolio" : "campaigns"}
+          className="w-full"
+        >
           <div className="flex items-center justify-between mb-6 gap-3">
             <TabsList className="bg-transparent h-auto p-0 gap-6 border-b border-border flex-1 justify-start rounded-none overflow-x-auto">
-              <TabsTrigger
-                value="portfolio"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
-              >
-                Portfolio
-                <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground text-xs">
-                  {portfolioToDisplay.length}
-                </Badge>
-              </TabsTrigger>
-
+              {profile.type === "creator" && (
+                <TabsTrigger
+                  value="portfolio"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
+                >
+                  Portfolio
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 bg-muted text-muted-foreground text-xs"
+                  >
+                    {portfolioToDisplay.length}
+                  </Badge>
+                </TabsTrigger>
+              )}
               {isOwner && (
                 <>
                   <TabsTrigger
@@ -272,7 +342,10 @@ const Profile = () => {
                     className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
                   >
                     Campaigns
-                    <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground text-xs">
+                    <Badge
+                      variant="secondary"
+                      className="ml-2 bg-muted text-muted-foreground text-xs"
+                    >
                       {campaigns.length}
                     </Badge>
                   </TabsTrigger>
@@ -298,29 +371,37 @@ const Profile = () => {
             )}
           </div>
 
-          <TabsContent value="portfolio">
-            {portfolioLoading ? (
-              <div className="flex justify-center py-20">
-                <div className="animate-spin h-12 w-12 border-b-2 border-primary rounded-full" />
-              </div>
-            ) : portfolioToDisplay.length === 0 ? (
-              <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed">
-                <p className="text-muted-foreground mb-4">No portfolio items yet</p>
-                {isOwner && <Button onClick={() => setIsAddPostOpen(true)}>Add Your First Work</Button>}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {portfolioToDisplay.map((item) => (
-                  <PortfolioCard
-                    key={item.id}
-                    item={item}
-                    onClick={() => handlePostClick(item)}
-                    onShare={() => handleSharePost(item)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+          {profile.type === "creator" && (
+            <TabsContent value="portfolio">
+              {portfolioLoading ? (
+                <div className="flex justify-center py-20">
+                  <div className="animate-spin h-12 w-12 border-b-2 border-primary rounded-full" />
+                </div>
+              ) : portfolioToDisplay.length === 0 ? (
+                <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed">
+                  <p className="text-muted-foreground mb-4">
+                    No portfolio items yet
+                  </p>
+                  {isOwner && (
+                    <Button onClick={() => setIsAddPostOpen(true)}>
+                      Add Your First Work
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {portfolioToDisplay.map((item) => (
+                    <PortfolioCard
+                      key={item.id}
+                      item={item}
+                      onClick={() => handlePostClick(item)}
+                      onShare={() => handleSharePost(item)}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          )}
 
           {isOwner && (
             <>
@@ -329,7 +410,9 @@ const Profile = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold">Your campaigns</h3>
-                      <p className="text-sm text-muted-foreground">Manage and tract the progress of your projects.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Manage and tract the progress of your projects.
+                      </p>
                     </div>
                   </div>
 
@@ -342,8 +425,13 @@ const Profile = () => {
                       <div className="p-4 bg-primary/5 rounded-full mb-4">
                         <Rocket className="w-10 h-10 text-primary/40" />
                       </div>
-                      <p className="text-muted-foreground mb-4">You don't have any campaigns yet.</p>
-                      <Button variant="outline" onClick={() => setIsCreateCampaignOpen(true)}>
+                      <p className="text-muted-foreground mb-4">
+                        You don't have any campaigns yet.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsCreateCampaignOpen(true)}
+                      >
                         Start now
                       </Button>
                     </div>
@@ -360,25 +448,38 @@ const Profile = () => {
                         >
                           <CardHeader className="pb-3">
                             <div className="flex justify-between items-start">
-                              <Badge variant="outline" className="mb-2 bg-primary/5 text-primary border-primary/20 capitalize">
+                              <Badge
+                                variant="outline"
+                                className="mb-2 bg-primary/5 text-primary border-primary/20 capitalize"
+                              >
                                 {camp.type}
                               </Badge>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition"
+                              >
                                 <ExternalLink className="h-4 w-4" />
                               </Button>
                             </div>
-                            <CardTitle className="text-lg">{camp.name}</CardTitle>
-                            <CardDescription className="line-clamp-2">{camp.description}</CardDescription>
+                            <CardTitle className="text-lg">
+                              {camp.name}
+                            </CardTitle>
+                            <CardDescription className="line-clamp-2">
+                              {camp.description}
+                            </CardDescription>
                           </CardHeader>
                           <CardContent>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <CalendarIcon className="h-3 w-3" />
-                                {new Date(camp.date).toLocaleDateString('bg-BG')}
+                                {camp.startDate
+                                  ? new Date(camp.startDate).toDateString()
+                                  : null}
                               </div>
                               <div className="flex items-center gap-1 font-medium text-foreground">
-                                <TargetIcon className="h-3 w-3 text-primary" />
-                                ${Number(camp.budget).toLocaleString()}
+                                <TargetIcon className="h-3 w-3 text-primary" />$
+                                {Number(camp.budget).toLocaleString()}
                               </div>
                             </div>
                           </CardContent>
@@ -390,7 +491,11 @@ const Profile = () => {
               </TabsContent>
 
               <TabsContent value="analytics">
-                <AnalyticsTab analytics={analytics} isVIP={isVIP} isLoading={analyticsLoading} />
+                <AnalyticsTab
+                  analytics={analytics}
+                  isVIP={isVIP}
+                  isLoading={analyticsLoading}
+                />
               </TabsContent>
             </>
           )}
@@ -412,13 +517,34 @@ const Profile = () => {
           open={isCampaignModalOpen}
           onOpenChange={setIsCampaignModalOpen}
           campaign={selectedCampaign}
-          onEdit={() => console.log("Edit", selectedCampaign.id)}
+          onEdit={() => {
+            setIsEditCampaignOpen(true);
+          }}
           onPauseResume={() => console.log("Pause/Resume", selectedCampaign.id)}
-          onDelete={fetchCampaigns}
+          onDelete={() => {
+            fetchCampaigns();
+            setIsCampaignModalOpen(false);
+          }}
         />
       )}
 
-      <AddPostDialog isOpen={isAddPostOpen} onClose={() => setIsAddPostOpen(false)} onSubmit={addPostHandler} />
+      {selectedCampaign && (
+        <EditCampaignModal
+          open={isEditCampaignOpen}
+          onOpenChange={setIsEditCampaignOpen}
+          campaign={selectedCampaign}
+          onSuccess={() => {
+            fetchCampaigns();
+            refreshSelectedCampaign(selectedCampaign.id);
+          }}
+        />
+      )}
+
+      <AddPostDialog
+        isOpen={isAddPostOpen}
+        onClose={() => setIsAddPostOpen(false)}
+        onSubmit={addPostHandler}
+      />
       <NavigationDock />
     </div>
   );

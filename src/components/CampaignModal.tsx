@@ -48,6 +48,7 @@ interface CampaignForm {
 interface CreateCampaignModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 // Define the steps and their content
@@ -72,7 +73,7 @@ const Steps = [
   },
 ];
 
-const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) => {
+const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
 
   const [form, setForm] = useState<CampaignForm>({
@@ -167,7 +168,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
       }
 
       const data = await res.json();
-      console.log("Campaign created successfully:", data);
+      onSuccess();
 
       // Close modal and optionally reset form
       onOpenChange(false);
@@ -325,7 +326,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
                   type="file"
                   accept=".png,.jpg,.jpeg"
                   onChange={(e) => handleFileInputChange(e, 'companyLogo')}
-                  className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
+                  className="h-14 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
                 />
               </div>
 
@@ -342,7 +343,7 @@ const CreateCampaignModal = ({ open, onOpenChange }: CreateCampaignModalProps) =
                   multiple
                   accept=".png,.jpg,.jpeg"
                   onChange={(e) => handleFileInputChange(e, 'referenceImages')}
-                  className="h-11 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
+                  className="h-14 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary flex justify-center align-center"
                 />
               </div>
             </div>

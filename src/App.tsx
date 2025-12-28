@@ -16,6 +16,7 @@ import RegisterCreator from "./pages/RegisterCreator";
 import RegisterBrand from "./pages/RegisterBrand";
 import HomeMVP from "./pages/HomeMVP";
 import SearchResults from "./pages/SearchResult";
+import SearchCampaigns from "./components/campaigns/SearchCampaigns";
 
 const queryClient = new QueryClient();
 
@@ -40,8 +41,8 @@ const MainContent = () => {
 
         <Route path="/register/creator" element={<RegisterCreator />} />
         <Route path="/register/brand" element={<RegisterBrand />} />
-        <Route path="/search" element={<SearchResults />} />
-        
+        <Route path="/creators/search" element={<SearchResults />} />
+        <Route path="/campaigns/search" element={<SearchCampaigns />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       

@@ -1,46 +1,50 @@
 // server.js (ES Modules)
-import 'dotenv/config';
-import express from 'express';
-import mysql from 'mysql2/promise';
-import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import cookieParser from 'cookie-parser';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import "dotenv/config";
+import express from "express";
+import mysql from "mysql2/promise";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === "production";
 
-import multer from 'multer';
-const upload = multer({ dest: path.join(__dirname, 'uploads/') });
+import multer from "multer";
+const upload = multer({ dest: path.join(__dirname, "uploads/") });
 
 // --- Middleware ---
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // --- Database Connection Pool ---
 const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
 // Test DB connection
-pool.getConnection()
-    .then(conn => { console.log('✅ Connected to MariaDB/MySQL database via Pool!'); conn.release(); })
-    .catch(err => console.error('❌ Database connection failed:', err.message));
+pool
+  .getConnection()
+  .then((conn) => {
+    console.log("✅ Connected to MariaDB/MySQL database via Pool!");
+    conn.release();
+  })
+  .catch((err) => console.error("❌ Database connection failed:", err.message));
 
 // =======================
 // AUTH ROUTES
@@ -48,642 +52,762 @@ pool.getConnection()
 
 // Generate base handle from name
 const generateHandleFromName = (name) => {
-    return name
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '')       // remove spaces
-        .replace(/[^a-z0-9]/g, ''); // remove special chars
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "") // remove spaces
+    .replace(/[^a-z0-9]/g, ""); // remove special chars
 };
 
 // Ensure handle is unique in DB
 const generateUniqueHandle = async (baseHandle) => {
-    let handle = baseHandle;
-    let count = 0;
+  let handle = baseHandle;
+  let count = 0;
 
-    while (true) {
-        const [rows] = await pool.query('SELECT id FROM profiles WHERE handle = ?', [handle]);
-        if (rows.length === 0) return handle;
-        count++;
-        handle = `${baseHandle}${count}`;
-    }
+  while (true) {
+    const [rows] = await pool.query(
+      "SELECT id FROM profiles WHERE handle = ?",
+      [handle]
+    );
+    if (rows.length === 0) return handle;
+    count++;
+    handle = `${baseHandle}${count}`;
+  }
 };
 
 // Registration
-app.post('/api/register', async (req, res) => {
-    try {
-        const { name, email, password, accountType } = req.body;
-        if (!name || !email || !password || !accountType)
-            return res.status(400).json({ message: 'Missing required fields' });
+app.post("/api/register", async (req, res) => {
+  try {
+    const { name, email, password, accountType } = req.body;
+    if (!name || !email || !password || !accountType)
+      return res.status(400).json({ message: "Missing required fields" });
 
-        // Check existing user
-        const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-        if (existing.length > 0) return res.status(409).json({ message: 'Email already exists' });
+    // Check existing user
+    const [existing] = await pool.query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
+    if (existing.length > 0)
+      return res.status(409).json({ message: "Email already exists" });
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert user
-        const [result] = await pool.query(
-            'INSERT INTO users (name, email, password_hash, account_type, created_at) VALUES (?, ?, ?, ?, NOW())',
-            [name, email, hashedPassword, accountType]
-        );
-        const newUserId = result.insertId;
+    // Insert user
+    const [result] = await pool.query(
+      "INSERT INTO users (name, email, password_hash, account_type, created_at) VALUES (?, ?, ?, ?, NOW())",
+      [name, email, hashedPassword, accountType]
+    );
+    const newUserId = result.insertId;
 
-        // Create profile for user
-        const baseHandle = generateHandleFromName(name);
-        const handle = await generateUniqueHandle(baseHandle);
-        await pool.query(
-            'INSERT INTO profiles (id, name, handle, type, created_at) VALUES (?, ?, ?, ?, NOW())',
-            [newUserId, name, handle, accountType]
-        );
+    // Create profile for user
+    const baseHandle = generateHandleFromName(name);
+    const handle = await generateUniqueHandle(baseHandle);
+    await pool.query(
+      "INSERT INTO profiles (id, name, handle, type, created_at) VALUES (?, ?, ?, ?, NOW())",
+      [newUserId, name, handle, accountType]
+    );
 
-        // Create JWT token
-        const token = jwt.sign({ id: newUserId, email, accountType }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // Create JWT token
+    const token = jwt.sign(
+      { id: newUserId, email, accountType },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-        // Set cookie
-        res.cookie('token', token, { httpOnly: true, secure: isProduction, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-        res.status(201).json({ message: 'Account created successfully', user: { id: newUserId, name, email, accountType } });
-    } catch (err) {
-        console.error('Registration error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    res.status(201).json({
+      message: "Account created successfully",
+      user: { id: newUserId, name, email, accountType },
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
-        if (rows.length === 0) return res.status(401).json({ message: 'Invalid credentials' });
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    if (rows.length === 0)
+      return res.status(401).json({ message: "Invalid credentials" });
 
-        const user = rows[0];
-        const isValid = await bcrypt.compare(password, user.password_hash);
-        if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
+    const user = rows[0];
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    if (!isValid)
+      return res.status(401).json({ message: "Invalid credentials" });
 
-        const token = jwt.sign({ id: user.id, email: user.email, accountType: user.account_type }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, accountType: user.account_type },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-        // Set HTTP-only cookie
-        res.cookie('token', token, { httpOnly: true, secure: isProduction, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    // Set HTTP-only cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-        res.json({ message: 'Logged in successfully', user: { id: user.id, email: user.email, accountType: user.account_type } });
-    } catch (err) {
-        console.error('Login error:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    res.json({
+      message: "Logged in successfully",
+      user: { id: user.id, email: user.email, accountType: user.account_type },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 // Middleware to verify JWT from cookie
 const authenticate = (req, res, next) => {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ message: 'Not authenticated' });
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ message: "Not authenticated" });
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch {
-        return res.status(401).json({ message: 'Invalid token' });
-    }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
+  }
 };
 
-app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('token', {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: 'lax',
-        path: '/'
-    });
+app.post("/api/auth/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+    path: "/",
+  });
 
-    // Respond with 204 No Content for successful deletion or 200 OK
-    // The frontend is expecting a successful response (status 200/204) to redirect.
-    res.status(200).json({ message: 'Logged out successfully' });
+  // Respond with 204 No Content for successful deletion or 200 OK
+  // The frontend is expecting a successful response (status 200/204) to redirect.
+  res.status(200).json({ message: "Logged out successfully" });
 });
-
 
 // =======================
 // PROFILE ROUTES
 // =======================
 const formatNumberShort = (num) => {
-    // Ensure num is a number
-    const n = Number(num) || 0;
+  // Ensure num is a number
+  const n = Number(num) || 0;
 
-    // Numbers below 1,000 are returned as-is (e.g., 999)
-    if (n < 1000) {
-        return n.toString();
-    }
+  // Numbers below 1,000 are returned as-is (e.g., 999)
+  if (n < 1000) {
+    return n.toString();
+  }
 
-    // Thousands (K)
-    if (n >= 1000 && n < 1000000) {
-        // Divide by 1000 and round to 1 decimal place if needed
-        const val = n / 1000;
-        return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + 'K';
-    }
+  // Thousands (K)
+  if (n >= 1000 && n < 1000000) {
+    // Divide by 1000 and round to 1 decimal place if needed
+    const val = n / 1000;
+    return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + "K";
+  }
 
-    // Millions (M)
-    if (n >= 1000000) {
-        // Divide by 1,000,000 and round to 1 decimal place
-        const val = n / 1000000;
-        return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + 'M';
-    }
+  // Millions (M)
+  if (n >= 1000000) {
+    // Divide by 1,000,000 and round to 1 decimal place
+    const val = n / 1000000;
+    return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)) + "M";
+  }
 };
 
 // Get profile (UPDATED: Added isFollowing status)
-app.get('/api/profiles/:profileId', authenticate, async (req, res) => {
-    try {
-        const { profileId } = req.params;
-        const currentUserId = req.user.id;
+app.get("/api/profiles/:profileId", authenticate, async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    const currentUserId = req.user.id;
 
-        let query, queryParam;
+    let query, queryParam;
 
-        if (!isNaN(Number(profileId))) {
-            query = 'SELECT * FROM profiles WHERE id = ?';
-            queryParam = profileId;
-        } else {
-            // It's a string handle (e.g., "johndoe" or "@johndoe")
-            // Clean the handle by removing an optional leading '@'
-            const cleanedHandle = profileId.startsWith('@') ? profileId.substring(1) : profileId;
-            query = 'SELECT * FROM profiles WHERE handle = ?';
-            queryParam = cleanedHandle;
-        }
-
-        // 1. Fetch Profile Data
-        const [rows] = await pool.query(query, [queryParam]);
-        if (rows.length === 0) return res.status(404).json({ message: 'Profile not found' });
-
-        const profile = rows[0];
-
-        const [followStatus] = await pool.query(
-            'SELECT EXISTS(SELECT 1 FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?) AS isFollowing',
-            [currentUserId, profile.id]
-        );
-        const isFollowing = followStatus[0].isFollowing === 1;
-
-        // 3. Format Response
-        const formattedProfile = {
-            id: profile.id.toString(),
-            name: profile.name,
-            handle: profile.handle,
-            type: profile.type,
-            niche: profile.niche,
-            location: profile.location,
-            verified: profile.verified === 1,
-            bio: profile.bio,
-            avatar: profile.avatar,
-            isVIP: profile.isVIP === 1,
-            isFollowing: isFollowing,
-            stats: {
-                followers: Number(profile.followers || 0),
-                following: Number(profile.following || 0),
-                engagementRate: Number(profile.engagement_rate || 0), // just the numeric rate
-                totalReach: Number(profile.total_reach || 0),
-            },
-            platforms: [],        // empty array if not in DB
-            contentTypes: [],
-            collabTypes: [],
-            socialLinks: JSON.parse(profile.social_links_json || '{}')
-        };
-
-        res.json(formattedProfile);
-    } catch (err) {
-        console.error('Error fetching profile:', err);
-        res.status(500).json({ error: 'Failed to fetch profile data' });
+    if (!isNaN(Number(profileId))) {
+      query = "SELECT * FROM profiles WHERE id = ?";
+      queryParam = profileId;
+    } else {
+      // It's a string handle (e.g., "johndoe" or "@johndoe")
+      // Clean the handle by removing an optional leading '@'
+      const cleanedHandle = profileId.startsWith("@")
+        ? profileId.substring(1)
+        : profileId;
+      query = "SELECT * FROM profiles WHERE handle = ?";
+      queryParam = cleanedHandle;
     }
+
+    // 1. Fetch Profile Data
+    const [rows] = await pool.query(query, [queryParam]);
+    if (rows.length === 0)
+      return res.status(404).json({ message: "Profile not found" });
+
+    const profile = rows[0];
+
+    const [followStatus] = await pool.query(
+      "SELECT EXISTS(SELECT 1 FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?) AS isFollowing",
+      [currentUserId, profile.id]
+    );
+    const isFollowing = followStatus[0].isFollowing === 1;
+
+    // 3. Format Response
+    const formattedProfile = {
+      id: profile.id.toString(),
+      name: profile.name,
+      handle: profile.handle,
+      type: profile.type,
+      niche: profile.niche,
+      location: profile.location,
+      verified: profile.verified === 1,
+      bio: profile.bio,
+      avatar: profile.avatar,
+      isVIP: profile.isVIP === 1,
+      isFollowing: isFollowing,
+      stats: {
+        followers: Number(profile.followers || 0),
+        following: Number(profile.following || 0),
+        engagementRate: Number(profile.engagement_rate || 0), // just the numeric rate
+        totalReach: Number(profile.total_reach || 0),
+      },
+      platforms: [], // empty array if not in DB
+      contentTypes: [],
+      collabTypes: [],
+      socialLinks: JSON.parse(profile.social_links_json || "{}"),
+    };
+
+    res.json(formattedProfile);
+  } catch (err) {
+    console.error("Error fetching profile:", err);
+    res.status(500).json({ error: "Failed to fetch profile data" });
+  }
 });
 
 // Toggle follow
-app.post('/api/profiles/:profileId/follow', authenticate, async (req, res) => {
-    const { profileId } = req.params;
-    const followerId = req.user.id;
+app.post("/api/profiles/:profileId/follow", authenticate, async (req, res) => {
+  const { profileId } = req.params;
+  const followerId = req.user.id;
 
-    if (String(followerId) === profileId) {
-        return res.status(400).json({ message: "Cannot follow your own profile" });
+  if (String(followerId) === profileId) {
+    return res.status(400).json({ message: "Cannot follow your own profile" });
+  }
+
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    // 1. Check if the user is already following the profile
+    const [existingFollow] = await connection.query(
+      "SELECT * FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?",
+      [followerId, profileId]
+    );
+
+    const isCurrentlyFollowing = existingFollow.length > 0;
+    let message;
+
+    if (isCurrentlyFollowing) {
+      // UNFOLLOW
+      await connection.query(
+        "DELETE FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?",
+        [followerId, profileId]
+      );
+      // Decrement profile's follower count
+      await connection.query(
+        "UPDATE profiles SET followers = GREATEST(followers - 1, 0) WHERE id = ?",
+        [profileId]
+      );
+      message = "Unfollowed successfully";
+    } else {
+      // FOLLOW
+      await connection.query(
+        "INSERT INTO user_follows (follower_user_id, following_profile_id) VALUES (?, ?)",
+        [followerId, profileId]
+      );
+      // Increment profile's follower count
+      await connection.query(
+        "UPDATE profiles SET followers = followers + 1 WHERE id = ?",
+        [profileId]
+      );
+      message = "Followed successfully";
     }
 
-    let connection;
-    try {
-        connection = await pool.getConnection();
-        await connection.beginTransaction();
+    // Get the updated count for the response
+    const [updatedProfile] = await connection.query(
+      "SELECT followers FROM profiles WHERE id = ?",
+      [profileId]
+    );
 
-        // 1. Check if the user is already following the profile
-        const [existingFollow] = await connection.query(
-            'SELECT * FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?',
-            [followerId, profileId]
-        );
+    await connection.commit();
 
-        const isCurrentlyFollowing = existingFollow.length > 0;
-        let message;
-
-        if (isCurrentlyFollowing) {
-            // UNFOLLOW
-            await connection.query(
-                'DELETE FROM user_follows WHERE follower_user_id = ? AND following_profile_id = ?',
-                [followerId, profileId]
-            );
-            // Decrement profile's follower count
-            await connection.query(
-                'UPDATE profiles SET followers = GREATEST(followers - 1, 0) WHERE id = ?',
-                [profileId]
-            );
-            message = 'Unfollowed successfully';
-        } else {
-            // FOLLOW
-            await connection.query(
-                'INSERT INTO user_follows (follower_user_id, following_profile_id) VALUES (?, ?)',
-                [followerId, profileId]
-            );
-            // Increment profile's follower count
-            await connection.query(
-                'UPDATE profiles SET followers = followers + 1 WHERE id = ?',
-                [profileId]
-            );
-            message = 'Followed successfully';
-        }
-
-        // Get the updated count for the response
-        const [updatedProfile] = await connection.query('SELECT followers FROM profiles WHERE id = ?', [profileId]);
-
-        await connection.commit();
-
-        res.json({
-            message: message,
-            isFollowing: !isCurrentlyFollowing, // Send the new status
-            followers: updatedProfile[0].followers // Send the new count
-        });
-
-    } catch (err) {
-        if (connection) await connection.rollback();
-        console.error('Error toggling follow:', err);
-        res.status(500).json({ message: 'Failed to update follow status' });
-    } finally {
-        if (connection) connection.release();
-    }
+    res.json({
+      message: message,
+      isFollowing: !isCurrentlyFollowing, // Send the new status
+      followers: updatedProfile[0].followers, // Send the new count
+    });
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error("Error toggling follow:", err);
+    res.status(500).json({ message: "Failed to update follow status" });
+  } finally {
+    if (connection) connection.release();
+  }
 });
 
 // Get portfolio
-app.get('/api/profiles/:profileId/portfolio', authenticate, async (req, res) => {
+app.get(
+  "/api/profiles/:profileId/portfolio",
+  authenticate,
+  async (req, res) => {
     const { profileId } = req.params;
     try {
-        const [rows] = await pool.query(
-            'SELECT * FROM portfolio WHERE profile_id = ? ORDER BY id DESC',
-            [profileId]
-        );
+      const [rows] = await pool.query(
+        "SELECT * FROM portfolio WHERE profile_id = ? ORDER BY id DESC",
+        [profileId]
+      );
 
-        const formatted = rows.map(item => ({
-            id: item.id.toString(),
-            profileId: item.profile_id.toString(),
-            title: item.title,
-            brand: item.brand,
-            type: item.type,
-            description: item.description,
-            image: item.image,
-            createdAt: item.created_at,
-            stats: {
-                likes: item.likes || 0,   // send numeric value
-                views: item.views || 0    // send numeric value
-            }
-        }));
+      const formatted = rows.map((item) => ({
+        id: item.id.toString(),
+        profileId: item.profile_id.toString(),
+        title: item.title,
+        brand: item.brand,
+        type: item.type,
+        description: item.description,
+        image: item.image,
+        createdAt: item.created_at,
+        stats: {
+          likes: item.likes || 0, // send numeric value
+          views: item.views || 0, // send numeric value
+        },
+      }));
 
-        res.json(formatted);
+      res.json(formatted);
     } catch (err) {
-        console.error('Error fetching portfolio:', err);
-        res.status(500).json({ message: 'Failed to fetch portfolio' });
+      console.error("Error fetching portfolio:", err);
+      res.status(500).json({ message: "Failed to fetch portfolio" });
     }
-});
+  }
+);
 // Add portfolio post
 app.post(
-    '/api/profiles/:profileId/portfolio',
-    authenticate,
-    upload.single('image'),
-    async (req, res) => {
-        const { profileId } = req.params;
-        const { title, brand, type, description } = req.body;
+  "/api/profiles/:profileId/portfolio",
+  authenticate,
+  upload.single("image"),
+  async (req, res) => {
+    const { profileId } = req.params;
+    const { title, brand, type, description } = req.body;
 
-        try {
-            if (!req.file) {
-                return res.status(400).json({ message: 'No image uploaded' });
-            }
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image uploaded" });
+      }
 
-            const imagePath = `/uploads/${req.file.filename}`;
-            const defaultStats = { likes: 0, views: 0 };
+      const imagePath = `/uploads/${req.file.filename}`;
+      const defaultStats = { likes: 0, views: 0 };
 
-            const [result] = await pool.query(
-                `INSERT INTO portfolio 
+      const [result] = await pool.query(
+        `INSERT INTO portfolio 
          (profile_id, title, brand, type, image, description, created_at)
          VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-                [profileId, title, brand, type, imagePath, description]
-            );
+        [profileId, title, brand, type, imagePath, description]
+      );
 
-            res.status(201).json({
-                id: result.insertId.toString(),
-                title,
-                brand,
-                type,
-                description,
-                image: imagePath,
-                stats: defaultStats,
-                createdAt: new Date().toISOString()
-            });
-
-        } catch (err) {
-            console.error('Error adding portfolio post:', err);
-            res.status(500).json({ message: 'Failed to add portfolio post' });
-        }
+      res.status(201).json({
+        id: result.insertId.toString(),
+        title,
+        brand,
+        type,
+        description,
+        image: imagePath,
+        stats: defaultStats,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Error adding portfolio post:", err);
+      res.status(500).json({ message: "Failed to add portfolio post" });
     }
+  }
 );
 
 // Delete portfolio post
-app.delete('/api/profiles/:profileId/portfolio/:postId', authenticate, async (req, res) => {
+app.delete(
+  "/api/profiles/:profileId/portfolio/:postId",
+  authenticate,
+  async (req, res) => {
     const { profileId, postId } = req.params;
     try {
-        const [result] = await pool.query('DELETE FROM portfolio WHERE id = ? AND profile_id = ?', [postId, profileId]);
-        if (result.affectedRows === 0) return res.status(404).json({ message: 'Post not found or unauthorized' });
-        res.status(204).send();
+      const [result] = await pool.query(
+        "DELETE FROM portfolio WHERE id = ? AND profile_id = ?",
+        [postId, profileId]
+      );
+      if (result.affectedRows === 0)
+        return res
+          .status(404)
+          .json({ message: "Post not found or unauthorized" });
+      res.status(204).send();
     } catch (err) {
-        console.error('Error deleting portfolio post:', err);
-        res.status(500).json({ message: 'Failed to delete post' });
+      console.error("Error deleting portfolio post:", err);
+      res.status(500).json({ message: "Failed to delete post" });
     }
-});
+  }
+);
 
 // Like/unlike portfolio post
-app.post('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+app.post(
+  "/api/profiles/:profileId/portfolio/:postId/like",
+  authenticate,
+  async (req, res) => {
     const { postId } = req.params;
     try {
-        // Increment likes by 1 (or create a separate likes table if needed)
-        const [result] = await pool.query('UPDATE portfolio SET likes = likes + 1 WHERE id = ?', [postId]);
-        if (result.affectedRows === 0) return res.status(404).json({ message: 'Post not found' });
+      // Increment likes by 1 (or create a separate likes table if needed)
+      const [result] = await pool.query(
+        "UPDATE portfolio SET likes = likes + 1 WHERE id = ?",
+        [postId]
+      );
+      if (result.affectedRows === 0)
+        return res.status(404).json({ message: "Post not found" });
 
-        // Return new likes count
-        const [updatedRows] = await pool.query('SELECT likes FROM portfolio WHERE id = ?', [postId]);
-        res.json({ likes: updatedRows[0].likes });
+      // Return new likes count
+      const [updatedRows] = await pool.query(
+        "SELECT likes FROM portfolio WHERE id = ?",
+        [postId]
+      );
+      res.json({ likes: updatedRows[0].likes });
     } catch (err) {
-        console.error('Error liking post:', err);
-        res.status(500).json({ message: 'Failed to like post' });
+      console.error("Error liking post:", err);
+      res.status(500).json({ message: "Failed to like post" });
     }
-});
+  }
+);
 
 // Optional: unlike
-app.delete('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+app.delete(
+  "/api/profiles/:profileId/portfolio/:postId/like",
+  authenticate,
+  async (req, res) => {
     const { postId } = req.params;
     try {
-        const [result] = await pool.query('UPDATE portfolio SET likes = GREATEST(likes - 1, 0) WHERE id = ?', [postId]);
-        if (result.affectedRows === 0) return res.status(404).json({ message: 'Post not found' });
+      const [result] = await pool.query(
+        "UPDATE portfolio SET likes = GREATEST(likes - 1, 0) WHERE id = ?",
+        [postId]
+      );
+      if (result.affectedRows === 0)
+        return res.status(404).json({ message: "Post not found" });
 
-        const [updatedRows] = await pool.query('SELECT likes FROM portfolio WHERE id = ?', [postId]);
-        res.json({ likes: updatedRows[0].likes });
+      const [updatedRows] = await pool.query(
+        "SELECT likes FROM portfolio WHERE id = ?",
+        [postId]
+      );
+      res.json({ likes: updatedRows[0].likes });
     } catch (err) {
-        console.error('Error unliking post:', err);
-        res.status(500).json({ message: 'Failed to unlike post' });
+      console.error("Error unliking post:", err);
+      res.status(500).json({ message: "Failed to unlike post" });
     }
-});
+  }
+);
 
-app.post('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+app.post(
+  "/api/profiles/:profileId/portfolio/:postId/like",
+  authenticate,
+  async (req, res) => {
     const { profileId, postId } = req.params;
     try {
-        const [rows] = await pool.query('SELECT likes FROM portfolio WHERE id = ? AND profile_id = ?', [postId, profileId]);
-        if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
+      const [rows] = await pool.query(
+        "SELECT likes FROM portfolio WHERE id = ? AND profile_id = ?",
+        [postId, profileId]
+      );
+      if (rows.length === 0)
+        return res.status(404).json({ message: "Post not found" });
 
-        const newLikes = (rows[0].likes || 0) + 1;
-        await pool.query('UPDATE portfolio SET likes = ? WHERE id = ?', [newLikes, postId]);
+      const newLikes = (rows[0].likes || 0) + 1;
+      await pool.query("UPDATE portfolio SET likes = ? WHERE id = ?", [
+        newLikes,
+        postId,
+      ]);
 
-        res.json({ likes: newLikes });
+      res.json({ likes: newLikes });
     } catch (err) {
-        console.error('Error liking post:', err);
-        res.status(500).json({ message: 'Failed to like post' });
+      console.error("Error liking post:", err);
+      res.status(500).json({ message: "Failed to like post" });
     }
-});
+  }
+);
 
 // Unlike a post
-app.delete('/api/profiles/:profileId/portfolio/:postId/like', authenticate, async (req, res) => {
+app.delete(
+  "/api/profiles/:profileId/portfolio/:postId/like",
+  authenticate,
+  async (req, res) => {
     const { profileId, postId } = req.params;
     try {
-        const [rows] = await pool.query('SELECT likes FROM portfolio WHERE id = ? AND profile_id = ?', [postId, profileId]);
-        if (rows.length === 0) return res.status(404).json({ message: 'Post not found' });
+      const [rows] = await pool.query(
+        "SELECT likes FROM portfolio WHERE id = ? AND profile_id = ?",
+        [postId, profileId]
+      );
+      if (rows.length === 0)
+        return res.status(404).json({ message: "Post not found" });
 
-        const newLikes = Math.max((rows[0].likes || 0) - 1, 0);
-        await pool.query('UPDATE portfolio SET likes = ? WHERE id = ?', [newLikes, postId]);
+      const newLikes = Math.max((rows[0].likes || 0) - 1, 0);
+      await pool.query("UPDATE portfolio SET likes = ? WHERE id = ?", [
+        newLikes,
+        postId,
+      ]);
 
-        res.json({ likes: newLikes });
+      res.json({ likes: newLikes });
     } catch (err) {
-        console.error('Error unliking post:', err);
-        res.status(500).json({ message: 'Failed to unlike post' });
+      console.error("Error unliking post:", err);
+      res.status(500).json({ message: "Failed to unlike post" });
     }
-});
+  }
+);
 
 // Get analytics
-app.get('/api/profiles/:profileId/analytics', authenticate, async (req, res) => {
+app.get(
+  "/api/profiles/:profileId/analytics",
+  authenticate,
+  async (req, res) => {
     const { profileId } = req.params;
 
     try {
-        const [portfolioTotals] = await pool.query(
-            'SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?',
-            [profileId]
-        );
+      const [portfolioTotals] = await pool.query(
+        "SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?",
+        [profileId]
+      );
 
-        const totalLikes = Number(portfolioTotals[0].totalLikes || 0);
-        const totalViews = Number(portfolioTotals[0].totalViews || 0);
+      const totalLikes = Number(portfolioTotals[0].totalLikes || 0);
+      const totalViews = Number(portfolioTotals[0].totalViews || 0);
 
-        const [topPostsRows] = await pool.query(
-            'SELECT id, title, (likes + views) as engagement FROM portfolio WHERE profile_id = ? ORDER BY engagement DESC LIMIT 5',
-            [profileId]
-        );
+      const [topPostsRows] = await pool.query(
+        "SELECT id, title, (likes + views) as engagement FROM portfolio WHERE profile_id = ? ORDER BY engagement DESC LIMIT 5",
+        [profileId]
+      );
 
-        const topPerformingPosts = topPostsRows.map(post => ({
-            id: post.id.toString(),
-            title: post.title,
-            engagement: Number(post.engagement)
-        }));
+      const topPerformingPosts = topPostsRows.map((post) => ({
+        id: post.id.toString(),
+        title: post.title,
+        engagement: Number(post.engagement),
+      }));
 
-        // 3. Prepare Chart Data (Using the live totals for placeholders)
-        const viewsByPlatform = [
-            { platform: 'Web', views: Math.round(totalViews * 0.7) },
-            { platform: 'Mobile', views: Math.round(totalViews * 0.3) },
-        ];
+      // 3. Prepare Chart Data (Using the live totals for placeholders)
+      const viewsByPlatform = [
+        { platform: "Web", views: Math.round(totalViews * 0.7) },
+        { platform: "Mobile", views: Math.round(totalViews * 0.3) },
+      ];
 
-        // trend charts
-        const engagementOverTime = [];
-        const reachTrend = [];
+      // trend charts
+      const engagementOverTime = [];
+      const reachTrend = [];
 
-        const analyticsData = {
-            // Live Totals (used by key metrics)
-            totalLikes: totalLikes.toString(),
-            totalViews: totalViews.toString(),
+      const analyticsData = {
+        // Live Totals (used by key metrics)
+        totalLikes: totalLikes.toString(),
+        totalViews: totalViews.toString(),
 
-            // Chart/List data (used by charts and list)
-            engagementOverTime,
-            viewsByPlatform,
-            reachTrend,
-            topPerformingPosts,
+        // Chart/List data (used by charts and list)
+        engagementOverTime,
+        viewsByPlatform,
+        reachTrend,
+        topPerformingPosts,
 
-            newFollowersCount: 0
-        };
+        newFollowersCount: 0,
+      };
 
-        res.json(analyticsData);
-
+      res.json(analyticsData);
     } catch (err) {
-        console.error('Error fetching analytics:', err);
-        res.status(500).json({ message: 'Failed to fetch analytics' });
+      console.error("Error fetching analytics:", err);
+      res.status(500).json({ message: "Failed to fetch analytics" });
     }
-});
+  }
+);
 
-
-app.post('/api/profiles/me/avatar', authenticate, upload.single('avatar'), async (req, res) => {
+app.post(
+  "/api/profiles/me/avatar",
+  authenticate,
+  upload.single("avatar"),
+  async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+      if (!req.file)
+        return res.status(400).json({ message: "No file uploaded" });
 
-        const avatarPath = `/uploads/${req.file.filename}`; // path to save in DB
+      const avatarPath = `/uploads/${req.file.filename}`; // path to save in DB
 
-        await pool.query('UPDATE profiles SET avatar = ? WHERE id = ?', [avatarPath, req.user.id]);
+      await pool.query("UPDATE profiles SET avatar = ? WHERE id = ?", [
+        avatarPath,
+        req.user.id,
+      ]);
 
-        // Return updated profile
-        const [rows] = await pool.query('SELECT * FROM profiles WHERE id = ?', [req.user.id]);
-        if (rows.length === 0) return res.status(404).json({ message: 'Profile not found' });
+      // Return updated profile
+      const [rows] = await pool.query("SELECT * FROM profiles WHERE id = ?", [
+        req.user.id,
+      ]);
+      if (rows.length === 0)
+        return res.status(404).json({ message: "Profile not found" });
 
-        res.json({ ...rows[0], avatar: avatarPath });
+      res.json({ ...rows[0], avatar: avatarPath });
     } catch (err) {
-        console.error('Error updating avatar:', err);
-        res.status(500).json({ message: 'Failed to update avatar' });
+      console.error("Error updating avatar:", err);
+      res.status(500).json({ message: "Failed to update avatar" });
     }
-});
+  }
+);
 
 const analyticsBuffer = {}; // { [profileId]: { views: number, likes: number } }
 
-function bufferAnalytics(profileId, type = 'views', amount = 1) {
-    if (!analyticsBuffer[profileId]) analyticsBuffer[profileId] = { views: 0, likes: 0 };
-    analyticsBuffer[profileId][type] += amount;
+function bufferAnalytics(profileId, type = "views", amount = 1) {
+  if (!analyticsBuffer[profileId])
+    analyticsBuffer[profileId] = { views: 0, likes: 0 };
+  analyticsBuffer[profileId][type] += amount;
 }
 
 const postViewsBuffer = {};
 // { [postId]: number of pending views }
 
 function bufferPostView(postId, amount = 1) {
-    if (!postViewsBuffer[postId]) postViewsBuffer[postId] = 0;
-    postViewsBuffer[postId] += amount;
+  if (!postViewsBuffer[postId]) postViewsBuffer[postId] = 0;
+  postViewsBuffer[postId] += amount;
 }
 
 setInterval(async () => {
-    const analyticsEntries = Object.entries(analyticsBuffer);
-    const postEntries = Object.entries(postViewsBuffer);
+  const analyticsEntries = Object.entries(analyticsBuffer);
+  const postEntries = Object.entries(postViewsBuffer);
 
-    if (analyticsEntries.length === 0 && postEntries.length === 0) return;
+  if (analyticsEntries.length === 0 && postEntries.length === 0) return;
 
-    const connection = await pool.getConnection();
-    try {
-        await connection.beginTransaction();
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
 
-        // --- 1. Flush post views ---
-        for (const [postId, pendingViews] of postEntries) {
-            await connection.query(
-                'UPDATE portfolio SET views = views + ? WHERE id = ?',
-                [pendingViews, postId]
-            );
-        }
-
-        // --- 2. Flush profile analytics (reach + engagement rate) ---
-        for (const [profileId, { views, likes }] of analyticsEntries) {
-            const reachIncrement = views + likes;
-            await connection.query(
-                'UPDATE profiles SET total_reach = total_reach + ? WHERE id = ?',
-                [reachIncrement, profileId]
-            );
-
-            const [totalsRows] = await connection.query(
-                'SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?',
-                [profileId]
-            );
-
-            const totalLikes = Number(totalsRows[0].totalLikes || 0);
-            const totalViews = Number(totalsRows[0].totalViews || 0);
-
-            const [followersRows] = await connection.query('SELECT followers FROM profiles WHERE id = ?', [profileId]);
-            const followersCount = Number(followersRows[0]?.followers || 0);
-
-            let rawRate = followersCount > 0 ? (totalLikes + totalViews) / followersCount : 0;
-            if (followersCount < 50) rawRate *= 0.5;
-            const engagementRatePercent = Math.min(rawRate * 100, 100).toFixed(1);
-
-            await connection.query(
-                'UPDATE profiles SET engagement_rate = ? WHERE id = ?',
-                [engagementRatePercent, profileId]
-            );
-        }
-
-        await connection.commit();
-
-        // Clear buffers
-        analyticsEntries.forEach(([profileId]) => delete analyticsBuffer[profileId]);
-        postEntries.forEach(([postId]) => delete postViewsBuffer[postId]);
-
-    } catch (err) {
-        if (connection) await connection.rollback();
-        console.error('Batch update failed', err);
-    } finally {
-        if (connection) connection.release();
+    // --- 1. Flush post views ---
+    for (const [postId, pendingViews] of postEntries) {
+      await connection.query(
+        "UPDATE portfolio SET views = views + ? WHERE id = ?",
+        [pendingViews, postId]
+      );
     }
+
+    // --- 2. Flush profile analytics (reach + engagement rate) ---
+    for (const [profileId, { views, likes }] of analyticsEntries) {
+      const reachIncrement = views + likes;
+      await connection.query(
+        "UPDATE profiles SET total_reach = total_reach + ? WHERE id = ?",
+        [reachIncrement, profileId]
+      );
+
+      const [totalsRows] = await connection.query(
+        "SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?",
+        [profileId]
+      );
+
+      const totalLikes = Number(totalsRows[0].totalLikes || 0);
+      const totalViews = Number(totalsRows[0].totalViews || 0);
+
+      const [followersRows] = await connection.query(
+        "SELECT followers FROM profiles WHERE id = ?",
+        [profileId]
+      );
+      const followersCount = Number(followersRows[0]?.followers || 0);
+
+      let rawRate =
+        followersCount > 0 ? (totalLikes + totalViews) / followersCount : 0;
+      if (followersCount < 50) rawRate *= 0.5;
+      const engagementRatePercent = Math.min(rawRate * 100, 100).toFixed(1);
+
+      await connection.query(
+        "UPDATE profiles SET engagement_rate = ? WHERE id = ?",
+        [engagementRatePercent, profileId]
+      );
+    }
+
+    await connection.commit();
+
+    // Clear buffers
+    analyticsEntries.forEach(
+      ([profileId]) => delete analyticsBuffer[profileId]
+    );
+    postEntries.forEach(([postId]) => delete postViewsBuffer[postId]);
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error("Batch update failed", err);
+  } finally {
+    if (connection) connection.release();
+  }
 }, 60_000); // every 60s
 
 // Increment views and update engagement rate
-app.post('/api/profiles/:profileId/portfolio/:postId/view', authenticate, async (req, res) => {
+app.post(
+  "/api/profiles/:profileId/portfolio/:postId/view",
+  authenticate,
+  async (req, res) => {
     const { profileId, postId } = req.params;
     try {
-        // 1. Buffer profile analytics (reach)
-        bufferAnalytics(profileId, 'views', 1);
+      // 1. Buffer profile analytics (reach)
+      bufferAnalytics(profileId, "views", 1);
 
-        // 2. Buffer post views
-        bufferPostView(postId, 1);
+      // 2. Buffer post views
+      bufferPostView(postId, 1);
 
-        res.json({ message: 'View recorded (buffered)' });
+      res.json({ message: "View recorded (buffered)" });
     } catch (err) {
-        console.error('Error recording view:', err);
-        res.status(500).json({ message: 'Failed to record view' });
+      console.error("Error recording view:", err);
+      res.status(500).json({ message: "Failed to record view" });
     }
-});
+  }
+);
 
 const FOLLOWER_RANGES = {
-    nano: { min: 0, max: 10_000 },
-    micro: { min: 10_001, max: 100_000 },
-    mid: { min: 100_001, max: 500_000 },
-    macro: { min: 500_001, max: 1_000_000 },
-    mega: { min: 1_000_001, max: null }, // no upper limit
+  nano: { min: 0, max: 10_000 },
+  micro: { min: 10_001, max: 100_000 },
+  mid: { min: 100_001, max: 500_000 },
+  macro: { min: 500_001, max: 1_000_000 },
+  mega: { min: 1_000_001, max: null }, // no upper limit
 };
 
 // =======================
 // CREATOR SEARCH ROUTE
 // =======================
-app.post('/api/creators/search', async (req, res) => {
-    try {
-        console.log("Just a test");
-        const {
-            query = "",
-            niche = [],
-            country = "",
-            language = [],
-            platforms = [],
-            minFollowers = 0,
-            maxFollowers = 10000000,
-            isVIP = false,
-            availableNow = false,
-            budgetMin = 0,
-            budgetMax = 100000000,
-            page = 1,
-            limit = 12,
-            minEngagement,
-            maxEngagement,
-            contentTypes = [],
-            collabTypes = []
-        } = req.body;
+app.post("/api/creators/search", async (req, res) => {
+  try {
+    console.log("Just a test");
+    const {
+      query = "",
+      niche = [],
+      country = "",
+      language = [],
+      platforms = [],
+      minFollowers = 0,
+      maxFollowers = 10000000,
+      isVIP = false,
+      availableNow = false,
+      budgetMin = 0,
+      budgetMax = 100000000,
+      page = 1,
+      limit = 12,
+      minEngagement,
+      maxEngagement,
+      contentTypes = [],
+      collabTypes = [],
+    } = req.body;
 
-        console.log('Received body:', req.body);
+    console.log("Received body:", req.body);
 
-        const where = [];
-        const params = [];
+    const where = [];
+    const params = [];
 
-        // Only creators
-        // where.push(`accounttype = 'creator'`);
+    // Only creators
+    // where.push(`accounttype = 'creator'`);
 
-        // 🔍 Text search
-        if (query.trim()) {
-            where.push(`(
+    // 🔍 Text search
+    if (query.trim()) {
+      where.push(`(
         name LIKE ? OR
         handle LIKE ? OR
         bio LIKE ? OR
@@ -695,108 +819,112 @@ app.post('/api/creators/search', async (req, res) => {
         JSON_SEARCH(platforms, 'one', ?) IS NOT NULL
     )`);
 
-            const q = `%${query}%`;
-            params.push(q, q, q, q, q, q, q, q, q);
-        }
+      const q = `%${query}%`;
+      params.push(q, q, q, q, q, q, q, q, q);
+    }
 
-        // Niche
-        if (niche.length > 0) {
-            where.push(`niche IN (${niche.map(() => '?').join(',')})`);
-            params.push(...niche);
-        }
+    // Niche
+    if (niche.length > 0) {
+      where.push(`niche IN (${niche.map(() => "?").join(",")})`);
+      params.push(...niche);
+    }
 
-        // Country
-        if (country) {
-            where.push(`country = ?`);
-            params.push(country);  // we only pass the country name string
-        }
+    // Country
+    if (country) {
+      where.push(`country = ?`);
+      params.push(country); // we only pass the country name string
+    }
 
-        // Availability
-        if (availableNow) {
-            where.push(`available_now = 1`);
-        }
+    // Availability
+    if (availableNow) {
+      where.push(`available_now = 1`);
+    }
 
-        // Vip status
-        if (isVIP) {
-            where.push(`isVip = 1`);
-        }
+    // Vip status
+    if (isVIP) {
+      where.push(`isVip = 1`);
+    }
 
-        const languages = Array.isArray(req.body.language) ? req.body.language : [];
+    const languages = Array.isArray(req.body.language) ? req.body.language : [];
 
-        // Language
-        if (languages.length > 0) {
-            const orClauses = languages.map(() => `JSON_SEARCH(LOWER(languages), 'one', LOWER(?)) IS NOT NULL`).join(' OR ');
-            where.push(`(${orClauses})`);
-            params.push(...languages);
-        }
+    // Language
+    if (languages.length > 0) {
+      const orClauses = languages
+        .map(() => `JSON_SEARCH(LOWER(languages), 'one', LOWER(?)) IS NOT NULL`)
+        .join(" OR ");
+      where.push(`(${orClauses})`);
+      params.push(...languages);
+    }
 
-        // Platforms
-        if (platforms?.length > 0) {
-            const orClauses = platforms.map(() => `JSON_CONTAINS(platforms, ?)`).join(' OR ');
-            where.push(`(${orClauses})`);
-            params.push(...platforms.map(platform => `"${platform}"`));
-        }
+    // Platforms
+    if (platforms?.length > 0) {
+      const orClauses = platforms
+        .map(() => `JSON_CONTAINS(platforms, ?)`)
+        .join(" OR ");
+      where.push(`(${orClauses})`);
+      params.push(...platforms.map((platform) => `"${platform}"`));
+    }
 
-        // Followers (range OR explicit)
-        let minF = minFollowers ?? 0;
-        let maxF = maxFollowers ?? 10000000;
+    // Followers (range OR explicit)
+    let minF = minFollowers ?? 0;
+    let maxF = maxFollowers ?? 10000000;
 
-        console.log("Using follower limits:", minF, maxF);
+    console.log("Using follower limits:", minF, maxF);
 
-        if (minF >= 0) {
-            where.push(`followers >= ?`);
-            params.push(minF);
-        }
-        if (maxF <= 10000000) {
-            where.push(`followers <= ?`);
-            params.push(maxF);
-        }
+    if (minF >= 0) {
+      where.push(`followers >= ?`);
+      params.push(minF);
+    }
+    if (maxF <= 10000000) {
+      where.push(`followers <= ?`);
+      params.push(maxF);
+    }
 
-        let minEng = minEngagement ?? 0;
-        let maxEng = maxEngagement ?? 100;
+    let minEng = minEngagement ?? 0;
+    let maxEng = maxEngagement ?? 100;
 
-        if (minEng >= 0) {
-            where.push(`engagement_rate >= ?`);
-            params.push(minEng);
-        }
-        if (maxEng <= 100) {
-            where.push(`engagement_rate <= ?`);
-            params.push(maxEng);
-        }
+    if (minEng >= 0) {
+      where.push(`engagement_rate >= ?`);
+      params.push(minEng);
+    }
+    if (maxEng <= 100) {
+      where.push(`engagement_rate <= ?`);
+      params.push(maxEng);
+    }
 
-        if (contentTypes.length > 0) {
-            const orClauses = contentTypes
-                .map(() => `JSON_CONTAINS(content_types, ?)`)
-                .join(' OR ');
+    if (contentTypes.length > 0) {
+      const orClauses = contentTypes
+        .map(() => `JSON_CONTAINS(content_types, ?)`)
+        .join(" OR ");
 
-            where.push(`(${orClauses})`);
-            params.push(...contentTypes.map(t => `"${t.toLowerCase()}"`));
-        }
+      where.push(`(${orClauses})`);
+      params.push(...contentTypes.map((t) => `"${t.toLowerCase()}"`));
+    }
 
-        if (collabTypes.length > 0) {
-            const orClauses = collabTypes
-                .map(() => `JSON_CONTAINS(collab_types, ?)`)
-                .join(' OR ');
+    if (collabTypes.length > 0) {
+      const orClauses = collabTypes
+        .map(() => `JSON_CONTAINS(collab_types, ?)`)
+        .join(" OR ");
 
-            where.push(`(${orClauses})`);
-            params.push(...collabTypes.map(t => `"${t.toLowerCase()}"`));
-        }
+      where.push(`(${orClauses})`);
+      params.push(...collabTypes.map((t) => `"${t.toLowerCase()}"`));
+    }
 
-        // 💰 Budget (custom numeric)
-        // if (budgetMin !== null) {
-        //     where.push(`budget_min >= ?`);
-        //     params.push(budgetMin);
-        // }
+    // 💰 Budget (custom numeric)
+    // if (budgetMin !== null) {
+    //     where.push(`budget_min >= ?`);
+    //     params.push(budgetMin);
+    // }
 
-        // if (budgetMax !== null) {
-        //     where.push(`budget_max <= ?`);
-        //     params.push(budgetMax);
-        // }
+    // if (budgetMax !== null) {
+    //     where.push(`budget_max <= ?`);
+    //     params.push(budgetMax);
+    // }
 
-        // 📄 Pagination
-        const offset = (page - 1) * limit;
+    // 📄 Pagination
+    const offset = (page - 1) * limit;
 
-        const sql = `
+    const sql = `
       SELECT
         id,
         name,
@@ -815,105 +943,106 @@ app.post('/api/creators/search', async (req, res) => {
         content_types,
         collab_types
       FROM profiles
-      ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+      ${where.length ? "WHERE " + where.join(" AND ") : ""}
       ORDER BY
         isVIP DESC,
         followers DESC
       LIMIT ? OFFSET ?
     `;
 
-        params.push(Number(limit), Number(offset));
+    params.push(Number(limit), Number(offset));
 
-        const [rows] = await pool.query(sql, params);
+    const [rows] = await pool.query(sql, params);
 
-        res.json({
-            page,
-            limit,
-            count: rows.length,
-            results: rows
-        });
+    res.json({
+      page,
+      limit,
+      count: rows.length,
+      results: rows,
+    });
 
-        console.log(rows);
-    } catch (err) {
-        console.error('Creator search error:', err);
-        res.status(500).json({ message: 'Failed to search creators' });
-    }
+    console.log(rows);
+  } catch (err) {
+    console.error("Creator search error:", err);
+    res.status(500).json({ message: "Failed to search creators" });
+  }
 });
-
 
 // =======================
 // UPDATE PROFILE ROUTE
 // =======================
-app.post('/api/profiles/me/update', authenticate, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        let { name, bio, niche, location } = req.body;
+app.post("/api/profiles/me/update", authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    let { name, bio, niche, location } = req.body;
 
-        // Fetch current profile
-        const [rows] = await pool.query('SELECT * FROM profiles WHERE id = ?', [userId]);
-        if (rows.length === 0) return res.status(404).json({ message: "Profile not found" });
+    // Fetch current profile
+    const [rows] = await pool.query("SELECT * FROM profiles WHERE id = ?", [
+      userId,
+    ]);
+    if (rows.length === 0)
+      return res.status(404).json({ message: "Profile not found" });
 
-        const currentProfile = rows[0];
+    const currentProfile = rows[0];
 
-        // Use current name if none provided
-        if (!name || name.trim() === "") {
-            name = currentProfile.name;
-        }
+    // Use current name if none provided
+    if (!name || name.trim() === "") {
+      name = currentProfile.name;
+    }
 
-        // Use current bio/niche/location if missing
-        bio = bio ?? currentProfile.bio;
-        niche = niche ?? currentProfile.niche;
-        location = location ?? currentProfile.location;
+    // Use current bio/niche/location if missing
+    bio = bio ?? currentProfile.bio;
+    niche = niche ?? currentProfile.niche;
+    location = location ?? currentProfile.location;
 
-        // Generate unique handle only if the name changed
-        let handle = currentProfile.handle;
-        if (name !== currentProfile.name) {
-            const baseHandle = generateHandleFromName(name);
-            handle = await generateUniqueHandle(baseHandle);
-        }
+    // Generate unique handle only if the name changed
+    let handle = currentProfile.handle;
+    if (name !== currentProfile.name) {
+      const baseHandle = generateHandleFromName(name);
+      handle = await generateUniqueHandle(baseHandle);
+    }
 
-        // Update profile
-        await pool.query(
-            `UPDATE profiles 
+    // Update profile
+    await pool.query(
+      `UPDATE profiles 
             SET name = ?, bio = ?, niche = ?, location = ?, handle = ?
             WHERE id = ?`,
-            [name, bio, niche, location, handle, userId]
-        );
+      [name, bio, niche, location, handle, userId]
+    );
 
-        // Fetch updated profile
-        const [updatedRows] = await pool.query(
-            'SELECT * FROM profiles WHERE id = ?',
-            [userId]
-        );
+    // Fetch updated profile
+    const [updatedRows] = await pool.query(
+      "SELECT * FROM profiles WHERE id = ?",
+      [userId]
+    );
 
-        if (updatedRows.length === 0) {
-            return res.status(404).json({ message: "Profile not found" });
-        }
-
-        // Return updated profile
-        const profile = updatedRows[0];
-
-        res.json({
-            message: "Profile updated successfully",
-            profile: {
-                id: profile.id,
-                name: profile.name,
-                handle: profile.handle,
-                bio: profile.bio,
-                niche: profile.niche,
-                location: profile.location,
-                avatar: profile.avatar,
-                type: profile.type,
-                isVIP: profile.isVIP,
-                followers: profile.followers,
-                following: profile.following
-            }
-        });
-
-    } catch (err) {
-        console.error("Error updating profile:", err);
-        res.status(500).json({ message: "Failed to update profile" });
+    if (updatedRows.length === 0) {
+      return res.status(404).json({ message: "Profile not found" });
     }
+
+    // Return updated profile
+    const profile = updatedRows[0];
+
+    res.json({
+      message: "Profile updated successfully",
+      profile: {
+        id: profile.id,
+        name: profile.name,
+        handle: profile.handle,
+        bio: profile.bio,
+        niche: profile.niche,
+        location: profile.location,
+        avatar: profile.avatar,
+        type: profile.type,
+        isVIP: profile.isVIP,
+        followers: profile.followers,
+        following: profile.following,
+      },
+    });
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(500).json({ message: "Failed to update profile" });
+  }
 });
 
 // =======================
@@ -922,31 +1051,31 @@ app.post('/api/profiles/me/update', authenticate, async (req, res) => {
 
 // Create a campaign
 app.post(
-  '/api/campaigns/create',
+  "/api/campaigns/create",
   authenticate,
   upload.fields([
-    { name: 'companyLogo', maxCount: 1 },
-    { name: 'referenceImages', maxCount: 5 }
+    { name: "companyLogo", maxCount: 1 },
+    { name: "referenceImages", maxCount: 5 },
   ]),
   async (req, res) => {
     try {
       const userId = req.user.id;
-      const {
-        name,
-        description,
-        type,
-        date,
-        budget,
-        goal
-      } = req.body;
+      const { name, description, type, date, budget, goal } = req.body;
 
       if (!name || !description || !type || !date || !budget || !goal) {
-        return res.status(400).json({ message: 'Missing required campaign fields' });
+        return res
+          .status(400)
+          .json({ message: "Missing required campaign fields" });
       }
 
       // Handle uploaded files
-      const companyLogo = req.files['companyLogo']?.[0] ? `/uploads/${req.files['companyLogo'][0].filename}` : null;
-      const referenceImages = req.files['referenceImages']?.map(file => `/uploads/${file.filename}`) || [];
+      const companyLogo = req.files["companyLogo"]?.[0]
+        ? `/uploads/${req.files["companyLogo"][0].filename}`
+        : null;
+      const referenceImages =
+        req.files["referenceImages"]?.map(
+          (file) => `/uploads/${file.filename}`
+        ) || [];
 
       // Insert campaign into DB
       const [result] = await pool.query(
@@ -962,14 +1091,14 @@ app.post(
           budget,
           goal,
           companyLogo,
-          JSON.stringify(referenceImages)
+          JSON.stringify(referenceImages),
         ]
       );
 
       const campaignId = result.insertId;
 
       res.status(201).json({
-        message: 'Campaign created successfully',
+        message: "Campaign created successfully",
         campaign: {
           id: campaignId,
           name,
@@ -979,13 +1108,12 @@ app.post(
           budget,
           goal,
           companyLogo,
-          referenceImages
-        }
+          referenceImages,
+        },
       });
-
     } catch (err) {
-      console.error('Error creating campaign:', err);
-      res.status(500).json({ message: 'Failed to create campaign' });
+      console.error("Error creating campaign:", err);
+      res.status(500).json({ message: "Failed to create campaign" });
     }
   }
 );
@@ -999,9 +1127,23 @@ app.get("/api/campaigns", authenticate, async (req, res) => {
       [userId]
     );
 
-    const campaigns = rows.map((row) => ({
-      ...row,
-      reference_images: row.reference_images ? JSON.parse(row.reference_images) : [],
+    console.log(rows);
+
+    const campaigns = rows.map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      type: c.type,
+      status: c.status,
+      budget: c.budget,
+      budgetSpent: c.budget_spent,
+      impressions: c.impressions,
+      reach: c.reach,
+
+      // normalize
+      startDate: c.start_date,
+      companyLogo: c.company_logo,
+      referenceImages: c.reference_images ? JSON.parse(c.reference_images) : [],
     }));
 
     res.json(campaigns);
@@ -1012,17 +1154,19 @@ app.get("/api/campaigns", authenticate, async (req, res) => {
 });
 
 // DELETE campaign by ID
-app.delete("/api/campaigns/:id", async (req, res) => {
-  const { id } = req.params;
+app.delete("/api/campaigns/:profileId/:campaignId", async (req, res) => {
+  const { profileId, campaignId } = req.params;
 
   try {
     const [result] = await pool.query(
       "DELETE FROM campaigns WHERE id = ? AND creator_id = ?",
-      [id, req.user.id]
+      [campaignId, profileId]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Campaign not found or not yours" });
+      return res
+        .status(404)
+        .json({ message: "Campaign not found or not yours" });
     }
 
     res.json({ message: "Campaign deleted successfully" });
@@ -1032,12 +1176,143 @@ app.delete("/api/campaigns/:id", async (req, res) => {
   }
 });
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const formatMySQLDate = (iso) => {
+  if (!iso) return null;
+  return new Date(iso).toISOString().slice(0, 19).replace("T", " ");
+};
+
+app.put(
+  "/api/campaigns/:id",
+  authenticate,
+  upload.fields([
+    { name: "companyLogo", maxCount: 1 },
+    { name: "referenceImages", maxCount: 10 },
+  ]),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const campaignId = req.params.id;
+
+      /** ---------- OWNERSHIP CHECK ---------- */
+      const [rows] = await pool.query(
+        "SELECT * FROM campaigns WHERE id = ? AND creator_id = ?",
+        [campaignId, userId]
+      );
+
+      if (!rows.length) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      const campaign = rows[0];
+
+      /** ---------- BODY ---------- */
+      const {
+        name,
+        description,
+        type,
+        status,
+        primaryGoal,
+        budget,
+        startDate,
+      } = req.body;
+
+      /** ---------- FILES ---------- */
+      const logoFile = req.files?.companyLogo?.[0];
+      const newImages = req.files?.referenceImages || [];
+
+      const removedImagesRaw = req.body["removedImages[]"];
+      const removedImages = removedImagesRaw
+        ? Array.isArray(removedImagesRaw)
+          ? removedImagesRaw
+          : [removedImagesRaw]
+        : [];
+
+      /** ---------- HANDLE LOGO ---------- */
+      let companyLogo = campaign.company_logo;
+      if (logoFile) {
+        companyLogo = `/uploads/${logoFile.filename}`;
+      }
+
+      /** ---------- HANDLE REFERENCE IMAGES ---------- */
+      const existingImages = campaign.reference_images
+        ? JSON.parse(campaign.reference_images)
+        : [];
+
+      // remove deleted images
+      const filteredImages = existingImages.filter(
+        (img) => !removedImages.includes(img)
+      );
+
+      // delete removed images from disk
+      removedImages.forEach((img) => {
+        const filePath = img.startsWith("/") ? img.slice(1) : img;
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+
+      // add new images
+      const uploadedImages = newImages.map(
+        (f) => `/uploads/${f.filename}`
+      );
+
+      const finalImages = [...filteredImages, ...uploadedImages];
+
+      /** ---------- UPDATE ---------- */
+      await pool.query(
+        `
+        UPDATE campaigns SET
+          name = ?,
+          description = ?,
+          type = ?,
+          status = ?,
+          budget = ?,
+          start_date = ?,
+          company_logo = ?,
+          reference_images = ?
+        WHERE id = ?
+        `,
+        [
+          name,
+          description,
+          type,
+          status,
+          Number(budget),
+          formatMySQLDate(startDate),
+          companyLogo,
+          JSON.stringify(finalImages),
+          campaignId,
+        ]
+      );
+
+      /** ---------- RESPONSE ---------- */
+      res.json({
+        success: true,
+        campaign: {
+          id: campaignId,
+          name,
+          description,
+          type,
+          status,
+          budget: Number(budget),
+          startDate,
+          companyLogo,
+          referenceImages: finalImages,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to update campaign:", err);
+      res.status(500).json({ message: "Failed to update campaign" });
+    }
+  }
+);
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // =======================
 // START SERVER
 // =======================
 app.listen(PORT, () => {
-    console.log(`\n🎉 Backend running on http://localhost:${PORT}`);
-    console.log(`   (MariaDB port: ${process.env.DB_PORT})`);
+  console.log(`\n🎉 Backend running on http://localhost:${PORT}`);
+  console.log(`   (MariaDB port: ${process.env.DB_PORT})`);
 });

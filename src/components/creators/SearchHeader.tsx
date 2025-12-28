@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useUserStore } from '@/store/useUserStore';
 
 interface SearchHeaderProps {
   searchQuery: string;
@@ -33,12 +34,13 @@ export const SearchHeader = ({
   onOpenFilters,
   activeFilterCount,
 }: SearchHeaderProps) => {
+  const isBrand = useUserStore((state) => state.accountType) === "brand";
   return (
     <div className="space-y-6">
       {/* Hero Section */}
       <div className="text-center py-8 lg:py-12">
         <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-3">
-          Discover <span className="text-primary">Creators</span>
+          Discover <span className="text-primary">{isBrand ? "Creators" : "Campaigns"}</span>
         </h1>
         <p className="text-muted-foreground max-w-lg mx-auto">
           Find the perfect influencers for your brand from our marketplace
@@ -63,7 +65,7 @@ export const SearchHeader = ({
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
         <div className="flex items-center gap-3">
           <p className="text-muted-foreground">
-            <span className="font-semibold text-foreground">{resultCount}</span> creators found
+            <span className="font-semibold text-foreground">{resultCount}</span> {isBrand ? "creators" : "campaigns"} found
           </p>
         </div>
 
