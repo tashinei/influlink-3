@@ -32,6 +32,7 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import { useCreatorNiches } from "@/data/mockCreators";
 
 // --- 1. UPDATED FORM INTERFACE ---
 interface CampaignForm {
@@ -43,6 +44,11 @@ interface CampaignForm {
   goal: string;
   companyLogo: File | null;
   referenceImages: File[] | null;
+  platforms: string[];
+  niches: string[];
+  contentTypes: string[];
+  country: string;
+  language: string[];
 }
 
 interface CreateCampaignModalProps {
@@ -67,14 +73,67 @@ const Steps = [
   },
   {
     key: 3,
+    title: "Targeting & Filters",
+    icon: Target,
+    description: "Choose platforms, niches, and audience reach.",
+  },
+  {
+    key: 4,
     title: "Media & Branding (Optional)",
     icon: Camera,
-    description: "Upload your logo and any creative references.",
+    description: "Upload logos and creative references.",
   },
 ];
 
+type ValidationErrors = Partial<Record<keyof CampaignForm, string>>;
+
+const validateStep = (
+  step: number,
+  form: CampaignForm
+): ValidationErrors => {
+  const errors: ValidationErrors = {};
+
+  // STEP 1 — Core details
+  if (step === 1) {
+    if (!form.name.trim()) errors.name = "Campaign name is required.";
+    if (!form.description.trim())
+      errors.description = "Description is required.";
+    if (!form.type) errors.type = "Campaign type is required.";
+    if (!form.date) errors.date = "Start date is required.";
+  }
+
+  // STEP 2 — Goals & budget
+  if (step === 2) {
+    if (!form.goal) errors.goal = "Please select a campaign goal.";
+    if (!form.budget || Number(form.budget) <= 0)
+      errors.budget = "Budget must be greater than 0.";
+  }
+
+  // STEP 3 — Targeting & filters
+  if (step === 3) {
+    if (form.platforms.length === 0)
+      errors.platforms = "Select at least one platform.";
+
+    if (form.niches.length === 0)
+      errors.niches = "Select at least one niche.";
+
+    if (form.contentTypes.length === 0)
+      errors.contentTypes = "Select at least one content type.";
+
+    if (!form.country)
+      errors.country = "Please select a target country.";
+
+    if (form.language.length === 0)
+      errors.language = "Select at least one language.";
+  }
+
+  return errors;
+};
+
 const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
+
+  const [errors, setErrors] = useState<ValidationErrors>({});
 
   const [form, setForm] = useState<CampaignForm>({
     name: "",
@@ -85,17 +144,28 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
     goal: "reach",
     companyLogo: null,
     referenceImages: null,
+    platforms: [],
+    niches: [],
+    contentTypes: [],
+    country: "",
+    language: [],
   });
 
   const API_BASE = "http://localhost:3000"
+  
+  const niches = useCreatorNiches();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: undefined }));
   };
 
   const handleSelectChange = (key: keyof CampaignForm, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm(prev => ({ ...prev, [key]: value }));
+    setErrors(prev => ({ ...prev, [key]: undefined }));
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof CampaignForm) => {
@@ -109,17 +179,15 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
     }
   };
 
-  // --- NEW: Step Navigation Logic ---
   const handleNext = () => {
-    // Basic validation check for required fields on the current step
-    if (currentStep === 1 && (!form.name || !form.description || !form.type || !form.date)) {
-      alert("Please fill in all required Core Campaign Details before proceeding.");
+    const validationErrors = validateStep(currentStep, form);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
-    if (currentStep === 2 && (!form.budget || !form.goal)) {
-      alert("Please fill in all required Goals and Budget details before proceeding.");
-      return;
-    }
+
+    setErrors({});
 
     if (currentStep < Steps.length) {
       setCurrentStep(prev => prev + 1);
@@ -129,9 +197,22 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
+    setErrors({});
+    if (currentStep > 1) setCurrentStep(prev => prev - 1);
+  };
+
+  const toggleArrayValue = (key: keyof CampaignForm, value: string) => {
+    setForm(prev => {
+      const arr = prev[key] as string[];
+      return {
+        ...prev,
+        [key]: arr.includes(value)
+          ? arr.filter(v => v !== value)
+          : [...arr, value],
+      };
+    });
+
+    setErrors(prev => ({ ...prev, [key]: undefined }));
   };
 
   const handleSubmit = async () => {
@@ -145,6 +226,11 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
       formData.append("date", form.date);
       formData.append("budget", form.budget);
       formData.append("goal", form.goal);
+      formData.append("platforms", JSON.stringify(form.platforms));
+      formData.append("niches", JSON.stringify(form.niches));
+      formData.append("contentTypes", JSON.stringify(form.contentTypes));
+      formData.append("country", form.country);
+      formData.append("language", JSON.stringify(form.language));
 
       // Append files if present
       if (form.companyLogo) {
@@ -181,6 +267,11 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
         goal: "reach",
         companyLogo: null,
         referenceImages: null,
+        platforms: [],
+        niches: [],
+        contentTypes: [],
+        country: "",
+        language: [],
       });
     } catch (err: any) {
       console.error("Error submitting campaign:", err);
@@ -210,6 +301,8 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                 onChange={handleInputChange}
                 required
               />
+              {errors.name && (
+                <p className="text-sm text-red-500">{errors.name}</p>)}
             </div>
 
             {/* Description */}
@@ -263,6 +356,9 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                   onChange={handleInputChange}
                   required
                 />
+                {errors.date && (
+                  <p className="text-sm text-red-500">{errors.date}</p>
+                )}
               </div>
             </div>
           </>
@@ -306,53 +402,181 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                 onChange={handleInputChange}
                 required
               />
+              {errors.budget && (
+                <p className="text-sm text-red-500">{errors.budget}</p>
+              )}
             </div>
           </div>
         );
 
       case 3:
         return (
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-              {/* Company Logo (Optional) */}
-              <div className="space-y-3">
-                <Label htmlFor="companyLogo" className="flex items-center gap-2 text-sm font-medium">
-                  <Camera className="h-4 w-4 text-primary/70" />
-                  Company Logo (PNG/JPG) <span className="text-muted-foreground text-xs">(Optional)</span>
-                </Label>
-                <Input
-                  id="companyLogo"
-                  name="companyLogo"
-                  type="file"
-                  accept=".png,.jpg,.jpeg"
-                  onChange={(e) => handleFileInputChange(e, 'companyLogo')}
-                  className="h-14 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary"
-                />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+            {/* LEFT COLUMN */}
+            <div className="space-y-8">
+              <h4 className="text-lg font-semibold">Platforms & Niches</h4>
+
+              {/* Platforms */}
+              <div className="space-y-2">
+                <Label>Platforms</Label>
+                <div className="flex flex-wrap gap-2">
+                  {["Instagram", "TikTok", "YouTube", "X"].map(p => (
+                    <Button
+                      key={p}
+                      size="sm"
+                      type="button"
+                      variant={form.platforms.includes(p) ? "default" : "outline"}
+                      onClick={() => toggleArrayValue("platforms", p)}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+                {errors.platforms && (
+                  <p className="text-sm text-red-500 mt-2">
+                    {errors.platforms}
+                  </p>
+                )}
               </div>
 
-              {/* Reference Images (Optional) */}
-              <div className="space-y-3">
-                <Label htmlFor="referenceImages" className="flex items-center gap-2 text-sm font-medium">
-                  <FileText className="h-4 w-4 text-primary/70" />
-                  Reference Images (Multiple allowed) <span className="text-muted-foreground text-xs">(Optional)</span>
-                </Label>
-                <Input
-                  id="referenceImages"
-                  name="referenceImages"
-                  type="file"
-                  multiple
-                  accept=".png,.jpg,.jpeg"
-                  onChange={(e) => handleFileInputChange(e, 'referenceImages')}
-                  className="h-14 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary flex justify-center align-center"
-                />
+              {/* Niches */}
+              <div className="space-y-2">
+                <Label>Niches</Label>
+                <div className="flex flex-wrap gap-2 max-h-[20vh] overflow-y-scroll">
+                  {niches.map(n => (
+                    <Button
+                      key={n}
+                      size="sm"
+                      type="button"
+                      variant={form.niches.includes(n) ? "default" : "outline"}
+                      onClick={() => toggleArrayValue("niches", n)}
+                    >
+                      {n}
+                    </Button>
+                  ))}
+                </div>
+                {errors.niches && (
+                  <p className="text-sm text-red-500 mt-2">
+                    {errors.niches}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="pt-4">
-              <p className="text-sm text-muted-foreground">
-                * You can upload up to 5 reference images/documents. All fields in this section are optional and can be updated later.
-              </p>
+            {/* RIGHT COLUMN */}
+            <div className="space-y-8">
+              <h4 className="text-lg font-semibold">Audience & Content</h4>
+
+              {/* Content Types */}
+              <div className="space-y-2">
+                <Label>Content Types</Label>
+                <div className="flex flex-wrap gap-2">
+                  {["Post", "Story", "Reel", "Video", "Livestream"].map(c => (
+                    <Button
+                      key={c}
+                      size="sm"
+                      type="button"
+                      variant={form.contentTypes.includes(c) ? "default" : "outline"}
+                      onClick={() => toggleArrayValue("contentTypes", c)}
+                    >
+                      {c}
+                    </Button>
+                  ))}
+                </div>
+                {errors.contentTypes && (
+                  <p className="text-sm text-red-500 mt-2">
+                    {errors.contentTypes}
+                  </p>
+                )}
+              </div>
+
+              {/* Country */}
+              <div className="space-y-2 max-w-sm">
+                <Label>Target Country</Label>
+                <Select
+                  value={form.country ?? ""}
+                  onValueChange={(v) => {
+                    setForm(prev => ({ ...prev, country: v }));
+                    setErrors(prev => ({ ...prev, country: undefined }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="US">United States</SelectItem>
+                    <SelectItem value="UK">United Kingdom</SelectItem>
+                    <SelectItem value="DE">Germany</SelectItem>
+                    <SelectItem value="FR">France</SelectItem>
+                    <SelectItem value="BG">Bulgaria</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.country && (
+                  <p className="text-sm text-red-500 mt-2">
+                    {errors.country}
+                  </p>
+                )}
+              </div>
+
+              {/* Languages */}
+              <div className="space-y-2">
+                <Label>Languages</Label>
+                <div className="flex flex-wrap gap-2">
+                  {["English", "German", "French", "Spanish", "Bulgarian"].map(l => (
+                    <Button
+                      key={l}
+                      size="sm"
+                      type="button"
+                      variant={form.language.includes(l) ? "default" : "outline"}
+                      onClick={() => toggleArrayValue("language", l)}
+                    >
+                      {l}
+                    </Button>
+                  ))}
+                </div>
+                {errors.language && (
+                  <p className="text-sm text-red-500 mt-2">
+                    {errors.language}
+                  </p>
+                )}
+              </div>
             </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-8 max-w-xl">
+
+            <div className="space-y-3">
+              <Label>Company Logo (Optional)</Label>
+              <Input
+                type="file"
+                accept=".png,.jpg,.jpeg"
+                onChange={(e) => handleFileInputChange(e, "companyLogo")}
+              />
+              {errors.companyLogo && (
+                <p className="text-sm text-red-500">{errors.companyLogo}</p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <Label>Reference Images (Optional)</Label>
+              <Input
+                type="file"
+                multiple
+                accept=".png,.jpg,.jpeg"
+                onChange={(e) => handleFileInputChange(e, "referenceImages")}
+              />
+              {errors.referenceImages && (
+                <p className="text-sm text-red-500">{errors.referenceImages}</p>
+              )}
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Upload visuals to help creators understand your brand style.
+            </p>
           </div>
         );
 
@@ -365,7 +589,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="
-          h-[95vh] w-[60vw] max-w-[95vw] sm:max-w-[90vw] 
+          h-[98vh] w-[60vw] max-w-[95vw] sm:max-w-[90vw] 
           overflow-y-auto p-0
         "
       >

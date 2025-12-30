@@ -58,12 +58,17 @@ const useFormContainerDimensions = () => {
 const RegisterCreator = () => {
     const dimensions = useFormContainerDimensions();
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isRegister, setIsRegister] = useState(true);
 
     useEffect(() => {
         // Use a slight delay to ensure the component is fully rendered before animation starts
         const timer = setTimeout(() => setIsLoaded(true), 100);
         return () => clearTimeout(timer);
     }, []);
+
+    const handleSetFormMode=()=>{
+        setIsRegister(!isRegister);
+    }
 
     const colors = ["#1E88E5", "#6EC5E9", "#90d5f3ff"];
     const distortion = 2.5;
@@ -140,9 +145,10 @@ const RegisterCreator = () => {
                         <div className={`transform ${transitionClasses} ${formContentClasses}`}>
                             <RegistrationForm
                                 accountType="creator"
-                                title="Become a Creator!"
-                                description="Sign up in seconds to start connecting with leading brands."
+                                title={isRegister ? "Become a Creator!" : "Welcome back!"}
+                                description={isRegister ? "Sign up in seconds to start connecting with leading brands." : "Login and start connecting with leading brands immediately."}
                                 icon={<User className="h-6 w-6 text-white" />}
+                                changeFormMode={handleSetFormMode}
                             />
                         </div>
                     </div>

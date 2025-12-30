@@ -208,7 +208,7 @@ const Profile = () => {
           text: postToShare.description,
           url: window.location.href,
         });
-      } catch {}
+      } catch { }
     } else {
       const dummy = document.createElement("input");
       document.body.appendChild(dummy);
@@ -302,7 +302,9 @@ const Profile = () => {
       <CreateCampaignModal
         open={isCreateCampaignOpen}
         onOpenChange={setIsCreateCampaignOpen}
-        onSuccess={fetchCampaigns}
+        onSuccess={() => {
+          fetchCampaigns();
+        }}
       />
 
       <ProfileHeader
@@ -545,7 +547,7 @@ const Profile = () => {
         onClose={() => setIsAddPostOpen(false)}
         onSubmit={addPostHandler}
       />
-      <NavigationDock />
+      <NavigationDock onCampaignCreated={fetchCampaigns}/>
     </div>
   );
 };

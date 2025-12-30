@@ -6,7 +6,11 @@ import CreateCampaignModal from "./CampaignModal";
 import CampaignHistoryModal from "./CampaignHistoryModal";
 import { useUserStore } from "@/store/useUserStore";
 
-export default function NavigationDock() {
+interface NavigationDockProps {
+  onCampaignCreated?: () => void;
+}
+
+export default function NavigationDock({ onCampaignCreated }: NavigationDockProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   // State for BRAND action: Create new campaign
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
@@ -63,6 +67,9 @@ export default function NavigationDock() {
       <CreateCampaignModal
         open={isNewCampaignModalOpen}
         onOpenChange={setIsNewCampaignModalOpen}
+        onSuccess={() => {
+          if (onCampaignCreated) onCampaignCreated();
+        }}
       />
 
       <CampaignHistoryModal 

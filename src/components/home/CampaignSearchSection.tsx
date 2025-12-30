@@ -132,7 +132,7 @@ const CampaignSearchSection = ({ onSearch }: Props) => {
             <div className="relative mb-8">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
-                placeholder="Search campaigns or brands..."
+                placeholder="Search campaigns..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 py-6 text-lg border-2 rounded-xl"

@@ -68,7 +68,7 @@ const Navigation = () => {
   const textColorClass = !isSolidBackground ? "text-white" : "text-primary";
 
   const navClasses = `
-    fixed top-0 w-full z-40 transition-all duration-300
+    fixed top-0 w-full z-50 transition-all duration-300
     ${isSolidBackground
       ? "bg-background/90 shadow-sm border-b backdrop-blur-md"
       : "bg-transparent border-b-transparent"

@@ -46,7 +46,7 @@ export const EditCampaignModal = ({
   const [description, setDescription] = useState("");
   const [primaryGoal, setPrimaryGoal] = useState("");
   const [budget, setBudget] = useState<number>(0);
-  const [status, setStatus] = useState<CampaignData["status"]>("draft");
+  const [status, setStatus] = useState<CampaignData["status"]>("Draft");
   const [type, setType] = useState<CampaignData["type"]>("social");
   const [startDate, setStartDate] = useState<Date | undefined>();
 

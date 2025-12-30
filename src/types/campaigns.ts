@@ -1,4 +1,4 @@
-export type CampaignStatus = "draft" | "active" | "paused" | "completed";
+export type CampaignStatus = "Draft" | "Active" | "Paused" | "Completed";
 export type CampaignType = "email" | "social" | "paid_ads" | "content";
 
 export interface CampaignData {
@@ -16,6 +16,11 @@ export interface CampaignData {
   companyLogo?: string;
   referenceImages: string[];
   createdAt: Date;
+  platforms: string[];
+  niches: string[];
+  country: string;
+  contentTypes: string[];
+  language: string[];
 }
 
 export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
@@ -26,10 +31,10 @@ export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
 };
 
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
-  draft: "Draft",
-  active: "Active",
-  paused: "Paused",
-  completed: "Completed",
+  Draft: "Draft",
+  Active: "Active",
+  Paused: "Paused",
+  Completed: "Completed",
 };
 
 export type CampaignFilterState = {
@@ -71,7 +76,7 @@ export type CampaignSearchFilters = {
   country?: string | null;
   language?: string[];
 
-  status?: CampaignStatus | "any"; // active / paused / completed / any
+  status?: CampaignStatus | "any";
   startDateFrom?: string | null;
   startDateTo?: string | null;
 };

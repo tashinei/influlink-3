@@ -45,13 +45,13 @@ interface CampaignDetailModalProps {
 
 const getStatusVariant = (status: CampaignData["status"]) => {
   switch (status) {
-    case "active":
+    case "Active":
       return "default";
-    case "paused":
+    case "Paused":
       return "secondary";
-    case "draft":
+    case "Draft":
       return "outline";
-    case "completed":
+    case "Completed":
       return "default";
     default:
       return "default";
@@ -60,13 +60,13 @@ const getStatusVariant = (status: CampaignData["status"]) => {
 
 const getStatusColor = (status: CampaignData["status"]) => {
   switch (status) {
-    case "active":
+    case "Active":
       return "bg-green-500/10 text-green-600 border-green-500/20";
-    case "paused":
+    case "Paused":
       return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
-    case "draft":
+    case "Draft":
       return "bg-muted text-muted-foreground";
-    case "completed":
+    case "Completed":
       return "bg-blue-500/10 text-blue-600 border-blue-500/20";
     default:
       return "";
@@ -133,10 +133,10 @@ export const CampaignDetailModal = ({
                   <Pencil className="mr-1.5 h-4 w-4" />
                   Edit
                 </Button>
-                {campaign.status !== "completed" &&
-                  campaign.status !== "draft" && (
+                {campaign.status !== "Completed" &&
+                  campaign.status !== "Draft" && (
                     <Button variant="outline" size="sm" onClick={onPauseResume}>
-                      {campaign.status === "paused" ? (
+                      {campaign.status === "Paused" ? (
                         <>
                           <Play className="mr-1.5 h-4 w-4" />
                           Resume
@@ -189,54 +189,95 @@ export const CampaignDetailModal = ({
             <div className="max-h-[calc(95vh-180px)] overflow-y-auto p-6">
               {/* Overview Tab */}
               <TabsContent value="overview" className="mt-0 space-y-6">
+                {/* Campaign Description */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">
-                      Campaign Details
-                    </CardTitle>
+                    <CardTitle className="text-base">Campaign Details</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Description
-                      </p>
+                      <p className="text-sm font-medium text-muted-foreground">Description</p>
                       <p className="mt-1 text-sm">{campaign.description}</p>
                     </div>
+
                     <div className="grid gap-4 sm:grid-cols-2">
+                      {/* Start Date */}
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">
-                            Start Date
-                          </p>
+                          <p className="text-xs text-muted-foreground">Start Date</p>
                           <p className="text-sm font-medium">
-                            <p className="text-sm font-medium">
-                              {parsedDate && !isNaN(parsedDate.getTime())
-                                ? format(parsedDate, "MMM d, yyyy")
-                                : "N/A"}
-                            </p>
+                            {parsedDate && !isNaN(parsedDate.getTime())
+                              ? format(parsedDate, "MMM d, yyyy")
+                              : "N/A"}
                           </p>
                         </div>
                       </div>
+
+                      {/* Primary Goal */}
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
                           <Target className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">
-                            Primary Goal
-                          </p>
-                          <p className="text-sm font-medium">
-                            {campaign.primaryGoal}
-                          </p>
+                          <p className="text-xs text-muted-foreground">Primary Goal</p>
+                          <p className="text-sm font-medium">{campaign.primaryGoal}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Platforms, Niches, Content Types */}
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Platforms</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {campaign.platforms?.map((p) => (
+                            <Badge key={p}>{p}</Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Niches</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {campaign.niches?.map((n) => (
+                            <Badge key={n}>{n}</Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Content Types</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {campaign.contentTypes?.map((c) => (
+                            <Badge key={c}>{c}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Country and Languages */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Country</p>
+                        <p className="mt-1 text-sm font-medium">{campaign.country || "N/A"}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Languages</p>
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {campaign.language?.map((l) => (
+                            <Badge key={l}>{l}</Badge>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
+                {/* Budget Overview */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">Budget Overview</CardTitle>
@@ -247,12 +288,8 @@ export const CampaignDetailModal = ({
                         <DollarSign className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">
-                          ${campaign.budget?.toLocaleString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Total Budget
-                        </p>
+                        <p className="text-2xl font-bold">${campaign.budget?.toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">Total Budget</p>
                       </div>
                     </div>
                   </CardContent>

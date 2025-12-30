@@ -23,9 +23,8 @@ const FeatureSection = ({
 }: FeatureSectionProps) => {
   const content = (
     <div
-      className={`flex-1 space-y-6 ${
-        imagePosition === "left" ? "text-right lg:pr-6" : "text-left lg:pl-6"
-      }`}
+      className={`flex-1 space-y-6 ${imagePosition === "left" ? "text-right lg:pr-6" : "text-left lg:pl-6"
+        }`}
     >
       <h3 className="text-3xl md:text-4xl font-bold text-foreground">{title}</h3>
       <p className="text-lg text-muted-foreground">{description}</p>
@@ -33,9 +32,8 @@ const FeatureSection = ({
         {features.map((feature, index) => (
           <li
             key={index}
-            className={`flex items-start gap-3 text-lg ${
-              imagePosition === "left" ? "justify-end" : ""
-            }`}
+            className={`flex items-start gap-3 text-lg ${imagePosition === "left" ? "justify-end" : ""
+              }`}
           >
             <div
               className={`mt-1.5 w-2 h-2 rounded-full bg-gradient-to-r ${gradient} flex-shrink-0`}
@@ -48,13 +46,15 @@ const FeatureSection = ({
   );
 
   const image = imageSrc && (
-    <div className={`flex-2 lg:flex-none lg:w-[50%]`}>
+    <div
+      className={`flex-2 lg:flex-none lg:w-[50%] ${imagePosition === "left" ? "-ml-16 lg:-ml-32" : ""
+        }`}
+    >
       <img
         src={imageSrc}
         alt={imageAlt}
-        className=
-        {`rounded-xl object-cover ${imagePosition === "left" ? "mr-20" : null}`}
-        style={{maxWidth:"120%"}}
+        className="rounded-xl object-cover"
+        style={{ maxWidth: "120%" }}
       />
     </div>
   );

@@ -4,6 +4,9 @@ import FeatureSection from "@/components/home/FeatureSection";
 import { Search, MessageSquare, CreditCard, BarChart3 } from "lucide-react";
 import CreatorSearchSection from "@/components/home/CreatorSearchSection";
 import firstSection from "@/assets/firstSection3.png";
+import secondSection from "@/assets/secondSectionImage2.png"
+import thirdSection from "@/assets/fourthSectionImage.png"
+import lastSection from "@/assets/lastSectionImage2.png"
 import { useNavigate } from "react-router-dom";
 import { FilterState } from "@/types/creator";
 import { useUserStore } from "@/store/useUserStore";
@@ -118,7 +121,7 @@ const HomeMVP = () => {
           icon={MessageSquare}
           imagePosition="left"
           gradient="from-primary to-secondary/60"
-          imageSrc={firstSection}
+          imageSrc={secondSection}
         />
       </div>
 
@@ -134,6 +137,7 @@ const HomeMVP = () => {
         icon={CreditCard}
         imagePosition="right"
         gradient="from-primary to-secondary/60"
+        imageSrc={thirdSection}
       />
 
       <div className="bg-muted/30">
@@ -149,7 +153,7 @@ const HomeMVP = () => {
           icon={BarChart3}
           imagePosition="left"
           gradient="from-primary to-secondary/60"
-          imageSrc=""
+          imageSrc={lastSection}
         />
       </div>
 

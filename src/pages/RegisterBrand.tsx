@@ -65,6 +65,11 @@ const RegisterCreator = () => {
         return () => clearTimeout(timer);
     }, []);
 
+    const [isRegister, setIsRegister] = useState(true);
+    const handleSetFormMode=()=>{
+        setIsRegister(!isRegister);
+    }
+
     const colors = ["#1E88E5", "#6EC5E9", "#90d5f3ff"];
     const distortion = 2.5;
     const swirl = 1.5;
@@ -140,9 +145,10 @@ const RegisterCreator = () => {
                         <div className={`transform ${transitionClasses} ${formContentClasses}`}>
                             <RegistrationForm
                                 accountType="brand"
-                                title="Become a Brand!"
-                                description="Find your ideal influencers and launch impactful marketing campaigns."
+                                title={isRegister ? "Become a Brand!" : "Welcome back!"}
+                                description={isRegister ? "Find your ideal influencers and launch impactful marketing campaigns." : "Login and start connecting with the right creators."}
                                 icon={<Briefcase className="h-6 w-6 text-white" />} // The icon passed here can be used in the form if desired
+                                changeFormMode={handleSetFormMode}
                             />
                         </div>
                     </div>

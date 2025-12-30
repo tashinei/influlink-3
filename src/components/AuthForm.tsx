@@ -11,9 +11,10 @@ interface AuthFormProps {
   title: string;
   description: string;
   icon?: React.ReactNode;
+  changeFormMode: ()=>void;
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, icon }) => {
+const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, changeFormMode }) => {
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
   const setToken = useUserStore((state) => state.setToken);
@@ -66,13 +67,29 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ic
         return;
       }
 
+      if (mode === 'login') {
+        const userRole = data.user.accountType;
+
+        if (accountType === 'creator' && userRole === 'brand') {
+          setError("This account is registered as a Brand. Please use the Brand login page.");
+          setLoading(false);
+          return;
+        }
+
+        if (accountType === 'brand' && userRole === 'creator') {
+          setError("This account is registered as a Creator. Please use the Creator login page.");
+          setLoading(false);
+          return;
+        }
+      }
+
       setUser({
         id: data.user.id,
         email: data.user.email,
         username: data.user.username,
         profileImage: data.user.profileImage,
         isVIP: data.user.isVIP || false,
-        accountType: accountType
+        accountType: data.user.accountType
       });
       setRegistered(true);
       setAccountType(accountType);
@@ -184,6 +201,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ic
           <button
             onClick={() => {
               setMode(mode === 'register' ? 'login' : 'register');
+              changeFormMode();
               setError(null);
             }}
             className="font-medium text-secondary hover:underline"

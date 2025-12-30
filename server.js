@@ -1060,18 +1060,47 @@ app.post(
   async (req, res) => {
     try {
       const userId = req.user.id;
-      const { name, description, type, date, budget, goal } = req.body;
+      const {
+        name,
+        description,
+        type,
+        date,
+        budget,
+        goal,
+        platforms,
+        niches,
+        contentTypes,
+        country,
+        language,
+      } = req.body;
 
+      // Validate required fields
       if (!name || !description || !type || !date || !budget || !goal) {
         return res
           .status(400)
           .json({ message: "Missing required campaign fields" });
       }
 
+      // Parse JSON arrays
+      let parsedPlatforms = [];
+      let parsedNiches = [];
+      let parsedContentTypes = [];
+      let parsedLanguage = [];
+
+      try {
+        parsedPlatforms = platforms ? JSON.parse(platforms) : [];
+        parsedNiches = niches ? JSON.parse(niches) : [];
+        parsedContentTypes = contentTypes ? JSON.parse(contentTypes) : [];
+        parsedLanguage = language ? JSON.parse(language) : [];
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid JSON format in arrays" });
+      }
+
       // Handle uploaded files
       const companyLogo = req.files["companyLogo"]?.[0]
         ? `/uploads/${req.files["companyLogo"][0].filename}`
         : null;
+
       const referenceImages =
         req.files["referenceImages"]?.map(
           (file) => `/uploads/${file.filename}`
@@ -1079,9 +1108,10 @@ app.post(
 
       // Insert campaign into DB
       const [result] = await pool.query(
-        `INSERT INTO campaigns
-          (creator_id, name, description, type, start_date, budget, goal, company_logo, reference_images, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        `INSERT INTO campaigns 
+          (creator_id, name, description, type, start_date, budget, goal,
+           platforms, niches, contentTypes, country, language, company_logo, reference_images, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
         [
           userId,
           name,
@@ -1090,6 +1120,11 @@ app.post(
           date,
           budget,
           goal,
+          JSON.stringify(parsedPlatforms),
+          JSON.stringify(parsedNiches),
+          JSON.stringify(parsedContentTypes),
+          country,
+          JSON.stringify(parsedLanguage),
           companyLogo,
           JSON.stringify(referenceImages),
         ]
@@ -1107,6 +1142,11 @@ app.post(
           date,
           budget,
           goal,
+          platforms: parsedPlatforms,
+          niches: parsedNiches,
+          contentTypes: parsedContentTypes,
+          country,
+          language: parsedLanguage,
           companyLogo,
           referenceImages,
         },
@@ -1117,6 +1157,7 @@ app.post(
     }
   }
 );
+
 
 app.get("/api/campaigns", authenticate, async (req, res) => {
   try {
@@ -1144,6 +1185,11 @@ app.get("/api/campaigns", authenticate, async (req, res) => {
       startDate: c.start_date,
       companyLogo: c.company_logo,
       referenceImages: c.reference_images ? JSON.parse(c.reference_images) : [],
+      platforms: c.platforms ? JSON.parse(c.platforms) : [],
+      language: c.language ? JSON.parse(c.language) : [],
+      contentTypes: c.contentTypes ? JSON.parse(c.contentTypes) : [],
+      country: c.country,
+      niches: c.niches ? JSON.parse(c.niches) : [],
     }));
 
     res.json(campaigns);
@@ -1306,6 +1352,159 @@ app.put(
     }
   }
 );
+
+app.post("/api/:userId/campaigns/:campaignId/impression", async (req, res) => {
+  const { userId, campaignId } = req.params;
+  const conn = await pool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 1. Attempt to insert the unique viewer.
+    // If (campaign_id, creator_id) already exists, it does nothing.
+    const [insertResult] = await conn.query(
+      `INSERT IGNORE INTO campaign_impressions (campaign_id, creator_id) VALUES (?, ?)`,
+      [campaignId, userId]
+    );
+
+    console.log(insertResult);
+    console.log(insertResult.affectedRows);
+
+    /**
+     * KEY LOGIC:
+     * affectedRows === 1 means a BRAND NEW user was recorded.
+     * affectedRows === 0 means this user has seen it before.
+     */
+    if (insertResult.affectedRows === 1) {
+      // ONLY increment REACH if the user is truly new
+      // We increment impressions here too for the very first view
+      await conn.query(
+        `UPDATE campaigns 
+         SET reach = reach + 1, 
+             impressions = impressions + 1 
+         WHERE id = ?`,
+        [campaignId]
+      );
+    } else {
+      // If the user already exists, ONLY increment impressions
+      // This is what prevents Reach from climbing on reload!
+      await conn.query(
+        `UPDATE campaigns 
+         SET impressions = impressions + 1 
+         WHERE id = ?`,
+        [campaignId]
+      );
+    }
+
+    await conn.commit();
+    res.json({ success: true });
+  } catch (err) {
+    await conn.rollback();
+    res.status(500).json({ error: "Failed to track" });
+  } finally {
+    conn.release();
+  }
+});
+
+app.post("/api/campaigns/search", async (req, res) => {
+  try {
+    const {
+      query,
+      niches,
+      platforms,
+      contentTypes,
+      collabTypes,
+      country,
+      language,
+      budgetRange,
+      status,
+      sortBy,
+      page = 1,
+      limit = 12,
+    } = req.body;
+
+    const offset = (page - 1) * limit;
+
+    // Build WHERE conditions dynamically
+    const where = [];
+    const params = [];
+
+    if (query) {
+      where.push("(name LIKE ? OR description LIKE ?)");
+      params.push(`%${query}%`, `%${query}%`);
+    }
+
+    // JSON array filters using JSON_CONTAINS
+    const buildJsonContains = (field, values) => {
+      if (!values || values.length === 0) return;
+      const conditions = values.map(() => `JSON_CONTAINS(${field}, ?)`);
+      where.push(`(${conditions.join(" OR ")})`);
+      values.forEach((v) => params.push(`"${v}"`));
+    };
+
+    buildJsonContains("niches", niches);
+    buildJsonContains("platforms", platforms);
+    buildJsonContains("contentTypes", contentTypes);
+    buildJsonContains("collabTypes", collabTypes);
+    buildJsonContains("language", language);
+
+    if (country) {
+      where.push("country = ?");
+      params.push(country);
+    }
+
+    if (budgetRange) {
+      switch (budgetRange) {
+        case "low":
+          where.push("budget <= 100");
+          break;
+        case "mid":
+          where.push("budget BETWEEN 100 AND 1000");
+          break;
+        case "high":
+          where.push("budget > 1000");
+          break;
+      }
+    }
+
+    if (status && status !== "any") {
+      where.push("status = ?");
+      params.push(status);
+    }
+
+    // Build ORDER BY
+    let orderBy = "start_date DESC"; // default
+    if (sortBy === "recent") orderBy = "start_date DESC";
+    else if (sortBy === "budget") orderBy = "budget DESC";
+    else if (sortBy === "goal") orderBy = "goal DESC";
+
+    const whereSQL = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+
+    // Count total
+    const [countResult] = await pool.query(
+      `SELECT COUNT(*) as count FROM campaigns ${whereSQL}`,
+      params
+    );
+    const total = countResult[0].count;
+
+    // Fetch results with pagination
+    const [results] = await pool.query(
+      `SELECT * FROM campaigns ${whereSQL} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
+      [...params, Number(limit), Number(offset)]
+    );
+
+    const companyLogo = results[0]?.company_logo;
+
+    res.json({
+      count: total,
+      results,
+      companyLogo: companyLogo,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to search campaigns" });
+  }
+});
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
