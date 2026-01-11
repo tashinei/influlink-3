@@ -1,6 +1,11 @@
 import { MeshGradient } from "@paper-design/shaders-react";
-import { useEffect, useState } from "react";
-import { ArrowRight, MailIcon, TrendingUpIcon, LucideUserRoundSearch } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import {
+  ArrowRight,
+  MailIcon,
+  TrendingUpIcon,
+  LucideUserRoundSearch,
+} from "lucide-react";
 
 interface HeroSectionProps {
   title?: string;
@@ -34,7 +39,7 @@ export function HeroSection({
   secondaryButtonText = "Свържете се с нас",
   onButtonClick,
   onSecondaryButtonClick,
-  colors = ["#5b8dfb", "#1e3a8a", "#ffffff", "#f49b42",],
+  colors = ["#5b8dfb", "#1e3a8a", "#ffffff", "#f49b42"],
   distortion = 0.5,
   swirl = 0.5,
   speed = 0.3,
@@ -49,8 +54,9 @@ export function HeroSection({
   fontWeight = 700,
   overlayColor = "rgba(0,0,0,0.55)",
 }: HeroSectionProps) {
-  const [dimensions, setDimensions] = useState({ width: 480, height: 270 });
   const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     setMounted(true);
@@ -64,6 +70,31 @@ export function HeroSection({
     }
   }, []);
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateSize = () => {
+      const rect = containerRef.current!.getBoundingClientRect();
+      setDimensions({
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      });
+    };
+
+    updateSize(); // initial
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(containerRef.current);
+
+    window.addEventListener("orientationchange", updateSize);
+    window.addEventListener("resize", updateSize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", updateSize);
+      window.removeEventListener("resize", updateSize);
+    };
+  }, []);
 
   const handleButtonClick = () => {
     if (onButtonClick) {
@@ -80,32 +111,37 @@ export function HeroSection({
   return (
     <section
       id="hero-container"
+      ref={containerRef}
       className={`relative w-full min-h-[100vh] overflow-hidden bg-background flex items-center justify-center ${className}`}
     >
-      <div className="absolute inset-0 w-full h-full "
-        style={{ willChange: "transform" }}>
-        {mounted && (
-          <>
-            <MeshGradient
-              width={dimensions.width}
-              height={dimensions.height}
-              colors={colors}
-              distortion={distortion}
-              swirl={swirl}
-              grainMixer={0}
-              grainOverlay={0}
-              speed={speed}
-              offsetX={offsetX}
-            />
-            <div
-              className={`absolute inset-0 pointer-events-none ${veilOpacity}`}
-              style={{ backgroundColor: overlayColor }}
-            />
-          </>
+      <div
+        className="absolute inset-0 w-full h-full overflow-hidden"
+        style={{ willChange: "transform" }}
+      >
+        {mounted && dimensions.width > 0 && dimensions.height > 0 && (
+          <MeshGradient
+            width={dimensions.width}
+            height={dimensions.height}
+            colors={colors}
+            distortion={distortion}
+            swirl={swirl}
+            grainMixer={0}
+            grainOverlay={0}
+            speed={speed}
+            offsetX={offsetX}
+          />
         )}
+
+        <div
+          className={`absolute inset-0 pointer-events-none ${veilOpacity}`}
+          style={{ backgroundColor: overlayColor }}
+        />
       </div>
 
-      <div style={{ paddingTop: "50px" }} className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}>
+      <div
+        style={{ paddingTop: "50px" }}
+        className={`relative z-10 ${maxWidth} mx-auto px-6 w-full`}
+      >
         <div className="text-center">
           <h1
             className={`text-white font-bold text-foreground text-balance text-[2.7rem] sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl leading-tight sm:leading-tight md:leading-tight lg:leading-tight xl:leading-[1.1] mb-6 ${titleClassName}`}
@@ -121,7 +157,10 @@ export function HeroSection({
           >
             {description}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center" style={{marginTop:"20px"}}>
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            style={{ marginTop: "20px" }}
+          >
             <button
               onClick={handleButtonClick}
               // Fixed: Removed redundant 'bg-primary' and added scale animation
@@ -133,9 +172,21 @@ export function HeroSection({
                 hover:scale-105 hover:shadow-lg
                 text-[17px] font-medium w-[72%] md:w-[27%] md:text-[19px]
                 ${buttonClassName}
-            `} style={{ alignSelf: "center", display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}>
+            `}
+              style={{
+                alignSelf: "center",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                justifyContent: "center",
+              }}
+            >
               {buttonText}
-              <LucideUserRoundSearch style={{ alignSelf: "center" }} height={20} size={20}></LucideUserRoundSearch>
+              <LucideUserRoundSearch
+                style={{ alignSelf: "center" }}
+                height={20}
+                size={20}
+              ></LucideUserRoundSearch>
             </button>
             {secondaryButtonText && (
               <button
@@ -147,15 +198,25 @@ export function HeroSection({
                 transition duration-300 ease-in-out 
                 hover:scale-105 hover:shadow-lg
                 text-[17px] font-medium w-[72%] md:w-[27%] md:text-[19px]"
-                style={{ alignSelf: "center", display: "flex", alignItems: "center", gap: "10px", justifyContent: "center" }}
+                style={{
+                  alignSelf: "center",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  justifyContent: "center",
+                }}
               >
                 {secondaryButtonText}
-                <TrendingUpIcon style={{ alignSelf: "center" }} height={20} size={22}></TrendingUpIcon>
+                <TrendingUpIcon
+                  style={{ alignSelf: "center" }}
+                  height={20}
+                  size={22}
+                ></TrendingUpIcon>
               </button>
             )}
           </div>
         </div>
       </div>
-    </section >
+    </section>
   );
 }
