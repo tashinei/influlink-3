@@ -52,26 +52,32 @@ const Navigation = () => {
   const isActive = (path: string) => location.pathname === path;
 
   // Determine path/label for the dynamic "About" link
-  const aboutPath = accountType === "creator" ? "/creator/about" : "/brand/about";
-  const aboutLabel = accountType === "creator" ? t("nav.creatorAbout") : t("nav.brandAbout");
+  const aboutPath =
+    accountType === "creator" ? "/creator/about" : "/brand/about";
+  const aboutLabel =
+    accountType === "creator" ? t("nav.creatorAbout") : t("nav.brandAbout");
 
   const isSolidBackground = isScrolled || isOpen;
   const textColorClass = !isSolidBackground ? "text-white" : "text-primary";
 
   const navClasses = `
     fixed top-0 w-full z-50 transition-all duration-300 
-    ${isSolidBackground
-      ? "bg-background/90 shadow-sm border-b backdrop-blur-md"
-      : "bg-transparent border-b-transparent"
+    ${
+      isSolidBackground
+        ? "bg-background/90 shadow-sm border-b backdrop-blur-md"
+        : "bg-transparent border-b-transparent"
     }
   `;
 
   return (
     <nav
       className={navClasses}
-      style={{ borderBottomLeftRadius: "24px", borderBottomRightRadius: "24px" }}
+      style={{
+        borderBottomLeftRadius: "24px",
+        borderBottomRightRadius: "24px",
+      }}
     >
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 h-max">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link
             to="/"
@@ -109,9 +115,10 @@ const Navigation = () => {
                 key={link.path}
                 to={link.path}
                 className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300
-                  ${isActive(link.path)
-                    ? "bg-primary text-white shadow-md"
-                    : isSolidBackground
+                  ${
+                    isActive(link.path)
+                      ? "bg-primary text-white shadow-md"
+                      : isSolidBackground
                       ? "text-foreground hover:bg-secondary/10 hover:text-primary"
                       : "text-white/90 hover:bg-white/20 hover:text-white"
                   }`}
@@ -124,9 +131,10 @@ const Navigation = () => {
               <Link
                 to={aboutPath}
                 className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 border
-                  ${isActive(aboutPath)
-                    ? "bg-primary text-white border-transparent shadow-md"
-                    : isSolidBackground
+                  ${
+                    isActive(aboutPath)
+                      ? "bg-primary text-white border-transparent shadow-md"
+                      : isSolidBackground
                       ? "border-primary/20 text-primary hover:bg-primary hover:text-white"
                       : "border-white/40 text-white hover:bg-white hover:text-black"
                   }`}
@@ -147,18 +155,29 @@ const Navigation = () => {
         </div>
 
         <div
-          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"}`}
+          className={`md:hidden transition-all duration-300 ease-in-out ${
+            isOpen ? "max-h-[70svh] opacity-100" : "max-h-0 opacity-0"
+          } overflow-y-auto`}
         >
-          <div className={`pb-6 pt-2 flex flex-col gap-2 ${isSolidBackground ? 'border-t border-border' : 'border-t border-white/10'}`}>
+          <div
+            className={`pb-6 pt-2 flex flex-col gap-2 min-h-fit ${
+              isSolidBackground
+                ? "border-t border-border"
+                : "border-t border-white/10"
+            }`}
+          >
             {links.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${isActive(link.path)
-                  ? "bg-gradient-to-br from-primary to-primary/40 text-[white]"
-                  : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
-                  }`}
+                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
+                  isActive(link.path)
+                    ? "bg-gradient-to-br from-primary to-primary/40 text-[white]"
+                    : isSolidBackground
+                    ? "text-foreground hover:bg-muted"
+                    : "text-white hover:bg-white/10"
+                }`}
               >
                 {link.name}
               </Link>
@@ -168,17 +187,22 @@ const Navigation = () => {
               <Link
                 to={aboutPath}
                 onClick={() => setIsOpen(false)}
-                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${isActive(aboutPath)
-                  ? "bg-gradient-to-br from-secondary to-primary/60 text-[white]"
-                  : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
-                  }`}
+                className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
+                  isActive(aboutPath)
+                    ? "bg-gradient-to-br from-secondary to-primary/60 text-[white]"
+                    : isSolidBackground
+                    ? "text-foreground hover:bg-muted"
+                    : "text-white hover:bg-white/10"
+                }`}
               >
                 {aboutLabel}
               </Link>
             )}
 
             <div className="border-t border-gray-200 pt-2">
-              <span className="block px-4 py-2 text-xs text-gray-500">Language</span>
+              <span className="block px-4 py-2 text-xs text-gray-500">
+                Language
+              </span>
               {languages.map((lang) => (
                 <button
                   key={lang.code}
