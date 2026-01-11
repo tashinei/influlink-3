@@ -13,6 +13,7 @@ import {
 } from "@/types/campaigns";
 import { CampaignFilterPanel } from "./CampaignFilterPanel";
 import { useLocation } from "react-router-dom";
+import { CampaignApplyDialog } from "./CampaignApplyModal";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -102,6 +103,33 @@ const SearchCampaigns = () => {
     }
   };
 
+  const handleApply = async (campaignId: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/proposals`, {
+        method: "POST",
+        credentials: "include", // crucial for sending cookies
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          campaignId,
+          message: "I want to apply!",
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Apply failed:", err);
+        return;
+      }
+
+      const data = await res.json();
+      console.log("Applied successfully:", data);
+    } catch (err) {
+      console.error("Network error:", err);
+    }
+  };
+
   const [filters, setFilters] = useState<CampaignFilterState>(
     initialFilters
   );
@@ -132,24 +160,86 @@ const SearchCampaigns = () => {
     fetchCampaigns(true);
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
-        <SearchHeader
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          resultCount={totalCount}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          onOpenFilters={() => { }}
-          activeFilterCount={activeFilterCount}
-        />
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [open, setOpen] = useState(false);
 
-        <div className="flex gap-8 mt-8">
-          {/* Desktop filters */}
-          <div className="hidden lg:block flex-shrink-0">
+  const handleApplyClick = (campaignId) => {
+    const campaign = campaigns.find(c => c.id === campaignId);
+    setSelectedCampaign(campaign);
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <SearchHeader
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            resultCount={totalCount}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onOpenFilters={() => { }}
+            activeFilterCount={activeFilterCount}
+          />
+
+          <div className="flex gap-8 mt-8">
+            {/* Desktop filters */}
+            <div className="hidden lg:block flex-shrink-0">
+              <CampaignFilterPanel
+                filters={filters}
+                onFilterChange={setFilters}
+                onClearFilters={handleClearFilters}
+                isOpen={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+              />
+            </div>
+
+            {/* Results */}
+            <div className="flex-1">
+              {isLoading && campaigns.length === 0 ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                </div>
+              ) : campaigns.length > 0 ? (
+                <>
+                  <div
+                    className={
+                      viewMode === "grid"
+                        ? "grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+                        : "space-y-4"
+                    }
+                  >
+                    {campaigns.map((campaign) => (
+                      <CampaignCard key={campaign.id} campaign={campaign} onApply={handleApply} />
+                    ))}
+                  </div>
+
+                  {campaigns.length < totalCount && (
+                    <div className="flex justify-center mt-10">
+                      <Button onClick={() => fetchCampaigns()} disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Loading…
+                          </>
+                        ) : (
+                          `Load More (${totalCount - campaigns.length})`
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <EmptyState onClearFilters={handleClearFilters} />
+              )}
+            </div>
+          </div>
+
+          {/* Mobile filters */}
+          <div className="lg:hidden">
             <CampaignFilterPanel
               filters={filters}
               onFilterChange={setFilters}
@@ -159,60 +249,16 @@ const SearchCampaigns = () => {
             />
           </div>
 
-          {/* Results */}
-          <div className="flex-1">
-            {isLoading && campaigns.length === 0 ? (
-              <div className="flex justify-center py-20">
-                <Loader2 className="w-12 h-12 animate-spin text-primary" />
-              </div>
-            ) : campaigns.length > 0 ? (
-              <>
-                <div
-                  className={
-                    viewMode === "grid"
-                      ? "grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-                      : "space-y-4"
-                  }
-                >
-                  {campaigns.map((campaign) => (
-                    <CampaignCard key={campaign.id} campaign={campaign} />
-                  ))}
-                </div>
-
-                {campaigns.length < totalCount && (
-                  <div className="flex justify-center mt-10">
-                    <Button onClick={() => fetchCampaigns()} disabled={isLoading}>
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Loading…
-                        </>
-                      ) : (
-                        `Load More (${totalCount - campaigns.length})`
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <EmptyState onClearFilters={handleClearFilters} />
-            )}
-          </div>
         </div>
-
-        {/* Mobile filters */}
-        <div className="lg:hidden">
-          <CampaignFilterPanel
-            filters={filters}
-            onFilterChange={setFilters}
-            onClearFilters={handleClearFilters}
-            isOpen={isFilterOpen}
-            onClose={() => setIsFilterOpen(false)}
-          />
-        </div>
-
       </div>
-    </div>
+      {selectedCampaign && (
+        <CampaignApplyDialog
+          open={open}
+          onOpenChange={setOpen}
+          campaign={selectedCampaign}
+        />
+      )}
+    </>
   );
 };
 

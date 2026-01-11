@@ -1406,8 +1406,9 @@ app.post("/api/:userId/campaigns/:campaignId/impression", async (req, res) => {
   }
 });
 
-app.post("/api/campaigns/search", async (req, res) => {
+app.post("/api/campaigns/search", authenticate, async (req, res) => {
   try {
+    const userId = req.user.id; // get the authenticated user
     const {
       query,
       niches,
@@ -1434,7 +1435,6 @@ app.post("/api/campaigns/search", async (req, res) => {
       params.push(`%${query}%`, `%${query}%`);
     }
 
-    // JSON array filters using JSON_CONTAINS
     const buildJsonContains = (field, values) => {
       if (!values || values.length === 0) return;
       const conditions = values.map(() => `JSON_CONTAINS(${field}, ?)`);
@@ -1472,12 +1472,6 @@ app.post("/api/campaigns/search", async (req, res) => {
       params.push(status);
     }
 
-    // Build ORDER BY
-    let orderBy = "start_date DESC"; // default
-    if (sortBy === "recent") orderBy = "start_date DESC";
-    else if (sortBy === "budget") orderBy = "budget DESC";
-    else if (sortBy === "goal") orderBy = "goal DESC";
-
     const whereSQL = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
 
     // Count total
@@ -1487,22 +1481,73 @@ app.post("/api/campaigns/search", async (req, res) => {
     );
     const total = countResult[0].count;
 
-    // Fetch results with pagination
+    // Fetch campaigns with hasApplied info
     const [results] = await pool.query(
-      `SELECT * FROM campaigns ${whereSQL} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
-      [...params, Number(limit), Number(offset)]
+      `
+      SELECT c.*, 
+        EXISTS(
+          SELECT 1 FROM proposals p 
+          WHERE p.campaign_id = c.id AND p.creator_id = ?
+        ) AS hasApplied
+      FROM campaigns c
+      ${whereSQL}
+      ORDER BY ${sortBy === "budget" ? "budget DESC" : "start_date DESC"}
+      LIMIT ? OFFSET ?
+      `,
+      [userId, ...params, Number(limit), Number(offset)]
     );
 
-    const companyLogo = results[0]?.company_logo;
+    // Normalize campaigns and parse JSON fields
+    const campaigns = results.map((c) => ({
+      ...c,
+      referenceImages: c.reference_images ? JSON.parse(c.reference_images) : [],
+      platforms: c.platforms ? JSON.parse(c.platforms) : [],
+      language: c.language ? JSON.parse(c.language) : [],
+      contentTypes: c.contentTypes ? JSON.parse(c.contentTypes) : [],
+      niches: c.niches ? JSON.parse(c.niches) : [],
+      hasApplied: c.hasApplied === 1,
+    }));
 
-    res.json({
-      count: total,
-      results,
-      companyLogo: companyLogo,
-    });
+    console.log("Search results:", campaigns);
+
+    res.json({ count: total, results: campaigns });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to search campaigns" });
+  }
+});
+
+app.post("/api/proposals", authenticate, async (req, res) => {
+  try {
+    const { campaignId, message, deliverables, proposedPrice } = req.body;
+    const creatorId = req.user?.id; // assuming you have auth middleware
+
+    console.log("Creator id: " + creatorId);
+
+    if (!creatorId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!campaignId || !message) {
+      return res.status(400).json({ error: "campaignId and message are required" });
+    }
+
+    // Insert proposal, ignore duplicate (UNIQUE constraint prevents duplicates)
+    const [result] = await pool.query(
+      `INSERT INTO proposals (campaign_id, creator_id, message, deliverables, proposed_price)
+       VALUES (?, ?, ?, ?, ?)`,
+      [campaignId, creatorId, message, deliverables || null, proposedPrice || null]
+    );
+
+    res.json({ success: true, proposalId: result.insertId });
+  } catch (err) {
+    // Handle duplicate proposal
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "You have already applied to this campaign" });
+    }
+
+    console.error(err);
+    res.status(500).json({ error: "Failed to submit proposal" });
   }
 });
 
