@@ -330,20 +330,20 @@ const Navigation = () => {
             <Link
               to="/register/brand"
               onClick={handleOptionClick}
-              className="group relative flex flex-col items-center justify-center p-8 rounded-2xl border border-white/10 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-blue-500/50 hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]"
+              className="group relative flex flex-col items-center justify-center p-8 rounded-2xl border border-white/10 bg-white/5 transition-all duration-300 hover:bg-white/10 hover:border-cyan-500/50 hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.3)]"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
 
-              <div className="relative mb-6 p-4 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="relative mb-6 p-4 rounded-full bg-gradient-to-br from-secondary to-primary shadow-lg group-hover:scale-110 transition-transform duration-300">
                 <Briefcase className="h-8 w-8 text-white" />
               </div>
 
               <h3 className="relative text-xl font-semibold mb-2 text-white">Brand / Agency</h3>
-              <p className="relative text-center text-sm text-slate-400 mb-6 px-2">
+              <p className="relative text-center text-sm text-[white] mb-6 px-2">
                 Post campaigns, discover influencers, and track performance.
               </p>
 
-              <div className="relative flex items-center text-blue-400 text-sm font-medium group-hover:translate-x-1 transition-transform">
+              <div className="relative flex items-center text-[white] text-sm font-medium group-hover:translate-x-1 transition-transform">
                 Create Account <ArrowRight className="ml-2 h-4 w-4" />
               </div>
             </Link>
