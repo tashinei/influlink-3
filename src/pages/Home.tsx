@@ -285,7 +285,6 @@ const Home = () => {
       return;
     }
 
-    // ... (API submission logic remains the same)
     try {
       const payload = accountType === "creator" ? {
         full_name: formData.name,
