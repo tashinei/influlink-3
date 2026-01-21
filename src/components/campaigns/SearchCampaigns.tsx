@@ -213,7 +213,11 @@ const SearchCampaigns = () => {
                     }
                   >
                     {campaigns.map((campaign) => (
-                      <CampaignCard key={campaign.id} campaign={campaign} onApply={handleApply} />
+                      <CampaignCard
+                        key={campaign.id}
+                        campaign={campaign}
+                        onApply={handleApplyClick}
+                      />
                     ))}
                   </div>
 

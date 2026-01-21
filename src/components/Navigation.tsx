@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Ear, Menu, X, Earth, User, Briefcase, ArrowRight } from "lucide-react"; // Added new icons
 import { useUserStore } from "@/store/useUserStore";
 import { useTranslation } from "@/hooks/useTranslation";
+import NotificationBell from "@/components/notifications/NotificationBell";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 // Assuming you have these components installed via shadcn/ui
 import {
@@ -12,10 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useLiveNotifications } from "@/hooks/useLiveNotifications";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const [notifOpen, setNotifOpen] = useState(false);
 
   // Dialog State
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -36,6 +40,8 @@ const Navigation = () => {
   const isRegistered = useUserStore((state) => state.isRegistered);
   const accountType = useUserStore((state) => state.accountType);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user } = useUserStore();
+  const { unreadCount } = useLiveNotifications(user);
 
   useEffect(() => {
     setIsScrolled(false);
@@ -80,6 +86,12 @@ const Navigation = () => {
     setIsRegisterOpen(false);
     setIsOpen(false); // Close mobile menu if open
   };
+
+  useEffect(() => {
+    if (notifOpen && !isSolidBackground) {
+      setNotifOpen(false);
+    }
+  }, [isSolidBackground])
 
   return (
     <>
@@ -126,6 +138,28 @@ const Navigation = () => {
                 )}
               </div>
 
+              {isRegistered && (
+                <div className="relative">
+                  {/* The Bell Container - added scale and hover transition */}
+                  <div className="relative inline-flex items-center">
+                    <NotificationBell
+                      color={textColorClass}
+                      onClick={() => setNotifOpen((v) => !v)}
+                    />
+
+                    {/* The Notification Badge - re-centered slightly for the larger bell */}
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0 -right-0 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-[10px] font-bold text-white shadow-md">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
+
+                  {notifOpen && (
+                    <NotificationDropdown setDropdownOpen={setNotifOpen} />
+                  )}
+                </div>
+              )}
               {/* Standard Links */}
               {links.map((link) => {
                 const activeClasses =

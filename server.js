@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { createNotification } from "./src/utils/notifications.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1109,7 +1110,7 @@ app.post(
       // Insert campaign into DB
       const [result] = await pool.query(
         `INSERT INTO campaigns 
-          (creator_id, name, description, type, start_date, budget, goal,
+          (brand_id, name, description, type, start_date, budget, goal,
            platforms, niches, contentTypes, country, language, company_logo, reference_images, created_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
         [
@@ -1164,7 +1165,7 @@ app.get("/api/campaigns", authenticate, async (req, res) => {
     const userId = req.user.id;
 
     const [rows] = await pool.query(
-      "SELECT * FROM campaigns WHERE creator_id = ? ORDER BY created_at DESC",
+      "SELECT * FROM campaigns WHERE brand_id = ? ORDER BY created_at DESC",
       [userId]
     );
 
@@ -1205,7 +1206,7 @@ app.delete("/api/campaigns/:profileId/:campaignId", async (req, res) => {
 
   try {
     const [result] = await pool.query(
-      "DELETE FROM campaigns WHERE id = ? AND creator_id = ?",
+      "DELETE FROM campaigns WHERE id = ? AND brand_id = ?",
       [campaignId, profileId]
     );
 
@@ -1241,7 +1242,7 @@ app.put(
 
       /** ---------- OWNERSHIP CHECK ---------- */
       const [rows] = await pool.query(
-        "SELECT * FROM campaigns WHERE id = ? AND creator_id = ?",
+        "SELECT * FROM campaigns WHERE id = ? AND brand_id = ?",
         [campaignId, userId]
       );
 
@@ -1520,9 +1521,7 @@ app.post("/api/campaigns/search", authenticate, async (req, res) => {
 app.post("/api/proposals", authenticate, async (req, res) => {
   try {
     const { campaignId, message, deliverables, proposedPrice } = req.body;
-    const creatorId = req.user?.id; // assuming you have auth middleware
-
-    console.log("Creator id: " + creatorId);
+    const creatorId = req.user?.id;
 
     if (!creatorId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -1532,16 +1531,59 @@ app.post("/api/proposals", authenticate, async (req, res) => {
       return res.status(400).json({ error: "campaignId and message are required" });
     }
 
-    // Insert proposal, ignore duplicate (UNIQUE constraint prevents duplicates)
+    if (message.length < 20 || message.length > 2000) {
+      return res.status(400).json({ error: "Invalid message length" });
+    }
+
+    if (proposedPrice !== undefined) {
+      const price = Number(proposedPrice);
+      if (Number.isNaN(price) || price < 0) {
+        return res.status(400).json({ error: "Invalid proposed price" });
+      }
+    }
+
+    const [[campaign]] = await pool.query(
+      `SELECT id, brand_id, status FROM campaigns WHERE id = ?`,
+      [campaignId]
+    );
+
+    if (!campaign) {
+      return res.status(404).json({ error: "Campaign not found" });
+    }
+
+    if (campaign.status !== "open") {
+      return res.status(400).json({ error: "Campaign is not open" });
+    }
+
+    if (campaign.brand_id === creatorId) {
+      return res.status(403).json({ error: "Cannot apply to your own campaign" });
+    }
+
     const [result] = await pool.query(
-      `INSERT INTO proposals (campaign_id, creator_id, message, deliverables, proposed_price)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO proposals 
+       (campaign_id, creator_id, message, deliverables, proposed_price, status)
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
       [campaignId, creatorId, message, deliverables || null, proposedPrice || null]
     );
 
+    console.log("Sending proposal:", {
+      campaignId,
+      message,
+      messageLength: message?.length,
+    });
+    const proposalId = result.insertId;
+
+    await createNotification(pool, {
+      userId: campaign.brand_id,
+      type: "proposal_received",
+      title: "New proposal received",
+      message: "A creator has applied to your campaign.",
+      entityType: "proposal",
+      entityId: proposalId,
+    });
+
     res.json({ success: true, proposalId: result.insertId });
   } catch (err) {
-    // Handle duplicate proposal
     if (err.code === "ER_DUP_ENTRY") {
       return res.status(409).json({ error: "You have already applied to this campaign" });
     }
@@ -1549,6 +1591,205 @@ app.post("/api/proposals", authenticate, async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Failed to submit proposal" });
   }
+});
+
+app.get("/api/notifications", authenticate, async (req, res) => {
+  try {
+    console.log("Authenticated user:", req.user); // <--- add this
+    const userId = req.user.id;
+
+    const [rows] = await pool.query(
+      `SELECT id, type, title, message, entity_type, entity_id, is_read, created_at
+       FROM notifications
+       WHERE user_id = ?
+       ORDER BY created_at DESC
+       LIMIT 30`,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch notifications" });
+  }
+});
+
+app.post("/api/notifications", authenticate, async (req, res) => {
+  try {
+    const { user_id, type, title, message, entity_type, entity_id } = req.body;
+
+    // Use your existing helper function
+    await createNotification(pool, {
+      userId: user_id,
+      type,
+      title,
+      message,
+      entityType: entity_type,
+      entityId: entity_id,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to create notification:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post("/api/proposals/:id/action", authenticate, async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const proposalId = req.params.id;
+    const { action } = req.body; // "accept" or "decline"
+    const userId = req.user.id;
+
+    await connection.beginTransaction();
+
+    // 1. Verify the proposal exists and the current user owns the campaign
+    const [[proposal]] = await connection.query(
+      `SELECT p.*, c.brand_id 
+       FROM proposals p 
+       JOIN campaigns c ON p.campaign_id = c.id 
+       WHERE p.id = ?`,
+      [proposalId]
+    );
+
+    if (!proposal) return res.status(404).json({ error: "Proposal not found" });
+    if (proposal.brand_id !== userId) return res.status(403).json({ error: "Unauthorized" });
+
+    // 2. Update the status
+    const newStatus = action === "accept" ? "accepted" : "rejected";
+    await connection.query(
+      "UPDATE proposals SET status = ? WHERE id = ?",
+      [newStatus, proposalId]
+    );
+
+    // 3. Create the Notification for the creator who sent the proposal
+    const notificationType = action === "accept" ? "proposal_accepted" : "proposal_rejected";
+    const title = action === "accept" ? "Proposal accepted!" : "Proposal declined";
+    const message = action === "accept"
+      ? "Your proposal has been accepted. Get ready to collaborate!"
+      : "Unfortunately, your proposal was not selected this time.";
+
+    await createNotification(connection, {
+      userId: proposal.creator_id, // The applicant
+      type: notificationType,
+      title: title,
+      message: message,
+      entityType: "proposal",
+      entityId: proposalId,
+    });
+
+    await connection.commit();
+    res.json({ success: true, status: newStatus });
+
+  } catch (err) {
+    await connection.rollback();
+    console.error(err);
+    res.status(500).json({ error: "Failed to process proposal action" });
+  } finally {
+    connection.release();
+  }
+});
+
+app.get("/api/proposals/:id", authenticate, async (req, res) => {
+  try {
+    const proposalId = req.params.id;
+    console.log("Proposal id received: ", proposalId);
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const [[proposal]] = await pool.query(
+      `SELECT 
+         p.id,
+         p.campaign_id,
+         p.creator_id,
+         p.message,
+         p.deliverables,
+         p.proposed_price,
+         p.status,
+         p.created_at,
+         u.name AS creator_name
+       FROM proposals p
+       JOIN users u ON p.creator_id = u.id
+       WHERE p.id = ?`,
+      [proposalId]
+    );
+
+    if (!proposal) {
+      return res.status(404).json({ error: "Proposal not found" });
+    }
+
+    // Optional: Only allow the campaign owner or the creator to view
+    const [[campaign]] = await pool.query(
+      `SELECT brand_id FROM campaigns WHERE id = ?`,
+      [proposal.campaign_id]
+    );
+
+    if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+
+    if (campaign.brand_id !== userId && proposal.creator_id !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    res.json(proposal);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch proposal details" });
+  }
+});
+
+app.get("/api/notifications/unread-count", authenticate, async (req, res) => {
+  try {
+    const [[row]] = await pool.query(
+      `SELECT COUNT(*) AS count FROM notifications 
+       WHERE user_id = ? AND is_read = 0`,
+      [req.user.id]
+    );
+    res.json({ count: row.count });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch count" });
+  }
+});
+
+app.post("/api/notifications/:id/read", authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const notificationId = req.params.id;
+
+    const [result] = await pool.query(
+      `UPDATE notifications
+       SET is_read = 1
+       WHERE id = ? AND user_id = ?`,
+      [notificationId, userId]
+    );
+
+    console.log("READ CHANGED!");
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update notification" });
+  }
+});
+
+app.post("/api/notifications/read-all", authenticate, async (req, res) => {
+  const userId = req.user.id;
+
+  await pool.query(
+    `UPDATE notifications
+     SET is_read = 1
+     WHERE user_id = ? AND is_read = 0`,
+    [userId]
+  );
+
+  res.json({ success: true });
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

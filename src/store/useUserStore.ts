@@ -37,7 +37,7 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       isRegistered: false,
       accountType: null,
-      language: "bg",
+      language: "en",
 
       token: null,
       user: null,
