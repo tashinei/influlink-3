@@ -15,7 +15,7 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       isRegistered: false,
       accountType: null,
-      language: "bg",
+      language: "en",
       setRegistered: (value) => set({ isRegistered: value }),
       setAccountType: (type) => set({ accountType: type }),
       setLanguage: (lang) => set({ language: lang }),
