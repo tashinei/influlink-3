@@ -195,6 +195,14 @@ export const translations = {
         },
       },
 
+      gdpr:{
+        privacyPolicy: "Политика за поверителност",
+        consentText: "Съгласен съм данните ми да бъдат обработени както следва в",
+        terms: "Общи условия",
+        prefix: "Съгласен съм",
+        and: "и",
+      },
+
       toast: {
         errorTitle: "Грешка",
         serverConnectionError: "Възникна проблем във вързката със сървръра, моля опитайте отново по-късно."
@@ -877,6 +885,14 @@ export const translations = {
         otherNiche: "Please enter",
         otherCollab: "Please enter",
         otherCategory: "Please enter the type of business.."
+      },
+
+      gdpr:{
+        privacyPolicy: "Privacy Policy",
+        consentText: "I agree to the processing of my personal data by as described in the",
+        terms: "Terms & Conditions",
+        prefix: "I agree to the",
+        and: "and",
       },
 
       misc: {

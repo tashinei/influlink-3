@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -149,6 +149,7 @@ const Home = () => {
   };
 
   const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false);
 
   const handleOpenDialog = (type: "creator" | "brand") => {
     setAccountType(type);
@@ -289,7 +290,7 @@ const Home = () => {
       const payload = accountType === "creator" ? {
         full_name: formData.name,
         email: formData.email,
-        base_country: formData.yourCountry,
+        base_country: formData.yourCountry?.name || "",
         top_countries: formData.topCountries,
         niches: formData.niches.includes("Друго") && formData.otherNiche ? [...formData.niches.filter(n => n !== "Друго"), formData.otherNiche] : formData.niches,
         collab_types: formData.collabTypes.includes("Друго") && formData.otherCollab ? [...formData.collabTypes.filter(c => c !== "Друго"), formData.otherCollab] : formData.collabTypes,
@@ -298,15 +299,19 @@ const Home = () => {
         followers: formData.followers,
         audience_description: formData.audience,
         captcha: captchaValue,
+        consent: consent,
+        consent_version: "1.0",
       } : {
         full_name: formData.name,
         email: formData.email,
-        base_country: formData.yourCountry,
+        base_country: formData.yourCountry?.name || "",
         target_countries: formData.targetCountries,
         categories: formData.businessCategories.includes("Друго") && formData.otherCategory ? [...formData.businessCategories.filter(c => c !== "Друго"), formData.otherCategory] : formData.businessCategories,
         collab_types: formData.collabTypes.includes("Друго") && formData.otherCollab ? [...formData.collabTypes.filter(c => c !== "Друго"), formData.otherCollab] : formData.collabTypes,
         ideal_client_description: formData.idealClient,
         captcha: captchaValue,
+        consent: consent,
+        consent_version: "1.0",
       };
 
       const endpoint = accountType === "creator" ? "https://influ-link.com/api/registerCreator.php" : "https://influ-link.com/api/registerBrand.php";
@@ -731,6 +736,33 @@ const Home = () => {
                       </div>
                     )}
 
+                    {/* Legal Agreement - Only on the final step */}
+                    {step === (accountType === "creator" ? 6 : 5) && (
+                      <div className="flex items-center gap-2 px-1 mb-4 animate-in fade-in slide-in-from-bottom-1">
+                        <input
+                          type="checkbox"
+                          id="legal-consent"
+                          checked={consent}
+                          onChange={(e) => setConsent(e.target.checked)}
+                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer shrink-0"
+                        />
+                        <Label
+                          htmlFor="legal-consent"
+                          className="text-xs leading-none text-muted-foreground cursor-pointer"
+                        >
+                          {t("form.gdpr.prefix") || "I agree to the"}
+                          <Link to="/terms" target="_blank" className="text-primary underline mx-1 hover:text-secondary">
+                            {t("form.gdpr.terms") || "Terms & Conditions"}
+                          </Link>
+                          {t("form.gdpr.and") || "and"}
+                          <Link to="/privacy" target="_blank" className="text-primary underline ml-1 hover:text-secondary">
+                            {t("form.gdpr.privacyPolicy") || "Privacy Policy"}
+                          </Link>.
+                        </Label>
+                      </div>
+                    )}
+
+                    {/* Your Button Group */}
                     <div className="flex gap-3 mt-6 pt-2 border-t border-gray-100 md:border-none">
                       {step > 1 && (
                         <Button
@@ -745,13 +777,15 @@ const Home = () => {
 
                       <Button
                         type="submit"
-                        className={`flex-1 ${step === 1 ? 'w-full' : ''} ${step === (accountType === "creator" ? 6 : 5) && !captchaValue ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={step === (accountType === "creator" ? 6 : 5) && !captchaValue}
+                        className={`flex-1 ${step === 1 ? 'w-full' : ''} ${step === (accountType === "creator" ? 6 : 5) && (!captchaValue || !consent)
+                          ? 'opacity-50 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-primary to-secondary hover:opacity-90'
+                          }`}
+                        disabled={step === (accountType === "creator" ? 6 : 5) && (!captchaValue || !consent)}
                       >
                         {step === (accountType === "creator" ? 6 : 5) ? t("common.submit") : t("common.next")}
                       </Button>
                     </div>
-
                   </form>
                 </div>
               </div>
