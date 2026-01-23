@@ -6,15 +6,8 @@ import { useTranslation } from "@/hooks/useTranslation";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
-// Assuming you have these components installed via shadcn/ui
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useLiveNotifications } from "@/hooks/useLiveNotifications";
+import RegisterSelectionDialog from "./RegisterSelectionDialog";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -80,12 +73,6 @@ const Navigation = () => {
       : "bg-transparent border-b-transparent"
     }
   `;
-
-  // Helper to handle navigation from within the modal
-  const handleOptionClick = () => {
-    setIsRegisterOpen(false);
-    setIsOpen(false); // Close mobile menu if open
-  };
 
   useEffect(() => {
     if (notifOpen && !isSolidBackground) {
@@ -326,7 +313,7 @@ const Navigation = () => {
       </nav >
 
       {/* --- REGISTRATION SELECTION DIALOG --- */}
-      < Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen} >
+      {/* < Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen} >
         <DialogContent className="sm:max-w-2xl bg-gradient-to-br from-primary to-secondary backdrop-blur-xl border-white/10 text-white shadow-2xl sm:rounded-3xl p-8">
           <DialogHeader className="space-y-4">
             <DialogTitle className="text-3xl font-bold text-center tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
@@ -338,7 +325,6 @@ const Navigation = () => {
           </DialogHeader>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {/* Creator Option */}
             <Link
               to="/register/creator"
               onClick={handleOptionClick}
@@ -360,7 +346,6 @@ const Navigation = () => {
               </div>
             </Link>
 
-            {/* Brand Option */}
             <Link
               to="/register/brand"
               onClick={handleOptionClick}
@@ -383,7 +368,8 @@ const Navigation = () => {
             </Link>
           </div>
         </DialogContent>
-      </Dialog >
+      </Dialog > */}
+      <RegisterSelectionDialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}/>
     </>
   );
 };

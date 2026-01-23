@@ -29,6 +29,7 @@ export const defaultFilters: FilterState = {
 };
 
 import { useLocation } from "react-router-dom";
+import { InviteModal } from '@/components/campaigns/InviteModal';
 
 const SearchResults = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -41,6 +42,14 @@ const SearchResults = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+    const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
+
+    const handleOpenInviteModal = (creator: Creator) => {
+        setSelectedCreator(creator);
+        setIsInviteModalOpen(true);
+    };
 
     const location = useLocation();
 
@@ -206,74 +215,85 @@ const SearchResults = () => {
     }, [filters]);
 
     return (
-        <div className="min-h-screen bg-background">
-            <div className="fixed inset-0 gradient-subtle pointer-events-none" />
+        <>
+            <div className="min-h-screen bg-background">
+                <div className="fixed inset-0 gradient-subtle pointer-events-none" />
 
-            <div className="relative container mx-auto px-4 py-6">
-                <SearchHeader
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    resultCount={totalCount}
-                    sortBy={sortBy}
-                    onSortChange={setSortBy}
-                    viewMode={viewMode}
-                    onViewModeChange={setViewMode}
-                    onOpenFilters={() => setIsFilterOpen(true)}
-                    activeFilterCount={activeFilterCount}
-                />
+                <div className="relative container mx-auto px-4 py-6">
+                    <SearchHeader
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        resultCount={totalCount}
+                        sortBy={sortBy}
+                        onSortChange={setSortBy}
+                        viewMode={viewMode}
+                        onViewModeChange={setViewMode}
+                        onOpenFilters={() => setIsFilterOpen(true)}
+                        activeFilterCount={activeFilterCount}
+                    />
 
-                <div className="flex gap-8 mt-8">
-                    {/* Desktop Filter Panel */}
-                    <div className="hidden lg:block flex-shrink-0">
-                        <FilterPanel
-                            filters={filters}
-                            onFilterChange={setFilters}
-                            onClearFilters={handleClearFilters}
-                            isOpen={isFilterOpen}
-                            onClose={() => setIsFilterOpen(false)}
-                        />
-                    </div>
+                    <div className="flex gap-8 mt-8">
+                        {/* Desktop Filter Panel */}
+                        <div className="hidden lg:block flex-shrink-0">
+                            <FilterPanel
+                                filters={filters}
+                                onFilterChange={setFilters}
+                                onClearFilters={handleClearFilters}
+                                isOpen={isFilterOpen}
+                                onClose={() => setIsFilterOpen(false)}
+                            />
+                        </div>
 
-                    {/* Results */}
-                    <div className="flex-1">
-                        {isLoading ? (
-                            <div className="flex justify-center py-20">
-                                <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                            </div>
-                        ) : creators.length > 0 ? (
-                            <>
-                                <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-                                    {creators.map((creator, index) => (
-                                        <CreatorCard key={creator.id} creator={creator} index={index} />
-                                    ))}
+                        {/* Results */}
+                        <div className="flex-1">
+                            {isLoading ? (
+                                <div className="flex justify-center py-20">
+                                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
                                 </div>
-
-                                {creators.length < totalCount && (
-                                    <div className="flex justify-center mt-10">
-                                        <Button onClick={handleLoadMore} size="lg" className="min-w-[200px]">
-                                            Load More ({totalCount - creators.length} remaining)
-                                        </Button>
+                            ) : creators.length > 0 ? (
+                                <>
+                                    <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+                                        {creators.map((creator, index) => (
+                                            <CreatorCard key={creator.id} creator={creator} index={index} onInvite={(creator) => handleOpenInviteModal(creator)} />
+                                        ))}
                                     </div>
-                                )}
-                            </>
-                        ) : (
-                            <EmptyState onClearFilters={handleClearFilters} />
-                        )}
+
+                                    {creators.length < totalCount && (
+                                        <div className="flex justify-center mt-10">
+                                            <Button onClick={handleLoadMore} size="lg" className="min-w-[200px]">
+                                                Load More ({totalCount - creators.length} remaining)
+                                            </Button>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <EmptyState onClearFilters={handleClearFilters} />
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Mobile Filter Panel */}
-            <div className='lg:hidden'>
-                <FilterPanel
-                    filters={filters}
-                    onFilterChange={setFilters}
-                    onClearFilters={handleClearFilters}
-                    isOpen={isFilterOpen}
-                    onClose={() => setIsFilterOpen(false)}
-                />
+                {/* Mobile Filter Panel */}
+                <div className='lg:hidden'>
+                    <FilterPanel
+                        filters={filters}
+                        onFilterChange={setFilters}
+                        onClearFilters={handleClearFilters}
+                        isOpen={isFilterOpen}
+                        onClose={() => setIsFilterOpen(false)}
+                    />
+                </div>
             </div>
-        </div>
+            {isInviteModalOpen && selectedCreator && (
+                <InviteModal
+                    open={isInviteModalOpen} // Changed 'isOpen' to 'open'
+                    onOpenChange={setIsInviteModalOpen}
+                    creator={selectedCreator}
+                // onClose isn't used in your Modal definition, 
+                // but onOpenChange handles it.
+                />
+            )}
+        </>
     );
 };
 

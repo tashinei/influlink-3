@@ -22,6 +22,47 @@ export const translations = {
       profile: "Профил"
     },
 
+    legal:{
+      title: "Правна информация",
+      privacyPolicy: "Политика за поверителност",
+      terms: "Условия за ползване",
+      cookies: "Бисквитки"
+    },
+
+    cookies: {
+      banner: {
+        title: "Управление на бисквитките",
+        description: "Използваме бисквитки за подобряване на функционалността, персонализиране на съдържанието и анализ на трафика ни. Можете да промените настройките си по всяко време."
+      },
+      buttons: {
+        settings: "Настройки",
+        acceptAll: "Приемам всички",
+        declineAll: "Отказвам незадължителните",
+        saveChoice: "Запази моите предпочитания"
+      },
+      settings: {
+        title: "Вашите предпочитания за поверителност",
+        description: "Прегледайте и разрешете категориите бисквитки, които искате да използваме."
+      },
+      misc: {
+        essentialTag: "Задължителни"
+      },
+      categories: {
+        essential: {
+          name: "Необходими бисквитки",
+          description: "Тези бисквитки са важни за функционирането на сайта (напр. вход в профила, сигурност). Те не събират лична информация и не могат да бъдат изключени."
+        },
+        analytics: {
+          name: "Анализ и статистика",
+          description: "Помагат ни да разберем как използвате сайта, кои страници са най-популярни и къде има технически грешки, за да можем да подобрим платформата."
+        },
+        marketing: {
+          name: "Маркетинг и реклама",
+          description: "Използват се за проследяване на вашите интереси и показване на по-релевантни реклами в други платформи (като Facebook или Google)."
+        }
+      }
+    },
+
     contacts: {
       title: "Свържете се с нас",
       subtitle: "Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне",
@@ -449,6 +490,47 @@ export const translations = {
     editProfile: {
       title: "Edit profile",
       subtitle: "Enter desired changes"
+    },
+
+    legal:{
+      title: "Legal",
+      privacyPolicy: "Privacy Policy",
+      terms: "Terms & Conditions",
+      cookies: "Cookies"
+    },
+
+    cookies: {
+      banner: {
+        title: "Cookie Preferences",
+        description: "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. You can manage your choices at any time."
+      },
+      buttons: {
+        settings: "Cookie Settings",
+        acceptAll: "Accept All",
+        declineAll: "Decline Non-Essential",
+        saveChoice: "Save My Preferences"
+      },
+      settings: {
+        title: "Privacy Settings",
+        description: "Review and authorize the categories of cookies you are comfortable with us using."
+      },
+      misc: {
+        essentialTag: "Essential"
+      },
+      categories: {
+        essential: {
+          name: "Strictly Necessary",
+          description: "Required for core site features such as security and account access. These do not store personal data and cannot be disabled."
+        },
+        analytics: {
+          "name": "Analytics & Performance",
+          "description": "Help us understand how visitors interact with the site, discover popular content, and identify technical issues to improve the experience."
+        },
+        marketing: {
+          "name": "Marketing & Social Media",
+          "description": "Used to track visitor interests and show more relevant ads across social platforms and other websites."
+        }
+      }
     },
 
     drivesUs: {

@@ -11,7 +11,7 @@ interface AuthFormProps {
   title: string;
   description: string;
   icon?: React.ReactNode;
-  changeFormMode: ()=>void;
+  changeFormMode: () => void;
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, changeFormMode }) => {
@@ -47,9 +47,28 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     setError(null);
 
     try {
+      // 1. Extract Guest Cookie Preferences from LocalStorage
+      const savedCookiePrefs = localStorage.getItem("cookie_preferences");
+      let guestConsent = { analytics: false, marketing: false };
+
+      if (savedCookiePrefs) {
+        try {
+          const parsedPrefs = JSON.parse(savedCookiePrefs);
+          // Assuming structure from earlier: [essential, analytics, marketing]
+          guestConsent = {
+            analytics: !!parsedPrefs[1],
+            marketing: !!parsedPrefs[2]
+          };
+        } catch (parseErr) {
+          console.error("Could not parse local cookie preferences:", parseErr);
+        }
+      }
+
+      // 2. Prepare the Payload
+      // We merge guestConsent into both modes so the DB is always updated
       const payload = mode === 'register'
-        ? { ...formData, accountType }
-        : { email: formData.email, password: formData.password };
+        ? { ...formData, accountType, ...guestConsent }
+        : { email: formData.email, password: formData.password, ...guestConsent };
 
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -61,21 +80,22 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 409) setError('Email already registered.');
-        else setError(data.message || `${mode === 'register' ? 'Registration' : 'Login'} failed.`);
+        if (response.status === 409) {
+          setError('Email already registered.');
+        } else {
+          setError(data.message || `${mode === 'register' ? 'Registration' : 'Login'} failed.`);
+        }
         setLoading(false);
         return;
       }
 
       if (mode === 'login') {
         const userRole = data.user.accountType;
-
         if (accountType === 'creator' && userRole === 'brand') {
           setError("This account is registered as a Brand. Please use the Brand login page.");
           setLoading(false);
           return;
         }
-
         if (accountType === 'brand' && userRole === 'creator') {
           setError("This account is registered as a Creator. Please use the Creator login page.");
           setLoading(false);
@@ -91,14 +111,18 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
         isVIP: data.user.isVIP || false,
         accountType: data.user.accountType
       });
+
       setRegistered(true);
       setAccountType(accountType);
 
-      if (mode === 'register') setIsSuccessModalOpen(true);
-      else navigate('/profile/me');
+      if (mode === 'register') {
+        setIsSuccessModalOpen(true);
+      } else {
+        navigate('/profile/me');
+      }
 
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

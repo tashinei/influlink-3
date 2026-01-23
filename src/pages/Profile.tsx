@@ -337,7 +337,7 @@ const Profile = () => {
                   </Badge>
                 </TabsTrigger>
               )}
-              {isOwner && (
+              {isOwner && profile.type === "brand" && (
                 <>
                   <TabsTrigger
                     value="campaigns"
@@ -351,14 +351,15 @@ const Profile = () => {
                       {campaigns.length}
                     </Badge>
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="analytics"
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
-                  >
-                    Analytics
-                  </TabsTrigger>
+
                 </>
               )}
+              <TabsTrigger
+                value="analytics"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
+              >
+                Analytics
+              </TabsTrigger>
             </TabsList>
 
             {isOwner && (
@@ -547,7 +548,7 @@ const Profile = () => {
         onClose={() => setIsAddPostOpen(false)}
         onSubmit={addPostHandler}
       />
-      <NavigationDock onCampaignCreated={fetchCampaigns}/>
+      <NavigationDock onCampaignCreated={fetchCampaigns} />
     </div>
   );
 };

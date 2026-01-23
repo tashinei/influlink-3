@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 interface CreatorCardProps {
   creator: Creator;
   index: number;
+  onInvite: (creator: Creator) => void;
 }
 
 const PlatformIcon = ({ platform }: { platform: string }) => {
@@ -42,7 +43,7 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
   }
 };
 
-export const CreatorCard = ({ creator, index }: CreatorCardProps) => {
+export const CreatorCard = ({ creator, index, onInvite }: CreatorCardProps) => {
   const navigate = useNavigate();
   const handleCardClick = () => navigate(`/${creator.handle}`);
 
@@ -173,11 +174,25 @@ export const CreatorCard = ({ creator, index }: CreatorCardProps) => {
         </div>
 
         {/* Footer */}
-        <div className="mt-auto pt-4 flex items-center justify-between border-t border-dashed">
-          <span className="text-xs text-muted-foreground font-medium">Starting at</span>
-          <span className="text-lg font-bold text-primary">
-            {creator.priceRange?.split(' - ')[0] || "N/A"}
-          </span>
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              console.log("CLICKED!!!");
+              e.stopPropagation();
+              onInvite(creator);
+            }}
+            className='bg-gradient-to-br from-primary/70 via-secondary to-primary/60 text-white hover:text-white hover:scale-105 transition-transform duration-300'
+          >
+            Invite to Campaign
+          </Button>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <span>Starting at</span>
+            <span className="text-lg font-bold text-foreground">
+              {creator.priceRange?.split(' - ')[0] || "N/A"}
+            </span>
+          </div>
         </div>
       </div>
     </article>

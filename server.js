@@ -79,7 +79,7 @@ const generateUniqueHandle = async (baseHandle) => {
 // Registration
 app.post("/api/register", async (req, res) => {
   try {
-    const { name, email, password, accountType } = req.body;
+    const { name, email, password, accountType, analytics, marketing } = req.body;
     if (!name || !email || !password || !accountType)
       return res.status(400).json({ message: "Missing required fields" });
 
@@ -105,8 +105,8 @@ app.post("/api/register", async (req, res) => {
     const baseHandle = generateHandleFromName(name);
     const handle = await generateUniqueHandle(baseHandle);
     await pool.query(
-      "INSERT INTO profiles (id, name, handle, type, created_at) VALUES (?, ?, ?, ?, NOW())",
-      [newUserId, name, handle, accountType]
+      "INSERT INTO profiles (id, name, handle, type, created_at, gdpr_consent, consent_analytics, consent_marketing, consent_date) VALUES (?, ?, ?, ?, NOW(), 1, ?, ?, NOW())",
+      [newUserId, name, handle, accountType, analytics ? 1 : 0, marketing ? 1 : 0]
     );
 
     // Create JWT token
@@ -136,7 +136,7 @@ app.post("/api/register", async (req, res) => {
 
 // Login
 app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, analytics, marketing } = req.body;
   try {
     const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
       email,
@@ -154,6 +154,13 @@ app.post("/api/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    if (analytics !== undefined || marketing !== undefined) {
+      await pool.query(
+        "UPDATE users SET gdpr_consent = 1, consent_analytics = ?, consent_marketing = ?, consent_date = NOW() WHERE id = ?",
+        [analytics ? 1 : 0, marketing ? 1 : 0, user.id]
+      );
+    }
 
     // Set HTTP-only cookie
     res.cookie("token", token, {
@@ -1691,6 +1698,68 @@ app.post("/api/proposals/:id/action", authenticate, async (req, res) => {
   }
 });
 
+app.post("/api/invites/:id/action", authenticate, async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const inviteId = req.params.id;
+    const { action } = req.body; // "accept" or "decline"
+    const userId = req.user.id; // This is the Creator's ID
+
+    await connection.beginTransaction();
+
+    // 1. Verify the invite exists and belongs to this creator
+    const [[invite]] = await connection.query(
+      `SELECT ci.*, c.name as campaign_name, c.brand_id 
+       FROM campaign_invitations ci
+       JOIN campaigns c ON ci.campaign_id = c.id
+       WHERE ci.id = ?`,
+      [inviteId]
+    );
+
+    if (!invite) {
+      return res.status(404).json({ error: "Invite not found" });
+    }
+
+    // Security check: Only the invited creator can accept/decline
+    if (invite.creator_id !== userId) {
+      return res.status(403).json({ error: "Unauthorized: You were not the recipient of this invite" });
+    }
+
+    // 2. Update the status
+    const newStatus = action === "accept" ? "accepted" : "declined";
+    await connection.query(
+      "UPDATE campaign_invitations SET status = ? WHERE id = ?",
+      [newStatus, inviteId]
+    );
+
+    // 3. Create the Notification for the Brand (the sender)
+    const notificationType = action === "accept" ? "invite_accepted" : "invite_declined";
+    const title = action === "accept" ? "Invite Accepted!" : "Invite Declined";
+    const message = action === "accept"
+      ? `A creator has accepted your invitation to join "${invite.campaign_name}".`
+      : `A creator has declined your invitation for "${invite.campaign_name}".`;
+
+    await createNotification(connection, {
+      userId: invite.brand_id, // The Brand owner who sent the invite
+      type: notificationType,
+      title: title,
+      message: message,
+      entityType: "campaign_invite",
+      entityId: inviteId,
+    });
+
+    await connection.commit();
+    res.json({ success: true, status: newStatus });
+
+  } catch (err) {
+    await connection.rollback();
+    console.error("Error processing invite action:", err);
+    res.status(500).json({ error: "Failed to process invite action" });
+  } finally {
+    connection.release();
+  }
+});
+
 app.get("/api/proposals/:id", authenticate, async (req, res) => {
   try {
     const proposalId = req.params.id;
@@ -1790,6 +1859,228 @@ app.post("/api/notifications/read-all", authenticate, async (req, res) => {
   );
 
   res.json({ success: true });
+});
+
+app.post("/api/campaigns/invite", authenticate, async (req, res) => {
+  try {
+    const brandId = req.user.id;
+    const { creatorId, campaignId, message } = req.body;
+
+    if (!creatorId || !campaignId) {
+      return res.status(400).json({ error: "Missing creatorId or campaignId" });
+    }
+
+    // 1. Verify campaign ownership
+    const [campaigns] = await pool.query(
+      `SELECT id, name FROM campaigns WHERE id = ? AND brand_id = ?`,
+      [campaignId, brandId]
+    );
+
+    if (campaigns.length === 0) {
+      return res.status(403).json({ error: "Unauthorized campaign access" });
+    }
+
+    const campaign = campaigns[0];
+
+    // 2. Insert invitation
+    await pool.query(
+      `INSERT IGNORE INTO campaign_invitations
+       (campaign_id, creator_id, brand_id, message)
+       VALUES (?, ?, ?, ?)`,
+      [campaignId, creatorId, brandId, message || null]
+    );
+
+    // 3. Notification (short & readable)
+    await pool.query(
+      `INSERT INTO notifications
+       (user_id, type, title, message, entity_type, entity_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        creatorId,
+        "campaign_invite",
+        "Campaign Invitation",
+        message
+          ? message.slice(0, 140)
+          : `You've been invited to collaborate on "${campaign.name}".`,
+        "campaign",
+        campaignId
+      ]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Invite error:", err);
+    res.status(500).json({ error: "Failed to send invite" });
+  }
+});
+
+app.get('/api/invite/:id', authenticate, async (req, res) => {
+  const inviteId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    const [invites] = await pool.execute(
+      `SELECT 
+                ci.*, 
+                c.name AS campaign_name, 
+                c.description AS campaign_description,
+                c.budget AS campaign_budget,
+                c.brand_id
+             FROM campaign_invitations ci
+             JOIN campaigns c ON ci.campaign_id = c.id
+             WHERE ci.id = ? AND ci.creator_id = ?`,
+      [inviteId, userId]
+    );
+
+    if (invites.length === 0) {
+      return res.status(404).json({ error: "Invite not found or unauthorized" });
+    }
+
+    const invite = invites[0];
+
+    res.json({
+      id: invite.id,
+      campaign_id: invite.campaign_id,
+      brand_id: invite.brand_id, // This matches your frontend's inviteData.brand_id
+      message: invite.message,
+      status: invite.status,
+      campaign_name: invite.campaign_name,
+      campaign_description: invite.campaign_description,
+      campaign_budget: invite.campaign_budget,
+      created_at: invite.created_at,
+      logo: invite.avatar,
+    });
+
+  } catch (error) {
+    console.error("Database error fetching invite:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.post('/api/consent/update', async (req, res) => {
+  const { email, analytics, marketing } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email required" });
+  }
+
+  try {
+    const query = `
+            UPDATE users 
+            SET 
+                gdpr_consent = 1,
+                consent_analytics = ?, 
+                consent_marketing = ?, 
+                consent_date = NOW()
+            WHERE email = ?
+        `;
+
+    const [result] = await pool.execute(query, [
+      analytics ? 1 : 0,
+      marketing ? 1 : 0,
+      email
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    return res.json({ success: true, message: "Preferences saved successfully" });
+  } catch (error) {
+    console.error("Database Error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+app.get("/api/links", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const accountType = req.user.accountType;
+
+  try {
+    let sql = "";
+    let params = [];
+
+    if (accountType === "brand") {
+      sql = `
+        /* 1. Master Campaigns */
+        SELECT 'campaign' as linkType, c.id, c.id as campaignId, c.name as title, c.status, 
+               'Master Campaign' as category, c.created_at, c.company_logo, c.budget, c.type
+        FROM campaigns c WHERE c.brand_id = ?
+        
+        UNION ALL
+
+        /* 2. Sent Invitations */
+        SELECT 'invitation' as linkType, i.id, c.id as campaignId, c.name as title, i.status, 
+               'Sent Invite' as category, i.created_at, c.company_logo, c.budget, c.type
+        FROM campaign_invitations i
+        JOIN campaigns c ON i.campaign_id = c.id
+        WHERE i.brand_id = ?
+
+        UNION ALL
+
+        /* 3. Active Deals (Accepted Proposals) */
+        SELECT 'deal' as linkType, p.id, c.id as campaignId, c.name as title, 'active' as status, 
+               'Active Deal' as category, p.updated_at as created_at, c.company_logo, c.budget, c.type
+        FROM proposals p
+        JOIN campaigns c ON p.campaign_id = c.id
+        WHERE c.brand_id = ? AND p.status = 'accepted'
+        
+        ORDER BY created_at DESC
+      `;
+      params = [userId, userId, userId];
+    } else {
+      sql = `
+        /* 1. My Proposals */
+        SELECT 'proposal' as linkType, p.id, c.id as campaignId, c.name as title, p.status, 
+               'My Proposal' as category, p.created_at, c.company_logo, c.budget, c.type
+        FROM proposals p
+        JOIN campaigns c ON p.campaign_id = c.id
+        WHERE p.creator_id = ?
+
+        UNION ALL
+
+        /* 2. Received Invitations */
+        SELECT 'invitation' as linkType, i.id, c.id as campaignId, c.name as title, i.status, 
+               'Received Invite' as category, i.created_at, c.company_logo, c.budget, c.type
+        FROM campaign_invitations i
+        JOIN campaigns c ON i.campaign_id = c.id
+        WHERE i.creator_id = ?
+
+        UNION ALL
+
+        /* 3. Active Deals (Accepted Invites) */
+        SELECT 'deal' as linkType, i.id, c.id as campaignId, c.name as title, 'active' as status, 
+               'Active Deal' as category, i.created_at, c.company_logo, c.budget, c.type
+        FROM campaign_invitations i
+        JOIN campaigns c ON i.campaign_id = c.id
+        WHERE i.creator_id = ? AND i.status = 'accepted'
+
+        ORDER BY created_at DESC
+      `;
+      params = [userId, userId, userId];
+    }
+
+    const [rows] = await pool.query(sql, params);
+    
+    const formatted = rows.map(row => ({
+      id: row.id.toString(),
+      campaignId: row.campaignId.toString(),
+      title: row.title,
+      status: row.status, 
+      category: row.category,
+      date: new Date(row.created_at).toLocaleDateString(),
+      linkType: row.linkType,
+      // Enhanced Data
+      logo: row.company_logo,
+      budget: row.budget,
+      type: row.type
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    console.error("Error fetching rich links:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

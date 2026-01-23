@@ -12,6 +12,7 @@ import { FilterState } from "@/types/creator";
 import { useUserStore } from "@/store/useUserStore";
 import { CampaignData, CampaignFilterState } from "@/types/campaigns";
 import CampaignSearchSection from "@/components/home/CampaignSearchSection";
+import RegisterSelectionDialog from "@/components/RegisterSelectionDialog";
 
 const HomeMVP = () => {
   const searchSectionRef = useRef<HTMLDivElement>(null);
@@ -19,6 +20,8 @@ const HomeMVP = () => {
   const [results, setResults] = useState<CampaignData[]>([]);
   const [loading, setLoading] = useState(false);
   const isBrand = useUserStore((state) => state.accountType) === "brand";
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const isRegistered = useUserStore((state)=>state.isRegistered);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -44,8 +47,7 @@ const HomeMVP = () => {
     }
   };
   const handleJoinClick = () => {
-    // TODO: Open registration dialog
-    console.log("Join clicked");
+    setIsRegisterOpen(true);
   };
 
   const navigate = useNavigate();
@@ -87,9 +89,9 @@ const HomeMVP = () => {
 
       <div ref={searchSectionRef}>
         {isBrand ? (
-          <CreatorSearchSection onSearch={handleCreatorSearch} />
+          <CreatorSearchSection onSearch={handleCreatorSearch} onClickSearch={()=>setIsRegisterOpen(true)} isRegistered={isRegistered}/>
         ) : (
-          <CampaignSearchSection onSearch={handleCampaignSearch}/>
+          <CampaignSearchSection onSearch={handleCampaignSearch} onClickSearch={()=>setIsRegisterOpen(true)} isRegistered={isRegistered}/>
         )}
       </div>
 
@@ -156,6 +158,8 @@ const HomeMVP = () => {
           imageSrc={lastSection}
         />
       </div>
+
+      <RegisterSelectionDialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}/>
 
       {/* Footer spacing */}
       <div className="h-20" />

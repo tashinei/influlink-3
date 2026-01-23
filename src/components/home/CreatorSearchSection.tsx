@@ -56,9 +56,11 @@ const budgetRanges = [
 
 type Props = {
   onSearch: (filters: any) => void;
+  onClickSearch: ()=>void;
+  isRegistered: boolean;
 };
 
-const CreatorSearchSection = ({ onSearch }: Props) => {
+const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -87,6 +89,10 @@ const CreatorSearchSection = ({ onSearch }: Props) => {
   const countries = useCreatorCountries();
 
   const handleSearch = () => {
+    if (!isRegistered) {
+      onClickSearch();
+      return;
+    }
     onSearch({
       query: searchQuery,
       niche: selectedNiches,

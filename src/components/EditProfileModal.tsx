@@ -172,7 +172,7 @@ export const EditProfileModal = ({ profile, isOpen, onClose, onSave }: EditProfi
                 className="flex items-center justify-between w-full text-left text-lg font-semibold"
                 onClick={() => setSocialExpanded(prev => !prev)}
               >
-                {`Social Media & Links (${t('misc.placeholder')})`}
+                {`Social Media & Links`}
                 {socialExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
               </button>
 

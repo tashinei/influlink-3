@@ -5,6 +5,7 @@ import ChatDrawer from "./ChatDrawer";
 import CreateCampaignModal from "./CampaignModal";
 import CampaignHistoryModal from "./CampaignHistoryModal";
 import { useUserStore } from "@/store/useUserStore";
+import LinksModal from "./LinksModal";
 
 interface NavigationDockProps {
   onCampaignCreated?: () => void;
@@ -12,14 +13,12 @@ interface NavigationDockProps {
 
 export default function NavigationDock({ onCampaignCreated }: NavigationDockProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  // State for BRAND action: Create new campaign
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
-  // State for CREATOR action: View campaign history
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
 
   const accountType = useUserStore((state) => state.accountType);
 
-  // --- Dynamic Action Button Logic ---
   let actionItem = null;
 
   if (accountType === "brand") {
@@ -32,7 +31,7 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
     actionItem = {
       icon: Briefcase,
       label: "Campaigns",
-      onClick: () => setIsHistoryModalOpen(true), // 👈 OPENS HISTORY MODAL
+      onClick: () => setIsHistoryModalOpen(true),
     };
   }
 
@@ -49,7 +48,7 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
     {
       icon: Link,
       label: "Links",
-      onClick: () => console.log("Links clicked"),
+      onClick: () => setIsLinksModalOpen(true),
     },
   ];
 
@@ -58,6 +57,12 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
       <div className="flex items-center justify-center w-full">
         <Dock items={links} />
       </div>
+
+      <LinksModal 
+        open={isLinksModalOpen} 
+        onOpenChange={setIsLinksModalOpen}
+        accountType={accountType}
+      />
 
       <ChatDrawer
         isOpen={isChatOpen}

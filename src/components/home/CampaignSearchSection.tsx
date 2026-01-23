@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,9 +45,11 @@ const budgetRanges = [
 
 type Props = {
   onSearch: (filters: any) => void;
+  onClickSearch: () => void;
+  isRegistered: boolean;
 };
 
-const CampaignSearchSection = ({ onSearch }: Props) => {
+const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) => {
   const { t } = useTranslation();
   const niches = useCreatorNiches();
 
@@ -79,6 +81,10 @@ const CampaignSearchSection = ({ onSearch }: Props) => {
   };
 
   const handleSearch = () => {
+    if (!isRegistered) {
+      onClickSearch();
+      return;
+    }
     onSearch({
       query: searchQuery,
       niches: selectedNiches,

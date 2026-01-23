@@ -22,12 +22,17 @@ import {
     Loader2,
     MessageSquare,
     AlertCircle,
-    Package
+    Package,
+    Building2,
+    Mail,
+    MapPin,
+    Globe,
+    Sparkles,
+    ExternalLink
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import avatarPickPlaceholder from "@/assets/avatarPickPlaceholder.png";
-import NotificationItem from "./NotificationItem";
 
 interface Notification {
     id: string;
@@ -57,13 +62,33 @@ interface CreatorProfile {
     verified?: boolean;
 }
 
+interface InviteDetails {
+    id: string;
+    brand_id: string;
+    campaign_id: string;
+    message?: string;
+    status: string;
+    campaign_name?: string;
+    campaign_budget?: number;
+}
+
+interface BrandProfile {
+    id: string;
+    name: string;
+    logo?: string;
+    industry?: string;
+    location?: string;
+    website?: string;
+    verified?: boolean;
+}
+
 interface NotificationDropdownProps {
     className?: string;
     setDropdownOpen: (open: boolean) => void;
 }
 
 const API_BASE_URL = "http://localhost:3000/api";
-const API_BASE = "http://localhost:3000"
+const API_BASE = "http://localhost:3000";
 
 const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -73,6 +98,8 @@ const getNotificationIcon = (type: string) => {
             return <CheckCircle2 className="h-5 w-5 text-green-500" />;
         case "proposal_rejected":
             return <XCircle className="h-5 w-5 text-destructive" />;
+        case "campaign_invite":
+            return <Mail className="h-5 w-5 text-primary" />;
         case "message":
             return <MessageSquare className="h-5 w-5 text-blue-500" />;
         case "payment":
@@ -105,7 +132,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
     const [proposalDetails, setProposalDetails] = useState<ProposalDetails | null>(null);
     const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null);
+    const [inviteDetails, setInviteDetails] = useState<InviteDetails | null>(null);
+    const [brandProfile, setBrandProfile] = useState<BrandProfile | null>(null);
     const [proposalLoading, setProposalLoading] = useState(false);
+    const [inviteLoading, setInviteLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<"accept" | "decline" | null>(null);
 
     const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -121,25 +151,40 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
     }, []);
 
     const handleClick = async (notification: Notification) => {
-        // Mark as read locally
-        setNotifications((prev) =>
-            prev.map((x) => (x.id === notification.id ? { ...x, is_read: 1 } : x))
-        );
+        // 1. Mark as read on backend (using notification.id)
+        if (!notification.is_read) {
+            try {
+                await fetch(`${API_BASE_URL}/notifications/${notification.id}/read`, {
+                    method: "POST",
+                    credentials: "include",
+                });
+                // Update local state for immediate feedback
+                setNotifications((prev) =>
+                    prev.map((x) => (x.id === notification.id ? { ...x, is_read: 1 } : x))
+                );
+            } catch (err) {
+                console.error("Failed to mark read:", err);
+            }
+        }
 
+        // 2. Clear previous modal state
         setSelectedNotification(notification);
         setCreatorProfile(null);
+        setBrandProfile(null);
+        setInviteDetails(null);
+        setProposalDetails(null);
 
-        // Fetch proposal details if relevant
+        // 3. Fetch Proposal Details (using notification.entity_id)
         if (notification.type === "proposal_received" && notification.entity_id) {
             setProposalLoading(true);
             try {
+                // Fetch the actual proposal, NOT the read status
                 const res = await fetch(`${API_BASE_URL}/proposals/${notification.entity_id}`, {
                     credentials: "include",
                 });
                 const proposalData = await res.json();
                 setProposalDetails(proposalData);
 
-                // Fetch creator profile using creator_id
                 if (proposalData.creator_id) {
                     const profileRes = await fetch(`${API_BASE_URL}/profiles/${proposalData.creator_id}`, {
                         credentials: "include",
@@ -155,13 +200,60 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 }
             } catch (err) {
                 console.error("Failed to fetch proposal details:", err);
-                setProposalDetails(null);
-                setCreatorProfile(null);
             } finally {
                 setProposalLoading(false);
             }
-        } else {
-            setProposalDetails(null);
+        }
+
+        // 4. Fetch Invite Details (using notification.entity_id)
+        if (notification.type === "campaign_invite" && notification.entity_id) {
+            setInviteLoading(true);
+            try {
+                // Updated to plural 'invites' to match our backend route
+                const res = await fetch(`${API_BASE_URL}/invite/${notification.entity_id}`, {
+                    credentials: "include",
+                });
+                const inviteData = await res.json();
+                setInviteDetails(inviteData);
+
+                if (inviteData.brand_id) {
+                    const brandRes = await fetch(`${API_BASE_URL}/profiles/${inviteData.brand_id}`, {
+                        credentials: "include",
+                    });
+                    const brandData = await brandRes.json();
+                    setBrandProfile({
+                        id: brandData.id,
+                        name: brandData.name,
+                        logo: brandData.avatar,
+                        industry: brandData.niche,
+                        location: brandData.location,
+                        website: brandData.website,
+                        verified: brandData.verified,
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to fetch invite details:", err);
+            } finally {
+                setInviteLoading(false);
+            }
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (res.ok) {
+                // Update local state to show everything as read
+                setNotifications((prev) => prev.map((n) => ({ ...n, is_read: 1 })));
+                toast.success("All notifications marked as read");
+            }
+        } catch (err) {
+            console.error("Failed to mark all as read:", err);
+            toast.error("Could not update notifications");
         }
     };
 
@@ -172,92 +264,72 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
         setDropdownOpen(false);
     };
 
-    const handleProposalAction = async (action: "accept" | "decline") => {
-        if (!proposalDetails) return;
+    const handleInvitationAction = async (action: "accept" | "decline") => {
+        if (!inviteDetails || !brandProfile) return;
 
         setActionLoading(action);
 
         try {
-            const res = await fetch(`${API_BASE_URL}/proposals/${proposalDetails.id}/action`, {
-                method: "POST", // Changed to POST
+            const res = await fetch(`${API_BASE_URL}/invite/${inviteDetails.id}/action`, {
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
-                body: JSON.stringify({ action }), // Send 'accept' or 'decline'
+                body: JSON.stringify({ action: action }), // Backend expects "action" key
             });
 
+            if (!res.ok) throw new Error("Failed to update invitation");
+
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to update proposal");
 
-            // Update local state with the status returned from the server
-            setProposalDetails({ ...proposalDetails, status: data.status });
+            // Update local state with the status returned from backend
+            setInviteDetails({ ...inviteDetails, status: data.status });
 
-            toast.success(
-                action === "accept"
-                    ? "Proposal accepted! The creator has been notified."
-                    : "Proposal declined."
-            );
-
+            toast.success(`Invitation ${action}ed!`);
             closeModal();
-        } catch (err: any) {
-            console.error(`Failed to ${action} proposal:`, err);
-            toast.error(err.message || `Failed to ${action} proposal.`);
+        } catch (err) {
+            console.error(`Failed to ${action} invitation:`, err);
+            toast.error(`Failed to ${action} invitation.`);
         } finally {
             setActionLoading(null);
         }
     };
 
-    const handleSelectNotification = async (notification: Notification) => {
-        // Mark as read locally
-        setNotifications((prev) =>
-            prev.map((x) => (x.id === notification.id ? { ...x, is_read: 1 } : x))
-        );
+    const handleProposalAction = async (action: "accept" | "decline") => {
+        if (!proposalDetails || !creatorProfile) return;
 
-        setSelectedNotification(notification);
-        setCreatorProfile(null);
+        setActionLoading(action);
 
-        // Fetch proposal details if relevant
-        if (notification.type === "proposal_received" && notification.entity_id) {
-            setProposalLoading(true);
-            try {
-                const res = await fetch(`${API_BASE_URL}/proposals/${notification.entity_id}`, {
-                    credentials: "include",
-                });
-                const proposalData = await res.json();
-                setProposalDetails(proposalData);
+        try {
+            const res = await fetch(`${API_BASE_URL}/proposals/${proposalDetails.id}/action`, {
+                method: "POST", // Match the backend we wrote
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ action: action }), // Match the backend "action" key
+            });
 
-                if (proposalData.creator_id) {
-                    const profileRes = await fetch(`${API_BASE_URL}/profiles/${proposalData.creator_id}`, {
-                        credentials: "include",
-                    });
-                    const profileData = await profileRes.json();
-                    setCreatorProfile({
-                        id: profileData.id,
-                        name: profileData.name,
-                        handle: profileData.handle,
-                        avatar: profileData.avatar,
-                        verified: profileData.verified,
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to fetch proposal details:", err);
-            } finally {
-                setProposalLoading(false);
-            }
-        } else {
-            setProposalDetails(null);
+            if (!res.ok) throw new Error("Failed to update proposal");
+
+            const data = await res.json();
+            setProposalDetails({ ...proposalDetails, status: data.status });
+
+            toast.success(`Proposal ${action === "accept" ? "accepted" : "declined"}!`);
+            closeModal();
+        } catch (err) {
+            console.error(`Failed to ${action} proposal:`, err);
+            toast.error("Action failed.");
+        } finally {
+            setActionLoading(null);
         }
     };
 
     return (
         <>
-            {/* Dropdown Panel - positioned absolutely */}
             <div
                 className={`absolute right-0 top-full mt-2 w-[380px] rounded-lg border bg-popover shadow-xl z-50 ${className || ""}`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-popover rounded-t-lg">
                     <div className="flex items-center gap-2">
-                        <BellRing className="h-5 w-5 text-primary" />
                         <h2 className="text-base font-semibold">Notifications</h2>
                         {unreadCount > 0 && (
                             <Badge className="h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
@@ -266,7 +338,12 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                         )}
                     </div>
                     {notifications.length > 0 && (
-                        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-muted-foreground h-7"
+                            onClick={handleMarkAllRead}
+                        >
                             Mark all as read
                         </Button>
                     )}
@@ -295,29 +372,36 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                         </div>
                     )}
 
-                    <div className="divide-y max-h-[400px] overflow-y-auto">
-                        {notifications.length > 0 ? (
-                            notifications.map((n) => (
-                                <NotificationItem
-                                    key={n.id}
-                                    notification={n}
-                                    getNotificationIcon={getNotificationIcon} // pass your icon helper
-                                    onRead={(id) => {
-                                        // Update local state so the dot disappears immediately
-                                        setNotifications(prev =>
-                                            prev.map(notif => notif.id === id ? { ...notif, is_read: 1 } : notif)
-                                        );
-                                    }}
-                                    onClick={(notif) => {
-                                        handleSelectNotification(notif);
-                                    }}
-                                />
-                            ))
-                        ) : (
-                            <div className="p-8 text-center text-sm text-muted-foreground">
-                                No notifications yet
-                            </div>
-                        )}
+                    <div className="divide-y">
+                        {notifications.map((n) => (
+                            <button
+                                key={n.id}
+                                onClick={() => handleClick(n)}
+                                className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 ${!n.is_read ? "bg-primary/5" : ""
+                                    }`}
+                            >
+                                <div className="flex-shrink-0 mt-0.5">
+                                    {getNotificationIcon(n.type)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p className={`text-sm line-clamp-1 ${!n.is_read ? "font-semibold" : "font-medium"}`}>
+                                            {n.title}
+                                        </p>
+                                        {!n.is_read && (
+                                            <span className="flex-shrink-0 h-2 w-2 rounded-full bg-primary mt-1.5" />
+                                        )}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+                                        {n.message}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                                    </p>
+                                </div>
+                            </button>
+                        ))}
                     </div>
                 </ScrollArea>
             </div>
@@ -325,9 +409,9 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
             {/* Notification Detail Modal */}
             <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && closeModal()}>
                 <DialogContent className={`${selectedNotification?.type === "proposal_accepted" || selectedNotification?.type === "proposal_rejected"
-                    ? "max-w-md max-h-[30vh]"
+                    ? "max-w-md max-h-fit"
                     : "max-w-lg"
-                    } p-0 gap-0 overflow-hidden`}>
+                    } p-4 gap-0 overflow-hidden !flex !flex-col !justify-center max-h-fit`}>
                     {/* Simple Modal for proposal_accepted / proposal_rejected */}
                     {(selectedNotification?.type === "proposal_accepted" || selectedNotification?.type === "proposal_rejected") ? (
                         <>
@@ -356,12 +440,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                 </p>
                             </div>
                             <div className="px-6 py-4 border-t flex justify-center">
-                                <Button variant="outline" size="sm" onClick={() => {
-                                    closeModal();
-                                    setTimeout(() => {
-                                        setDropdownOpen(false);
-                                    }, 200);
-                                }}>
+                                <Button variant="outline" size="sm" onClick={closeModal}>
                                     Close
                                 </Button>
                             </div>
@@ -386,7 +465,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                             </DialogHeader>
 
                             {/* Modal Content */}
-                            <ScrollArea className="max-h-[60vh]">
+                            <ScrollArea className="!h-fit">
                                 <div className="px-6 py-4 space-y-4">
                                     {/* Notification Meta */}
                                     <div className="grid grid-cols-2 gap-3">
@@ -412,7 +491,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                         </div>
                                     </div>
 
-                                    {selectedNotification?.entity_type && (
+                                    {selectedNotification?.entity_type && selectedNotification?.type !== "campaign_invite" && selectedNotification?.type !== "proposal_received" && (
                                         <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                                             <Package className="h-4 w-4 text-muted-foreground" />
                                             <div>
@@ -420,6 +499,147 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                 <p className="text-sm font-medium capitalize">
                                                     {selectedNotification.entity_type} #{selectedNotification.entity_id}
                                                 </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Campaign Invite Details Section */}
+                                    {selectedNotification?.type === "campaign_invite" && (
+                                        <div className="!h-fit">
+                                            <Separator />
+
+                                            <div className="max-h-fit">
+                                                <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                                    Campaign Invitation
+                                                </h4>
+
+                                                {inviteLoading ? (
+                                                    <div className="flex items-center justify-center py-8 gap-3">
+                                                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                                                        <p className="text-sm text-muted-foreground">Loading invitation...</p>
+                                                    </div>
+                                                ) : inviteDetails && brandProfile ? (
+                                                    <div className="space-y-4">
+                                                        {/* Brand Card */}
+                                                        <div className="relative overflow-hidden rounded-xl border to-secondary/10 p-1">
+                                                            <div className="rounded-lg bg-gradient-to-br from-secondary to-primary/85 p-4">
+                                                                <div className="flex items-start gap-4">
+                                                                    {/* Brand Logo */}
+                                                                    <div className="relative flex-shrink-0">
+                                                                        <div className="h-16 w-16 rounded-xl border-2 border-border flex items-center justify-center overflow-hidden shadow-sm">
+                                                                            {brandProfile.logo ? (
+                                                                                <img
+                                                                                    src={`${API_BASE}${brandProfile.logo}`}
+                                                                                    alt={brandProfile.name}
+                                                                                    className="h-full w-full object-cover"
+                                                                                    onError={(e) => {
+                                                                                        const target = e.currentTarget as HTMLImageElement;
+                                                                                        target.onerror = null;
+                                                                                        target.style.display = 'none';
+                                                                                        target.parentElement!.innerHTML = '<div class="h-8 w-8 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg></div>';
+                                                                                    }}
+                                                                                />
+                                                                            ) : (
+                                                                                <Building2 className="h-8 w-8 text-muted-foreground" />
+                                                                            )}
+                                                                        </div>
+                                                                        {brandProfile.verified && (
+                                                                            <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center shadow-sm">
+                                                                                <CheckCircle2 className="h-3 w-3 text-primary-foreground" />
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Brand Info */}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <h3 className="text-lg font-bold truncate text-white">
+                                                                                {brandProfile.name}
+                                                                            </h3>
+                                                                            <p></p>
+                                                                        </div>
+
+                                                                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                                                                            {brandProfile.industry && (
+                                                                                <Badge variant="secondary" className="text-xs font-normal">
+                                                                                    {brandProfile.industry}
+                                                                                </Badge>
+                                                                            )}
+                                                                            {brandProfile.location && (
+                                                                                <span className="flex items-center gap-1">
+                                                                                    <MapPin className="h-3 w-3" />
+                                                                                    {brandProfile.location}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {brandProfile.website && (
+                                                                            <a
+                                                                                href={brandProfile.website}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="inline-flex items-center gap-1 mt-2 text-xs text-primary hover:underline"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                <Globe className="h-3 w-3" />
+                                                                                Visit website
+                                                                                <ExternalLink className="h-3 w-3" />
+                                                                            </a>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Campaign Details */}
+                                                        {inviteDetails.campaign_name && (
+                                                            <div className="p-3 rounded-lg border bg-muted/30">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <Package className="h-4 w-4 text-muted-foreground" />
+                                                                    <p className="text-xs text-muted-foreground">Campaign</p>
+                                                                </div>
+                                                                <p className="text-sm font-medium">{inviteDetails.campaign_name}</p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Message */}
+                                                        {inviteDetails.message && (
+                                                            <div className="p-3 rounded-lg border bg-card">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                                                                    <p className="text-xs text-muted-foreground">Personal Message</p>
+                                                                </div>
+                                                                <p className="text-sm whitespace-pre-wrap">{inviteDetails.message}</p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Budget and Status Row */}
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            {inviteDetails.campaign_budget && (
+                                                                <div className="p-3 rounded-lg border bg-card">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                                                        <p className="text-xs text-muted-foreground">Budget</p>
+                                                                    </div>
+                                                                    <p className="text-lg font-semibold text-primary">
+                                                                        ${inviteDetails.campaign_budget.toLocaleString()}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            <div className="p-3 rounded-lg border bg-card">
+                                                                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                                                                {getStatusBadge(inviteDetails.status)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
+                                                        <XCircle className="h-8 w-8 text-destructive/50" />
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Failed to load invitation details
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -534,11 +754,12 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                             </ScrollArea>
 
                             {/* Modal Footer */}
-                            <div className="px-6 py-4 border-t flex items-center justify-between">
+                            <div className="px-6 py-4 border-t flex items-center justify-between !p-6">
                                 <Badge variant="outline" className="text-xs">
                                     {selectedNotification?.is_read ? "Read" : "Unread"}
                                 </Badge>
                                 <div className="flex items-center gap-2">
+                                    {/* Proposal Actions */}
                                     {selectedNotification?.type === "proposal_received" && proposalDetails && proposalDetails.status === "pending" && (
                                         <>
                                             <Button
@@ -569,16 +790,46 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                             </Button>
                                         </>
                                     )}
-                                    {(selectedNotification?.type !== "proposal_received" || !proposalDetails || proposalDetails.status !== "pending") && (
-                                        <Button variant="outline" size="sm" onClick={() => {
-                                            closeModal();
-                                            setTimeout(() => {
-                                                setDropdownOpen(false);
-                                            }, 200);
-                                        }}>
-                                            Close
-                                        </Button>
+                                    {/* Campaign Invite Actions */}
+                                    {selectedNotification?.type === "campaign_invite" && inviteDetails && inviteDetails.status === "pending" && (
+                                        <>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="text-destructive hover:text-destructive"
+                                                onClick={() => handleInvitationAction("decline")}
+                                                disabled={actionLoading !== null}
+                                            >
+                                                {actionLoading === "decline" ? (
+                                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                                ) : (
+                                                    <XCircle className="h-4 w-4 mr-1" />
+                                                )}
+                                                Decline
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleInvitationAction("accept")}
+                                                disabled={actionLoading !== null}
+                                            >
+                                                {actionLoading === "accept" ? (
+                                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                                ) : (
+                                                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                                                )}
+                                                Accept
+                                            </Button>
+                                        </>
                                     )}
+                                    {/* Close Button for other cases */}
+                                    {(
+                                        (selectedNotification?.type !== "proposal_received" || !proposalDetails || proposalDetails.status !== "pending") &&
+                                        (selectedNotification?.type !== "campaign_invite" || !inviteDetails || inviteDetails.status !== "pending")
+                                    ) && (
+                                            <Button variant="outline" size="sm" onClick={closeModal}>
+                                                Close
+                                            </Button>
+                                        )}
                                 </div>
                             </div>
                         </>
