@@ -16,6 +16,13 @@ export const translations = {
       creatorAbout: "За създатели"
     },
 
+    legal:{
+      title: "Правна информация",
+      privacyPolicy: "Политика за поверителност",
+      terms: "Условия за ползване",
+      cookies: "Бисквитки"
+    },
+
     common: {
       back: "Назад",
       next: "Напред",
@@ -34,44 +41,44 @@ export const translations = {
       }
     },
 
-    contacts:{
-      title:"Свържете се с нас",
-      subtitle:"Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне",
-      email:"Имейл",
-      location:"Локация",
-      locationValue:"България",
-      workHours:"Работно време",
-      workHoursValue:"Поддръжка 24/7",
-      sendMessage:"Изпратете ни съобщение",
-      name:"Име",
-      namePlaceholder:"Вашето име",
-      subject:"Тема",
-      subjectPlaceholder:"Относно какво е Вашето съобщение?",
-      message:"Съобщение",
-      messagePlaceholder:"Вашето съобщение...",
-      button:"Изпрати"
+    contacts: {
+      title: "Свържете се с нас",
+      subtitle: "Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне",
+      email: "Имейл",
+      location: "Локация",
+      locationValue: "България",
+      workHours: "Работно време",
+      workHoursValue: "Поддръжка 24/7",
+      sendMessage: "Изпратете ни съобщение",
+      name: "Име",
+      namePlaceholder: "Вашето име",
+      subject: "Тема",
+      subjectPlaceholder: "Относно какво е Вашето съобщение?",
+      message: "Съобщение",
+      messagePlaceholder: "Вашето съобщение...",
+      button: "Изпрати"
     },
 
-    drivesUs:{
-      title:"Какво ни движи",
-      card1Title:"Нашата мисия",
-      card1Content:"Да улесним сътрудничеството между бизнеси и създатели на съдържание чрез прозрачна, ефективна и ориентирана към качество платформа, която създава реална стойност и измерими резултати.",
-      card2Title:"Нашите ценности",
-      card2Content:"Качество, прозрачност и автентичност.Вярваме в силата на нишовото влияние и устойчивите партньорства.",
-      card3Title:"Нашата визия",
-      card3Content:"Да зададем нов стандарт в инфлуенсър маркетинга чрез качество, доверие и устойчив растеж."
+    drivesUs: {
+      title: "Какво ни движи",
+      card1Title: "Нашата мисия",
+      card1Content: "Да улесним сътрудничеството между бизнеси и създатели на съдържание чрез прозрачна, ефективна и ориентирана към качество платформа, която създава реална стойност и измерими резултати.",
+      card2Title: "Нашите ценности",
+      card2Content: "Качество, прозрачност и автентичност.Вярваме в силата на нишовото влияние и устойчивите партньорства.",
+      card3Title: "Нашата визия",
+      card3Content: "Да зададем нов стандарт в инфлуенсър маркетинга чрез качество, доверие и устойчив растеж."
     },
 
-    footer:{
-      slogan:"Глобален обхват. Локално въздействие.",
-      rights:"Всички права запазени",
-      nav:{
-        title:"Навигация",
-        home:"Начало",
-        contact:"Контакти",
-        about:"За нас"
+    footer: {
+      slogan: "Глобален обхват. Локално въздействие.",
+      rights: "Всички права запазени",
+      nav: {
+        title: "Навигация",
+        home: "Начало",
+        contact: "Контакти",
+        about: "За нас"
       },
-      support:"24/7 Поддръжка",
+      support: "24/7 Поддръжка",
     },
 
     form: {
@@ -195,7 +202,7 @@ export const translations = {
         },
       },
 
-      gdpr:{
+      gdpr: {
         privacyPolicy: "Политика за поверителност",
         consentText: "Съгласен съм данните ми да бъдат обработени както следва в",
         terms: "Общи условия",
@@ -344,7 +351,7 @@ export const translations = {
       },
       section_title_1: "Създадена за Вас",
       section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
-       card_1: {
+      card_1: {
         title: "Активирайте влиянието си и печелете!",
         description: "Свързваме ви с правилните брандове, за да превърнете влиянието си в реална стойност."
       },
@@ -586,6 +593,13 @@ export const translations = {
       creatorAbout: "For creators"
     },
 
+    legal: {
+      title: "Legal",
+      privacyPolicy:"Privacy Policy",
+      terms:"Terms & Conditions",
+      cookies:"Cookies"
+    },
+
     common: {
       back: "Back",
       next: "Next",
@@ -604,44 +618,44 @@ export const translations = {
       }
     },
 
-    drivesUs:{
-      title:"What drives us",
-      card1Title:"Our mission",
-      card1Content:"To make the collaboration between creators and brands an easy process, through an effective and oriented towards quality platform, that creates real value and measurable growth.",
-      card2Title:"Our values",
-      card2Content:"Quality, transparency and authenticity. We believe in niche influence and lasting partnerships.",
-      card3Title:"Our vision",
-      card3Content:"To set a new standard through quality, trust and lasting growth."
+    drivesUs: {
+      title: "What drives us",
+      card1Title: "Our mission",
+      card1Content: "To make the collaboration between creators and brands an easy process, through an effective and oriented towards quality platform, that creates real value and measurable growth.",
+      card2Title: "Our values",
+      card2Content: "Quality, transparency and authenticity. We believe in niche influence and lasting partnerships.",
+      card3Title: "Our vision",
+      card3Content: "To set a new standard through quality, trust and lasting growth."
     },
 
-    contacts:{
-      title:"Contact us",
-      subtitle:"Have any questions? Our team is available 24/7 to offer you assistance",
-      email:"Email",
-      location:"Location",
-      locationValue:"Bulgaria",
-      workHours:"Work hours",
-      workHoursValue:"Support 24/7",
-      sendMessage:"Send us a message",
-      name:"Name",
-      namePlaceholder:"Your name",
-      subject:"Subject",
-      subjectPlaceholder:"What is your message about?",
-      message:"Message",
-      messagePlaceholder:"Your message...",
-      button:"Send"
+    contacts: {
+      title: "Contact us",
+      subtitle: "Have any questions? Our team is available 24/7 to offer you assistance",
+      email: "Email",
+      location: "Location",
+      locationValue: "Bulgaria",
+      workHours: "Work hours",
+      workHoursValue: "Support 24/7",
+      sendMessage: "Send us a message",
+      name: "Name",
+      namePlaceholder: "Your name",
+      subject: "Subject",
+      subjectPlaceholder: "What is your message about?",
+      message: "Message",
+      messagePlaceholder: "Your message...",
+      button: "Send"
     },
 
-    footer:{
-      slogan:"Global reach. Local impact.",
-      rights:"All rights reserved",
-      nav:{
-        title:"Navigation",
-        home:"Home",
-        contact:"Contacts",
-        about:"About us"
+    footer: {
+      slogan: "Global reach. Local impact.",
+      rights: "All rights reserved",
+      nav: {
+        title: "Navigation",
+        home: "Home",
+        contact: "Contacts",
+        about: "About us"
       },
-      support:"24/7 Support",
+      support: "24/7 Support",
     },
 
     form: {
@@ -887,7 +901,7 @@ export const translations = {
         otherCategory: "Please enter the type of business.."
       },
 
-      gdpr:{
+      gdpr: {
         privacyPolicy: "Privacy Policy",
         consentText: "I agree to the processing of my personal data by as described in the",
         terms: "Terms & Conditions",

@@ -1,9 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Scale, AlertCircle, Rocket, UserCheck, ShieldAlert } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useEffect } from "react";
 
 const Terms = () => {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [])
 
   const termHighlights = [
     {
@@ -58,7 +63,7 @@ const Terms = () => {
           <div className="max-w-3xl mx-auto">
             <Card className="rounded-3xl border-border overflow-hidden">
               <CardContent className="p-8 md:p-12 space-y-8 text-gray-700 leading-relaxed">
-                
+
                 <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-sm">
                   Service Agreement
                 </div>

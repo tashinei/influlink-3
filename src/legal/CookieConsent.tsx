@@ -7,6 +7,10 @@ import { Link } from "react-router-dom";
 const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);
 
+  useEffect(()=>{
+    window.scrollTo(0,0);
+  },[])
+
   useEffect(() => {
     // Check if user has already made a choice
     const consent = localStorage.getItem("cookie-consent");

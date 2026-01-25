@@ -1,9 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Lock, Eye, Mail, Server, Scale, FileText } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useEffect } from "react";
 
 const Privacy = () => {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [])
 
   const legalSections = [
     {
@@ -58,7 +63,7 @@ const Privacy = () => {
           <div className="max-w-3xl mx-auto">
             <Card className="rounded-3xl border-border overflow-hidden">
               <CardContent className="p-8 md:p-12 space-y-8 text-gray-700 leading-relaxed">
-                
+
                 <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-sm">
                   Legal Disclosure (Impressum)
                 </div>
@@ -88,21 +93,21 @@ const Privacy = () => {
                     Detailed Privacy Policy
                   </h2>
                   <p>
-                    This policy describes our practices regarding the collection and use of personal data 
+                    This policy describes our practices regarding the collection and use of personal data
                     for the InfluLink waitlist. We act as the <strong>Data Controller</strong> under GDPR.
                   </p>
-                  
+
                   <h3 className="font-bold text-lg pt-4">Legal Basis for Processing</h3>
                   <p>
-                    We process your data based on your <strong>explicit consent</strong> provided when 
-                    checking the agreement box on our forms. You have the right to withdraw this consent 
+                    We process your data based on your <strong>explicit consent</strong> provided when
+                    checking the agreement box on our forms. You have the right to withdraw this consent
                     at any time by emailing us.
                   </p>
 
                   <h3 className="font-bold text-lg pt-4">Third-Party Services</h3>
                   <p>
-                    We utilize <strong>Google ReCAPTCHA</strong> for security and to prevent automated 
-                    spam. This service may collect hardware and software information, such as device 
+                    We utilize <strong>Google ReCAPTCHA</strong> for security and to prevent automated
+                    spam. This service may collect hardware and software information, such as device
                     and application data, and send it to Google for analysis.
                   </p>
 
