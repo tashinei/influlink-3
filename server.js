@@ -76,61 +76,115 @@ const generateUniqueHandle = async (baseHandle) => {
   }
 };
 
-// Registration
 app.post("/api/register", async (req, res) => {
+  const connection = await pool.getConnection();
+
   try {
-    const { name, email, password, accountType, analytics, marketing } = req.body;
-    if (!name || !email || !password || !accountType)
-      return res.status(400).json({ message: "Missing required fields" });
+    await connection.beginTransaction();
 
-    // Check existing user
-    const [existing] = await pool.query(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
+    let {
+      name, email, password, accountType,
+      analytics, marketing,
+      handle, location, bio,
+      niche, platforms, languages, content_types, collab_types
+    } = req.body;
+
+    if (!email || !password || !handle || !accountType) {
+      return res.status(400).json({ message: "Missing required registration fields" });
+    }
+
+    const cleanHandle = handle.replace(/^@/, '').toLowerCase().trim();
+
+    const [existing] = await connection.query(
+      `SELECT u.email, p.handle 
+       FROM users u 
+       LEFT JOIN profiles p ON u.id = p.id 
+       WHERE u.email = ? OR p.handle = ?`,
+      [email, cleanHandle]
     );
-    if (existing.length > 0)
-      return res.status(409).json({ message: "Email already exists" });
 
-    // Hash password
+    if (existing.length > 0) {
+      const isEmailTaken = existing.some(row => row.email === email);
+      return res.status(409).json({
+        message: isEmailTaken ? "Email already registered" : "Handle is already taken"
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert user
-    const [result] = await pool.query(
-      "INSERT INTO users (name, email, password_hash, account_type, created_at) VALUES (?, ?, ?, ?, NOW())",
-      [name, email, hashedPassword, accountType]
+    const [userResult] = await connection.query(
+      `INSERT INTO users 
+      (name, email, password_hash, account_type, created_at, gdpr_consent, consent_analytics, consent_marketing, consent_date) 
+      VALUES (?, ?, ?, ?, NOW(), 1, ?, ?, NOW())`,
+      [name, email, hashedPassword, accountType, analytics ? 1 : 0, marketing ? 1 : 0]
     );
-    const newUserId = result.insertId;
+    const newUserId = userResult.insertId;
 
-    // Create profile for user
-    const baseHandle = generateHandleFromName(name);
-    const handle = await generateUniqueHandle(baseHandle);
-    await pool.query(
-      "INSERT INTO profiles (id, name, handle, type, created_at, gdpr_consent, consent_analytics, consent_marketing, consent_date) VALUES (?, ?, ?, ?, NOW(), 1, ?, ?, NOW())",
-      [newUserId, name, handle, accountType, analytics ? 1 : 0, marketing ? 1 : 0]
-    );
+    if (accountType === 'creator') {
+      await connection.query(
+        `INSERT INTO profiles 
+        (id, name, handle, type, location, niche, bio, platforms, languages, content_types, collab_types, created_at) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [
+          newUserId,
+          name,
+          cleanHandle,
+          'creator',
+          location || null,
+          niche || null,
+          bio || null,
+          JSON.stringify(platforms || []),
+          JSON.stringify(languages || []),
+          JSON.stringify(languages || []),
+          JSON.stringify(content_types || []),
+          JSON.stringify(collab_types || [])
+        ]
+      );
+    } else {
+      await connection.query(
+        `INSERT INTO profiles (id, name, handle, type, location, bio, content_types, collab_types, created_at) 
+   VALUES (?, ?, ?, ?, ?, ?, ?, ?,NOW())`,
+        [newUserId, name, cleanHandle, 'brand', location || null, bio || null, JSON.stringify([]), JSON.stringify([])]
+      );
+    }
 
-    // Create JWT token
+    await connection.commit();
+
     const token = jwt.sign(
       { id: newUserId, email, accountType },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Set cookie
+    // 9. Set HttpOnly Cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProduction,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // 10. Final Response (Matches your Zustand Store needs)
     res.status(201).json({
       message: "Account created successfully",
-      user: { id: newUserId, name, email, accountType },
+      token, // Also returned in body for non-cookie environments
+      user: {
+        id: newUserId,
+        email,
+        username: cleanHandle,
+        accountType,
+        isVIP: false
+      },
     });
+
   } catch (err) {
-    console.error("Registration error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    // If anything fails, undo all database changes
+    await connection.rollback();
+    console.error("Unified Registration error:", err);
+    res.status(500).json({ message: "Internal server error during registration." });
+  } finally {
+    // Release connection back to pool
+    connection.release();
   }
 });
 
@@ -2061,12 +2115,12 @@ app.get("/api/links", authenticate, async (req, res) => {
     }
 
     const [rows] = await pool.query(sql, params);
-    
+
     const formatted = rows.map(row => ({
       id: row.id.toString(),
       campaignId: row.campaignId.toString(),
       title: row.title,
-      status: row.status, 
+      status: row.status,
       category: row.category,
       date: new Date(row.created_at).toLocaleDateString(),
       linkType: row.linkType,

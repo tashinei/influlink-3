@@ -109,10 +109,10 @@ function AccountOptionCard({ option, onClick }: AccountOptionCardProps) {
       to={option.href}
       onClick={onClick}
       className={cn(
-        "group relative flex flex-col rounded-2xl border border-primary-foreground/10 bg-primary-foreground/5 p-6 backdrop-blur-sm",
+        "group relative flex flex-col rounded-2xl bg-gradient-to-b from-secondary via-primary to-transparent p-6 backdrop-blur-sm shadow-md shadow-white",
         "transition-all duration-300 ease-out",
-        "hover:border-primary-foreground/20 hover:bg-primary-foreground/10",
-        "hover:shadow-lg hover:shadow-primary-foreground/5",
+        "hover:border-secondary/20 hover:bg-secondary/10",
+        "hover:shadow-lg hover:shadow-white",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/50 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
       )}
     >

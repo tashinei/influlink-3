@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,17 +12,35 @@ interface AuthFormProps {
   description: string;
   icon?: React.ReactNode;
   changeFormMode: () => void;
+  onSuccess: (step1Data: any) => void;
+  isMultiStep: boolean;
+  initialData?: { name: string; email: string };
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, changeFormMode }) => {
+const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, changeFormMode, onSuccess, isMultiStep, initialData }) => {
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
   const setToken = useUserStore((state) => state.setToken);
   const setRegistered = useUserStore((state) => state.setRegistered);
   const setAccountType = useUserStore((state) => state.setAccountType);
 
-  const [mode, setMode] = useState<'register' | 'login'>('register'); // mode toggle
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [mode, setMode] = useState<'register' | 'login'>('register');
+
+  const [formData, setFormData] = useState({
+    name: initialData?.name || '',
+    email: initialData?.email || '',
+    password: ''
+  });
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        name: initialData.name || prev.name,
+        email: initialData.email || prev.email
+      }));
+    }
+  }, [initialData]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -46,15 +64,27 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     setLoading(true);
     setError(null);
 
+    if (mode === 'register' && isMultiStep) {
+      setTimeout(() => {
+        setLoading(false);
+        const savedCookiePrefs = localStorage.getItem("cookie_preferences");
+        let guestConsent = { analytics: false, marketing: false };
+        if (savedCookiePrefs) {
+          const parsed = JSON.parse(savedCookiePrefs);
+          guestConsent = { analytics: !!parsed[1], marketing: !!parsed[2] };
+        }
+
+        onSuccess({ ...formData, ...guestConsent });
+      }, 800);
+      return;
+    }
     try {
-      // 1. Extract Guest Cookie Preferences from LocalStorage
       const savedCookiePrefs = localStorage.getItem("cookie_preferences");
       let guestConsent = { analytics: false, marketing: false };
 
       if (savedCookiePrefs) {
         try {
           const parsedPrefs = JSON.parse(savedCookiePrefs);
-          // Assuming structure from earlier: [essential, analytics, marketing]
           guestConsent = {
             analytics: !!parsedPrefs[1],
             marketing: !!parsedPrefs[2]
@@ -64,8 +94,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
         }
       }
 
-      // 2. Prepare the Payload
-      // We merge guestConsent into both modes so the DB is always updated
       const payload = mode === 'register'
         ? { ...formData, accountType, ...guestConsent }
         : { email: formData.email, password: formData.password, ...guestConsent };
@@ -135,23 +163,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   return (
     <>
       <div className="w-full max-w-[36rem] p-6 bg-transparent dark:bg-background flex flex-col justify-center h-full">
-        {/* Logo */}
         <div className="flex items-center mb-6">
           <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-white dark:text-white">
             <span>InfluLink</span>
           </Link>
         </div>
 
-        {/* Header */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold text-white dark:text-white">{title}</h2>
           <p className="text-lg text-white/80 dark:text-gray-400 mt-2">{description}</p>
         </div>
 
-        {/* Error */}
         {error && <p className="text-red-400 mb-3 text-center">{error}</p>}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5 flex flex-col">
           {mode === 'register' && (
             <div className="relative w-[80%] mx-auto">
@@ -207,19 +231,17 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           </Button>
         </form>
 
-        {/* Social Login */}
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
           <p className="font-bold text-white/80 mb-4">Or</p>
           <Button
             variant="outline"
             className="w-full max-w-sm h-11 bg-white/20 dark:text-white mx-auto flex items-center justify-center space-x-2"
           >
-            <BsGoogle className="h-4 w-4" />
-            <span>Sign in with Google</span>
+            <BsGoogle className="h-4 w-4 text-white" />
+            <span className='text-white'>Sign in with Google</span>
           </Button>
         </div>
 
-        {/* Footer */}
         <div className="mt-8 text-center text-sm text-white/80 dark:text-gray-400">
           {mode === 'register' ? 'Already have an account? ' : "Don't have an account? "}
           <button
@@ -235,7 +257,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
         </div>
       </div>
 
-      {/* Success modal only for registration */}
       {isSuccessModalOpen && mode === 'register' && (
         <div
           className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-[999] animate-fade-in"

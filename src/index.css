@@ -487,9 +487,17 @@ body {
 
 /* Smooth floating animation */
 @keyframes dockFloat {
-  0%   { transform: translateY(0); }
-  50%  { transform: translateY(-3px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .dock-float {
@@ -514,6 +522,7 @@ body {
     transform: scale(0.85);
     opacity: 0;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -522,4 +531,31 @@ body {
 
 .animate-campaign-open {
   animation: campaignOpen 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-input {
+  @apply w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all hover:bg-white/10;
+}
+
+@layer components {
+  .step-input {
+    @apply w-full bg-white/10 border border-white/10 rounded-xl h-12 px-4 text-white placeholder:text-white/30 outline-none transition-all focus:bg-white/15 focus:border-white/30 focus:ring-2 focus:ring-white/5;
+  }
+
+  select.step-input {
+    @apply cursor-pointer;
+  }
+
+  /* Custom Scrollbar for the Glass Container */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
 }

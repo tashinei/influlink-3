@@ -56,7 +56,7 @@ const budgetRanges = [
 
 type Props = {
   onSearch: (filters: any) => void;
-  onClickSearch: ()=>void;
+  onClickSearch: () => void;
   isRegistered: boolean;
 };
 
@@ -142,54 +142,55 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
   const [countryModalOpen, setCountryModalOpen] = useState(false);
 
   return (
-    <section id="search-section" className="py-20 px-4 bg-gradient-to-b from-background to-muted/30">
-      <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+    <section id="search-section" className="py-12 md:py-20 bg-gradient-to-b from-background to-muted/30">
+      <div className="container mx-auto max-w-6xl pl-[1rem] pr-[1rem]">
+        {/* HEADER */}
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
             Find Your <span className="bg-gradient-to-r from-primary via-secondary to-tertiary bg-clip-text text-transparent">Perfect Creator</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Search through thousands of verified creators and find the perfect match for your brand
           </p>
         </div>
 
-        <Card className="border-2 border-border/50 shadow-xl bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-6 md:p-8">
-            {/* Main Search Bar */}
-            <div className="relative mb-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search creators by name, niche, or keyword..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-6 text-lg border-2 border-border focus:border-primary rounded-xl bg-background"
-              />
+        <Card className="border-2 border-border/50 shadow-xl bg-card/80 backdrop-blur-sm overflow-hidden">
+          <CardContent className="p-4 md:p-8">
+
+            {/* SEARCH BAR - Stacked on Mobile */}
+            <div className="flex flex-col gap-3 mb-8">
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search creators..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 pr-4 py-6 text-base md:text-lg border-2 border-border focus:border-primary rounded-xl bg-background w-full"
+                />
+              </div>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="absolute right-2 top-1/2 -translate-y-1/2"
+                className="w-full md:w-fit self-end flex items-center justify-center gap-2 h-10"
               >
-                <SlidersHorizontal className="w-5 h-5 mr-2" />
-                {showAllFilters ? "Less Filters" : "More Filters"}
+                <SlidersHorizontal className="w-4 h-4" />
+                {showAllFilters ? "Simple Search" : "Advanced Filters"}
               </Button>
             </div>
 
-            {/* Quick Filters - Always Visible */}
+            {/* QUICK FILTERS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {/* Niche/Category */}
+              {/* Niche - Scrollable box for mobile */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Niche/Category</Label>
-                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-muted/30 rounded-lg">
+                <Label className="text-sm font-semibold text-primary">Niche/Category</Label>
+                <div className="flex flex-wrap gap-2 max-h-32 md:max-h-24 overflow-y-auto p-3 bg-muted/30 rounded-xl border border-border/50">
                   {niches.map((niche) => (
                     <Badge
                       key={niche}
                       variant={selectedNiches?.includes(niche) ? "default" : "outline"}
-                      className={`cursor-pointer transition-all ${selectedNiches?.includes(niche)
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "hover:bg-primary/10"
-                        }`}
+                      className="cursor-pointer py-1.5 px-3 active:scale-95 transition-transform"
                       onClick={() => toggleSelection(niche, selectedNiches, setSelectedNiches)}
                     >
                       {niche}
@@ -200,16 +201,13 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
 
               {/* Platform */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Platform</Label>
-                <div className="flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg">
+                <Label className="text-sm font-semibold text-primary">Platform</Label>
+                <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-xl border border-border/50">
                   {platforms.map((platform) => (
                     <Badge
                       key={platform}
                       variant={selectedPlatforms?.includes(platform) ? "default" : "outline"}
-                      className={`cursor-pointer transition-all ${selectedPlatforms?.includes(platform)
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : "hover:bg-primary/10"
-                        }`}
+                      className="cursor-pointer py-1.5 px-3 active:scale-95 transition-transform"
                       onClick={() => toggleSelection(platform, selectedPlatforms, setSelectedPlatforms)}
                     >
                       {platform}
@@ -220,81 +218,51 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
 
               {/* Follower Range */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Follower Range</Label>
+                <Label className="text-sm font-semibold text-primary">Follower Range</Label>
                 <Select value={followerRange ?? ""} onValueChange={setFollowerRange}>
-                  <SelectTrigger className="bg-background border-2">
+                  <SelectTrigger className="bg-background border-2 h-12 rounded-xl">
                     <SelectValue placeholder="Select range" />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover">
+                  <SelectContent>
                     {followerRanges.map((range) => (
-                      <SelectItem key={range.value} value={range.value}>
-                        {range.label}
-                      </SelectItem>
+                      <SelectItem key={range.value} value={range.value}>{range.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* Extended Filters */}
+            {/* EXTENDED FILTERS */}
             {showAllFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 pt-6 border-t border-border">
-                {/* Country */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-border animate-in fade-in slide-in-from-top-2">
+                {/* Country Button - Full width on mobile */}
                 <div className="space-y-2">
-                  <div>
-                    <Label className="text-sm font-medium text-foreground">Country</Label>
-                    <div
-                      onClick={() =>
-                        setCountryModalOpen(true)
-                      }
-                      className="mt-2 py-2 px-3 group justify-center cursor-pointer border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md flex flex-wrap gap-2 items-center transition-colors"
-                    >
-
-                      <span className={`text-sm flex items-center gap-2 ${country ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        {(country != null && country.name != "") ? country.name : t("form.placeholders.selectOneCountry") || "+ Изберете държава"}
-                      </span>
-                    </div>
-                  </div>
-                  <CountryPickerModal
-                    open={countryModalOpen}
-                    onClose={() => setCountryModalOpen(false)}
-                    selected={country != null ? [country] : []}
-                    setSelected={(val: { code: string; name: string; flag?: string }[]) =>
-                      setCountry(val[0] || null)
-                    }
-                    onSave={() => setCountryModalOpen(false)}
-                    shouldHaveOverlay={false}
-                  />
+                  <Label className="text-sm font-semibold text-primary">Country</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start h-12 border-2 rounded-xl bg-background"
+                    onClick={() => setCountryModalOpen(true)}
+                  >
+                    <span className="truncate">
+                      {country?.name || "Select Country"}
+                    </span>
+                  </Button>
                 </div>
 
-                {/* Language */}
+                {/* Language - Fixed layout */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Language</Label>
-
-                  <div className="flex flex-wrap gap-2 border-2 rounded-md p-2 bg-background">
+                  <Label className="text-sm font-semibold text-primary">Language</Label>
+                  <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-xl border border-border/50 max-h-32 overflow-y-auto">
                     {languagesList.map((lang) => {
                       const value = lang.toLowerCase();
-                      const selected = languages?.includes(value);
-
-                      console.log("Selected languages:", languages);
-
+                      const isSel = languages?.includes(value);
                       return (
                         <button
                           key={value}
                           type="button"
-                          onClick={() => {
-                            setLanguages((prev) =>
-                              selected
-                                ? prev.filter((l) => l !== value)
-                                : [...prev, value]
-                            );
-                          }}
-                          className={`
-            px-3 py-1 rounded-full text-sm border transition
-            ${selected
-                              ? "bg-primary text-white border-primary"
-                              : "bg-muted text-muted-foreground hover:bg-accent"}
-          `}
+                          onClick={() => setLanguages(prev => isSel ? prev.filter(l => l !== value) : [...prev, value])}
+                          className={`px-3 py-1 rounded-full text-xs border transition-all active:scale-95 ${isSel ? "bg-primary text-white" : "bg-background text-muted-foreground"
+                            }`}
                         >
                           {lang}
                         </button>
@@ -303,126 +271,63 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
                   </div>
                 </div>
 
-                {/* Engagement Rate */}
+                {/* Engagement */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Engagement Rate</Label>
-                  <Select
-                    value={engagementRate} // bind to state
-                    onValueChange={(value) =>
-                      setEngagementRate(value)
-                    }
-                  >
-                    <SelectTrigger className="bg-background border-2">
+                  <Label className="text-sm font-semibold text-primary">Engagement Rate</Label>
+                  <Select value={engagementRate} onValueChange={setEngagementRate}>
+                    <SelectTrigger className="bg-background border-2 h-12 rounded-xl">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {engagementRates.map((rate) => (
-                        <SelectItem key={rate.value} value={rate.value}>
-                          {rate.label}
-                        </SelectItem>
+                    <SelectContent>
+                      {engagementRates.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Content Type */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Content Type</Label>
-                  <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-muted/30 rounded-lg">
-                    {contentTypes.map((type) => (
-                      <Badge
-                        key={type}
-                        variant={selectedContentTypes?.includes(type) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all ${selectedContentTypes?.includes(type)
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                          : "hover:bg-primary/10"
-                          }`}
-                        onClick={() => toggleSelection(type, selectedContentTypes, setSelectedContentTypes)}
-                      >
-                        {type}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Collaboration Type */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Collaboration Type</Label>
-                  <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto p-2 bg-muted/30 rounded-lg">
-                    {collaborationTypes.map((type) => (
-                      <Badge
-                        key={type}
-                        variant={selectedCollabTypes?.includes(type) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all ${selectedCollabTypes?.includes(type)
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                          : "hover:bg-primary/10"
-                          }`}
-                        onClick={() => toggleSelection(type, selectedCollabTypes, setSelectedCollabTypes)}
-                      >
-                        {type}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Budget Range */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Budget Range</Label>
-                  <Select value={budgetRange ?? ""} onValueChange={setBudgetRange}>
-                    <SelectTrigger className="bg-background border-2">
-                      <SelectValue placeholder="Select budget" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {budgetRanges.map((budget) => (
-                        <SelectItem key={budget.value} value={budget.value}>
-                          {budget.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Toggle Options */}
-                <div className="space-y-4 lg:col-span-3 flex flex-wrap gap-8 pt-4">
-                  <div className="flex items-center space-x-3">
-                    <Switch
-                      id="vip"
-                      checked={vipAccount}
-                      onCheckedChange={setVipAccount}
-                    />
-                    <Label htmlFor="vip" className="text-sm font-medium cursor-pointer">
-                      VIP Creators Only
-                    </Label>
+                {/* VIP Toggle - Styled as a card for mobile */}
+                <div className="md:col-span-2 lg:col-span-3">
+                  <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="vip" className="text-sm font-bold">VIP Creators Only</Label>
+                      <p className="text-[11px] text-muted-foreground">Show top-tier verified talent</p>
+                    </div>
+                    <Switch id="vip" checked={vipAccount} onCheckedChange={setVipAccount} />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-border">
+            {/* ACTION BUTTONS */}
+            <div className="flex flex-col md:flex-row gap-3 pt-8 mt-6 border-t border-border">
               <Button
                 size="lg"
                 onClick={handleSearch}
-                className="flex-1 bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground rounded-xl shadow-lg"
+                className="w-full md:flex-1 h-14 bg-gradient-to-r from-primary to-accent text-lg font-bold rounded-xl shadow-lg shadow-primary/20"
               >
                 <Search className="w-5 h-5 mr-2" />
                 Search Creators
               </Button>
               {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={clearFilters}
-                  className="rounded-xl"
-                >
+                <Button variant="ghost" size="lg" onClick={clearFilters} className="h-14 rounded-xl text-muted-foreground">
                   <X className="w-5 h-5 mr-2" />
-                  Clear Filters
+                  Reset
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <CountryPickerModal
+        open={countryModalOpen}
+        onClose={() => setCountryModalOpen(false)}
+        selected={country ? [country] : []}
+        setSelected={(val) => setCountry(val[0] || null)}
+        onSave={() => setCountryModalOpen(false)}
+        shouldHaveOverlay={true}
+      />
     </section>
   );
 };

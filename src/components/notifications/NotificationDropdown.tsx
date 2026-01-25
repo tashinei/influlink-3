@@ -636,7 +636,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                     <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
                                                         <XCircle className="h-8 w-8 text-destructive/50" />
                                                         <p className="text-sm text-muted-foreground">
-                                                            Failed to load invitation details
+                                                            Invitation data not found - campaign was deleted or you are unauthorized.
                                                         </p>
                                                     </div>
                                                 )}
