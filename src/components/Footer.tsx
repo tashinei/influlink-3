@@ -42,11 +42,6 @@ const Footer = () => {
                   {t("legal.terms")}
                 </Link>
               </li>
-              <li>
-                <Link to="/cookies" className="text-muted hover:text-white transition-colors">
-                  {t("legal.cookies")}
-                </Link>
-              </li>
             </ul>
           </div>
 

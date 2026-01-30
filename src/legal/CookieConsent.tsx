@@ -7,22 +7,16 @@ import { Link } from "react-router-dom";
 const CookieConsent = () => {
   const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(()=>{
-    window.scrollTo(0,0);
-  },[])
-
   useEffect(() => {
-    // Check if user has already made a choice
     const consent = localStorage.getItem("cookie-consent");
     if (!consent) {
-      const timer = setTimeout(() => setIsVisible(true), 1500); // Slight delay for better UX
+      const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
     }
   }, []);
 
   const handleAccept = () => {
     localStorage.setItem("cookie-consent", "accepted");
-    // Here you would initialize Google Analytics if it was blocked
     setIsVisible(false);
   };
 
