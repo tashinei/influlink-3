@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import RegistrationForm from '@/components/AuthForm';
-import { ArrowRight, Globe, Building2, Briefcase, ChevronLeft } from 'lucide-react';
+import { ArrowRight, Globe, Building2, Briefcase, ChevronLeft, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import staticBgImage from '../assets/registerBack5.jpg';
+import staticBgImage from '../assets/registerBackLatest4.jpg';
 import { MeshGradient } from '@paper-design/shaders-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@/store/useUserStore';
 import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Brand-specific industries instead of creator niches
 
@@ -43,6 +44,38 @@ const RegisterBrand = () => {
     const [step, setStep] = useState(1);
     const [isRegister, setIsRegister] = useState(true);
     const BRAND_INDUSTRIES = useCreatorNiches();
+    const isMobile = useIsMobile();
+
+    const [mounted, setMounted] = useState(false);
+    const updateDimensions = (entries: ResizeObserverEntry[]) => {
+        const entry = entries[0];
+        if (entry) {
+            setDimensions({
+                width: entry.contentRect.width,
+                height: entry.contentRect.height,
+            });
+        }
+    };
+
+    useEffect(() => {
+        setMounted(true);
+        const container = document.getElementById("form-card-container");
+
+        if (!container) return;
+
+        const observer = new ResizeObserver(updateDimensions);
+
+        observer.observe(container);
+
+        if (container.offsetWidth > 0) {
+            updateDimensions([{ contentRect: container.getBoundingClientRect() } as ResizeObserverEntry]);
+        }
+
+        return () => {
+            observer.unobserve(container);
+            observer.disconnect();
+        };
+    }, []);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -63,7 +96,7 @@ const RegisterBrand = () => {
 
     useEffect(() => {
         setIsLoaded(true);
-        const container = document.getElementById("hero-container");
+        const container = document.getElementById("form-card-container");
         if (container) setDimensions({ width: container.offsetWidth, height: container.offsetHeight });
     }, []);
 
@@ -120,7 +153,7 @@ const RegisterBrand = () => {
                 );
             case 2:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full p-10">
+                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full lg:p-10">
                         <StepHeader
                             step={2}
                             title="Business Identity"
@@ -151,7 +184,7 @@ const RegisterBrand = () => {
                 );
             case 3:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full p-10">
+                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full lg:p-10">
                         <StepHeader
                             step={3}
                             title="Industry Focus"
@@ -190,7 +223,7 @@ const RegisterBrand = () => {
                 );
             case 4:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full text-center p-10">
+                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full text-center lg:p-10">
                         <StepHeader step={4} title="Partner with Pros" benefit="By joining, you unlock the ability to post campaigns and use our automated creator contracting tools." />
                         <div className="flex-1">
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-6 text-left">
@@ -217,28 +250,41 @@ const RegisterBrand = () => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-black">
-            <div className={`hidden lg:block lg:w-[55%] relative transition-all duration-1000 ${isLoaded ? 'translate-x-0' : '-translate-x-full'}`}
-                style={{ backgroundImage: `url('${staticBgImage}')`, backgroundSize: 'cover' }}>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-20 flex flex-col justify-end">
-                    <div className={`space-y-4 transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                        <h1 className="text-6xl font-black text-white leading-tight">Scale Your<br />Influence.</h1>
-                        <p className="text-xl text-white/60 max-w-md">The streamlined platform for brands to discover, contract, and manage top-tier creator talent.</p>
+        <div className="relative min-h-screen w-full flex items-center justify-center lg:justify-end overflow-hidden bg-black font-sans">
+            {!isMobile && (
+                <>
+                    <div
+                        className={`absolute inset-0 z-0 bg-cover bg-center transition-transform duration-[3000ms] ease-out ${isLoaded ? 'scale-105' : 'scale-110'}`}
+                        style={{ backgroundImage: `url('${staticBgImage}')` }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/30 to-transparent" />
                     </div>
-                </div>
-            </div>
-            <div className="w-full lg:w-[50%] flex items-center justify-center relative bg-white">
-                <div className="w-full max-w-[70%] h-[80vh] relative z-10 overflow-hidden rounded-[40px] shadow-2xl">
-                    <div id='hero-container' className="absolute inset-0 z-0">
-                        <MeshGradient width={dimensions.width} height={dimensions.height} colors={colors} distortion={2.5}
-                            swirl={0.5}
-                            grainMixer={0}
-                            grainOverlay={0}
-                            speed={0.8}
-                            offsetX={0.08} />
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+
+                    <div className={`hidden lg:flex absolute left-20 bottom-20 z-10 flex-col space-y-4 max-w-xl transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                        <h1 className="text-7xl font-black text-white leading-tight drop-shadow-2xl">
+                            Build Your<br />Brand's Legacy.
+                        </h1>
+                        <p className="text-xl text-white/80 max-w-md drop-shadow-lg">
+                            Cross the bridge between professional brands and world-class creators.
+                        </p>
                     </div>
-                    <div className="relative z-10 p-12 overflow-y-auto h-full custom-scrollbar">
+                </>
+            )}
+
+            <div className={`relative z-20 w-full lg:w-[40vw] flex justify-center lg:justify-end lg:pr-32 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+                <div id="form-card-container" className="w-full
+                        h-screen lg:h-[80vh]
+                        relative
+                        overflow-hidden
+                        rounded-none lg:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                    <div className="absolute inset-0 z-0">
+                        <MeshGradient
+                            width={dimensions.width} height={dimensions.height} colors={colors} distortion={2.5}
+                            swirl={0.5} speed={0.8} offsetX={0.08}
+                        />
+                        <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
+                    </div>
+                    <div className="relative z-10 p-5 lg:p-10 h-full overflow-y-auto custom-scrollbar">
                         {renderStepContent()}
                     </div>
                 </div>

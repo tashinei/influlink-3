@@ -21,7 +21,7 @@ const HomeMVP = () => {
   const [loading, setLoading] = useState(false);
   const isBrand = useUserStore((state) => state.accountType) === "brand";
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const isRegistered = useUserStore((state)=>state.isRegistered);
+  const isRegistered = useUserStore((state) => state.isRegistered);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -76,10 +76,10 @@ const HomeMVP = () => {
     console.log("Sent campaign filters:", filters);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log("Brand account: ", isBrand);
-  },[isBrand])
-  
+  }, [isBrand])
+
   return (
     <main className="min-h-screen">
       <HeroSection
@@ -89,9 +89,9 @@ const HomeMVP = () => {
 
       <div ref={searchSectionRef}>
         {isBrand ? (
-          <CreatorSearchSection onSearch={handleCreatorSearch} onClickSearch={()=>setIsRegisterOpen(true)} isRegistered={isRegistered}/>
+          <CreatorSearchSection onSearch={handleCreatorSearch} onClickSearch={() => setIsRegisterOpen(true)} isRegistered={isRegistered} />
         ) : (
-          <CampaignSearchSection onSearch={handleCampaignSearch} onClickSearch={()=>setIsRegisterOpen(true)} isRegistered={isRegistered}/>
+          <CampaignSearchSection onSearch={handleCampaignSearch} onClickSearch={() => setIsRegisterOpen(true)} isRegistered={isRegistered} />
         )}
       </div>
 
@@ -159,7 +159,7 @@ const HomeMVP = () => {
         />
       </div>
 
-      <RegisterSelectionDialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}/>
+      <RegisterSelectionDialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
 
       {/* Footer spacing */}
       <div className="h-20" />

@@ -145,15 +145,6 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
                   className="pl-12 py-6 text-base md:text-lg border-2 rounded-xl w-full"
                 />
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowAllFilters(!showAllFilters)}
-                className="w-full md:w-fit self-end flex items-center justify-center gap-2"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                {showAllFilters ? "Hide Advanced Filters" : "Advanced Filters"}
-              </Button>
             </div>
 
             {/* QUICK FILTERS GRID */}
@@ -207,6 +198,16 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
                 </Select>
               </div>
             </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllFilters(!showAllFilters)}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {showAllFilters ? "Hide Advanced Filters" : "Advanced Filters"}
+            </Button>
 
             {/* EXTENDED FILTERS */}
             {showAllFilters && (

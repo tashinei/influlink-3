@@ -71,19 +71,6 @@ export const SearchHeader = ({
 
         <div className="flex items-center gap-3">
           {/* Mobile Filter Button */}
-          <Button
-            variant="outline"
-            onClick={onOpenFilters}
-            className="lg:hidden relative"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-            {activeFilterCount > 0 && (
-              <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
-          </Button>
 
           {/* Sort */}
           <Select value={sortBy} onValueChange={(v) => onSortChange(v as SortOption)}>
@@ -115,6 +102,20 @@ export const SearchHeader = ({
               onClick={() => onViewModeChange('list')}
             >
               <List className="w-4 h-4" />
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={onOpenFilters}
+              className="lg:hidden relative"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
             </Button>
           </div>
         </div>

@@ -162,9 +162,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
 
   return (
     <>
-      <div className="w-full max-w-[36rem] p-6 bg-transparent dark:bg-background flex flex-col justify-center h-full">
+      <div className="w-full max-w-[36rem] lg:p-6 bg-transparent dark:bg-background flex flex-col justify-center h-full">
         <div className="flex items-center mb-6">
-          <Link to="/" className="flex items-center space-x-2 text-xl font-bold text-white dark:text-white">
+          <Link to="/" className="flex items-center space-x-2 text-[22px] font-bold text-white dark:text-white">
             <span>InfluLink</span>
           </Link>
         </div>

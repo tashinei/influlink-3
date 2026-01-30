@@ -93,8 +93,8 @@ const Navigation = () => {
               className={`text-2xl font-bold tracking-tight transition-colors duration-300`}
             >
               <img
-                src={isSolidBackground ? "/influ11.svg" : "/influ7.svg"}
-                className="h-10 md:h-14 lg:h-20 object-contain"
+                src={isSolidBackground ? "/influLink4.png" : "/influLink3.png"}
+                className="h-16 md:h-20 lg:h-19 object-contain"
                 alt="InfluLink logo"
               />
             </Link>

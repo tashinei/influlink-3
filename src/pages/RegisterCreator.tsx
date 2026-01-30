@@ -7,12 +7,13 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import staticBgImage from '../assets/registerBackLatest2.jpg';
+import staticBgImage from '../assets/registerBackLatest4.jpg';
 import { MeshGradient } from '@paper-design/shaders-react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '@/store/useUserStore';
 import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
     <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -44,6 +45,8 @@ const RegisterCreator = () => {
         height: 0
     });
     const [mounted, setMounted] = useState(false);
+
+    const isMobile = useIsMobile();
 
     const updateDimensions = (entries: ResizeObserverEntry[]) => {
         const entry = entries[0];
@@ -120,8 +123,6 @@ const RegisterCreator = () => {
             const decoded = decodeData(savedData);
             if (decoded) {
                 setFormData(decoded);
-                if (decoded.handle) setStep(3);
-                else if (decoded.email) setStep(2);
             }
         }
     }, []);
@@ -187,7 +188,7 @@ const RegisterCreator = () => {
                     <RegistrationForm
                         accountType="creator"
                         isMultiStep={true} // This tells the form "Don't hit the DB yet!"
-                        title={isRegister ? "Become a Creator!" : "Welcome Back"}
+                        title={isRegister ? "Become a Creator" : "Welcome Back"}
                         description="First, let's secure your account."
                         initialData={{ name: formData.name, email: formData.email }}
                         onSuccess={(step1Data: any) => {
@@ -199,7 +200,7 @@ const RegisterCreator = () => {
                 );
             case 2:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full p-10">
+                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full lg:p-10">
                         {/* Top Section: Header */}
                         <StepHeader
                             step={2}
@@ -268,7 +269,7 @@ const RegisterCreator = () => {
                 );
             case 3:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full p-10">
+                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full lg:p-10">
                         {/* Top Section */}
                         <StepHeader
                             step={3}
@@ -345,7 +346,7 @@ const RegisterCreator = () => {
                 );
             case 4:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full text-center p-10">
+                    <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full text-center lg:p-10">
                         {/* Top Section */}
                         <StepHeader
                             step={4}
@@ -399,8 +400,8 @@ const RegisterCreator = () => {
                                 onClick={handleFinalSubmit}
                                 disabled={isSubmitting || !agreed}
                                 className={`w-full h-14 rounded-2xl font-extrabold text-lg shadow-xl transition-all ${agreed
-                                        ? `bg-white text-black hover:bg-gray-200 ${primaryButtonClass}`
-                                        : "bg-white/10 text-white/20 cursor-not-allowed"
+                                    ? `bg-white text-black hover:bg-gray-200 ${primaryButtonClass}`
+                                    : "bg-white/10 text-white/20 cursor-not-allowed"
                                     }`}
                             >
                                 {isSubmitting ? "Creating Account..." : "Confirm & Enter InfluLink"}
@@ -421,35 +422,38 @@ const RegisterCreator = () => {
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center lg:justify-end overflow-hidden bg-black font-sans">
-            
-            {/* 🖼️ FULL PAGE BACKGROUND IMAGE */}
-            <div 
-                className={`absolute inset-0 z-0 bg-cover bg-center transition-transform duration-[3000ms] ease-out ${isLoaded ? 'scale-105' : 'scale-110'}`}
-                style={{ backgroundImage: `url('${staticBgImage}')`}}
-            >
-                {/* Vignette/Overlay: 
-                   - Darker on the right (via black/60) to provide contrast for the form.
-                   - Clearer on the left to see the influencer.
-                */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/30 to-transparent" />
-            </div>
+            {!isMobile && (
+                <>
 
-            <div className={`hidden lg:flex absolute left-20 bottom-20 z-10 flex-col space-y-4 max-w-xl transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
-                <h1 className="text-7xl font-black text-white leading-tight drop-shadow-2xl">
-                    Your Content.<br />Your Career.
-                </h1>
-                <p className="text-xl text-white/80 max-w-md drop-shadow-lg">
-                    The most powerful way for creators to bridge the gap between content and commerce.
-                </p>
-            </div>
+                    <div
+                        className={`absolute inset-0 z-0 bg-cover bg-center transition-transform duration-[3000ms] ease-out ${isLoaded ? 'scale-105' : 'scale-110'}`}
+                        style={{ backgroundImage: `url('${staticBgImage}')` }}
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+                    </div>
+
+                    <div className={`hidden lg:flex absolute left-20 bottom-20 z-10 flex-col space-y-4 max-w-xl transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+                        <h1 className="text-7xl font-black text-white leading-tight drop-shadow-2xl">
+                            Quit Waiting,<br />Start Growing.
+                        </h1>
+                        <p className="text-xl text-white/80 max-w-md drop-shadow-lg text-left">
+                            The most powerful way for creators to bridge the gap between content and commerce.
+                        </p>
+                    </div>
+                </>
+            )}
 
             <div className={`relative z-20 w-full lg:w-[40vw] flex justify-center lg:justify-end lg:pr-32 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-                <div 
-                    id="form-card-container" 
-                    className="w-full h-[80vh] relative overflow-hidden rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                <div
+                    id="form-card-container"
+                    className=" w-full
+                        h-screen lg:h-[80vh]
+                        relative
+                        overflow-hidden
+                        rounded-none lg:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
                 >
                     <div className="absolute inset-0 z-0">
-                        <MeshGradient 
+                        <MeshGradient
                             width={dimensions.width} height={dimensions.height} colors={colors} distortion={2.5}
                             swirl={0.5}
                             grainMixer={0}
@@ -460,7 +464,7 @@ const RegisterCreator = () => {
                         <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
                     </div>
 
-                    <div className="relative z-10 p-10 h-full overflow-y-auto custom-scrollbar">
+                    <div className="relative z-10 p-5 lg:p-10 h-full overflow-y-auto custom-scrollbar">
                         {renderStepContent()}
                     </div>
                 </div>

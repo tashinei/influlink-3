@@ -1261,6 +1261,106 @@ app.get("/api/campaigns", authenticate, async (req, res) => {
   }
 });
 
+app.get("/api/campaigns/history", authenticate, async (req, res) => {
+  try {
+    const creatorId = req.user.id;
+
+    const query = `
+      SELECT 
+        c.id, c.name, c.start_date as date, c.platforms, c.company_logo,
+        cp.status, cp.earnings, cp.performance_reach as reach, cp.performance_engagement as engagement,
+        u.name as brand_name
+      FROM campaign_participants cp
+      INNER JOIN campaigns c ON cp.campaign_id = c.id
+      INNER JOIN users u ON c.brand_id = u.id
+      WHERE cp.user_id = ?
+      ORDER BY c.start_date DESC
+      LIMIT 50; 
+    `;
+
+    const [rows] = await pool.query(query, [creatorId]);
+
+    const history = rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      brand: r.brand_name,
+      date: r.date,
+      status: r.status,
+      earnings: Number(r.earnings),
+      reach: formatReach(r.reach),
+      engagement: r.engagement,
+      platforms: r.platforms ? JSON.parse(r.platforms) : [],
+      brandLogo: r.company_logo
+    }));
+
+    res.json(history);
+  } catch (err) {
+    console.error("Efficiency Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+const migrateExistingConnections = async () => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Fetch all existing campaigns
+    const [campaigns] = await connection.query("SELECT id, brand_id, budget FROM campaigns");
+
+    // 2. Fetch creators (Adjust 'role' based on your users table)
+    const [creators] = await connection.query("SELECT id FROM users WHERE role = 'creator'");
+
+    if (campaigns.length === 0 || creators.length === 0) {
+      console.log("Nothing to migrate.");
+      return;
+    }
+
+    const values = [];
+
+    // 3. Logic: For demo/testing, we link creators to campaigns
+    // In a real app, you might match these based on an 'applications' table
+    campaigns.forEach((campaign) => {
+      // Example: Assigning the first 2 creators to every campaign for testing
+      const assignedCreators = creators.slice(0, 2);
+
+      assignedCreators.forEach(creator => {
+        values.push([
+          campaign.id,
+          creator.id,
+          'completed',             // Default status for history
+          campaign.budget * 0.1,    // Sample earnings (10% of budget)
+          Math.floor(Math.random() * 50000), // Sample reach
+          "4.5%"                   // Sample engagement
+        ]);
+      });
+    });
+
+    // 4. Batch Insert (IGNORE skips duplicates if you run this twice)
+    const sql = `
+      INSERT IGNORE INTO campaign_participants 
+      (campaign_id, user_id, status, earnings, performance_reach, performance_engagement) 
+      VALUES ?
+    `;
+
+    await connection.query(sql, [values]);
+    await connection.commit();
+
+    console.log(`Successfully backfilled ${values.length} participation records.`);
+  } catch (err) {
+    await connection.rollback();
+    console.error("Migration error:", err);
+  } finally {
+    connection.release();
+  }
+};
+
+function formatReach(num) {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+  return num.toString();
+}
+
 // DELETE campaign by ID
 app.delete("/api/campaigns/:profileId/:campaignId", async (req, res) => {
   const { profileId, campaignId } = req.params;
@@ -1724,6 +1824,14 @@ app.post("/api/proposals/:id/action", authenticate, async (req, res) => {
       [newStatus, proposalId]
     );
 
+    if (action === "accept") {
+      await connection.query(
+        `INSERT IGNORE INTO campaign_participants (campaign_id, user_id, status) 
+         VALUES (?, ?, 'In Progress')`,
+        [proposal.campaign_id, proposal.creator_id]
+      );
+    }
+
     // 3. Create the Notification for the creator who sent the proposal
     const notificationType = action === "accept" ? "proposal_accepted" : "proposal_rejected";
     const title = action === "accept" ? "Proposal accepted!" : "Proposal declined";
@@ -1785,6 +1893,14 @@ app.post("/api/invites/:id/action", authenticate, async (req, res) => {
       "UPDATE campaign_invitations SET status = ? WHERE id = ?",
       [newStatus, inviteId]
     );
+
+    if (action === "accept") {
+      await connection.query(
+        `INSERT IGNORE INTO campaign_participants (campaign_id, user_id, status) 
+         VALUES (?, ?, 'In Progress')`,
+        [invite.campaign_id, invite.creator_id]
+      );
+    }
 
     // 3. Create the Notification for the Brand (the sender)
     const notificationType = action === "accept" ? "invite_accepted" : "invite_declined";
@@ -2055,87 +2171,131 @@ app.get("/api/links", authenticate, async (req, res) => {
     let params = [];
 
     if (accountType === "brand") {
+      // BRAND → creators they work with
       sql = `
-        /* 1. Master Campaigns */
-        SELECT 'campaign' as linkType, c.id, c.id as campaignId, c.name as title, c.status, 
-               'Master Campaign' as category, c.created_at, c.company_logo, c.budget, c.type
-        FROM campaigns c WHERE c.brand_id = ?
-        
-        UNION ALL
-
-        /* 2. Sent Invitations */
-        SELECT 'invitation' as linkType, i.id, c.id as campaignId, c.name as title, i.status, 
-               'Sent Invite' as category, i.created_at, c.company_logo, c.budget, c.type
-        FROM campaign_invitations i
-        JOIN campaigns c ON i.campaign_id = c.id
-        WHERE i.brand_id = ?
-
-        UNION ALL
-
-        /* 3. Active Deals (Accepted Proposals) */
-        SELECT 'deal' as linkType, p.id, c.id as campaignId, c.name as title, 'active' as status, 
-               'Active Deal' as category, p.updated_at as created_at, c.company_logo, c.budget, c.type
+        /* 1. Creators who sent proposals */
+        SELECT DISTINCT
+          u.id,
+          u.name,
+          pr.handle,
+          pr.avatar AS avatar,
+          'creator' AS role,
+          p.status,
+          p.created_at,
+          c.name AS currentCampaign
         FROM proposals p
+        JOIN users u ON p.creator_id = u.id
+        JOIN profiles pr ON pr.id = u.id
+        JOIN campaigns c ON p.campaign_id = c.id
+        WHERE c.brand_id = ?
+
+        UNION ALL
+
+        /* 2. Creators with accepted deals */
+        SELECT DISTINCT
+          u.id,
+          u.name,
+          pr.handle,
+          pr.avatar AS avatar,
+          'creator' AS role,
+          'active' AS status,
+          p.updated_at AS created_at,
+          c.name AS currentCampaign
+        FROM proposals p
+        JOIN users u ON p.creator_id = u.id
+        JOIN profiles pr ON pr.id = u.id
         JOIN campaigns c ON p.campaign_id = c.id
         WHERE c.brand_id = ? AND p.status = 'accepted'
-        
+
         ORDER BY created_at DESC
       `;
-      params = [userId, userId, userId];
+
+      params = [userId, userId];
     } else {
+      // CREATOR → brands they work with
       sql = `
-        /* 1. My Proposals */
-        SELECT 'proposal' as linkType, p.id, c.id as campaignId, c.name as title, p.status, 
-               'My Proposal' as category, p.created_at, c.company_logo, c.budget, c.type
+        /* 1. Brands where creator sent proposals */
+        SELECT DISTINCT
+          u.id,
+          u.name,
+          pr.handle,
+          pr.avatar AS avatar,
+          'brand' AS role,
+          p.status,
+          p.created_at,
+          c.name AS currentCampaign
         FROM proposals p
         JOIN campaigns c ON p.campaign_id = c.id
+        JOIN users u ON c.brand_id = u.id
+        JOIN profiles pr ON pr.id = u.id
         WHERE p.creator_id = ?
 
         UNION ALL
 
-        /* 2. Received Invitations */
-        SELECT 'invitation' as linkType, i.id, c.id as campaignId, c.name as title, i.status, 
-               'Received Invite' as category, i.created_at, c.company_logo, c.budget, c.type
+        /* 2. Brands that invited creator */
+        SELECT DISTINCT
+          u.id,
+          u.name,
+          pr.handle,
+          pr.avatar AS avatar,
+          'brand' AS role,
+          i.status,
+          i.created_at,
+          c.name AS currentCampaign
         FROM campaign_invitations i
+        JOIN users u ON i.brand_id = u.id
+        JOIN profiles pr ON pr.id = u.id
         JOIN campaigns c ON i.campaign_id = c.id
         WHERE i.creator_id = ?
 
         UNION ALL
 
-        /* 3. Active Deals (Accepted Invites) */
-        SELECT 'deal' as linkType, i.id, c.id as campaignId, c.name as title, 'active' as status, 
-               'Active Deal' as category, i.created_at, c.company_logo, c.budget, c.type
+        /* 3. Brands with active deals */
+        SELECT DISTINCT
+          u.id,
+          u.name,
+          pr.handle,
+          pr.avatar AS avatar,
+          'brand' AS role,
+          'active' AS status,
+          i.created_at,
+          c.name AS currentCampaign
         FROM campaign_invitations i
         JOIN campaigns c ON i.campaign_id = c.id
+        JOIN users u ON c.brand_id = u.id
+        JOIN profiles pr ON pr.id = u.id
         WHERE i.creator_id = ? AND i.status = 'accepted'
 
         ORDER BY created_at DESC
       `;
+
       params = [userId, userId, userId];
     }
 
     const [rows] = await pool.query(sql, params);
 
-    const formatted = rows.map(row => ({
+    const uniqueCollaborators = Array.from(
+      new Map(rows.map(item => [item.id, item])).values()
+    );
+
+    const formatted = uniqueCollaborators.map(row => ({
       id: row.id.toString(),
-      campaignId: row.campaignId.toString(),
-      title: row.title,
+      name: row.name,
+      handle: row.handle,
+      avatar: row.avatar,
+      role: row.role,
       status: row.status,
-      category: row.category,
+      currentCampaign: row.currentCampaign,
       date: new Date(row.created_at).toLocaleDateString(),
-      linkType: row.linkType,
-      // Enhanced Data
-      logo: row.company_logo,
-      budget: row.budget,
-      type: row.type
     }));
 
     res.json(formatted);
   } catch (err) {
-    console.error("Error fetching rich links:", err);
+    console.error("Error fetching collaborators via links:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
