@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { User, Briefcase, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface RegisterSelectionDialogProps {
   open: boolean;
@@ -24,25 +25,6 @@ interface AccountOption {
   features: string[];
 }
 
-const accountOptions: AccountOption[] = [
-  {
-    type: "creator",
-    title: "Creator",
-    description: "Monetize your content and grow your personal brand",
-    icon: User,
-    href: "/register/creator",
-    features: ["Find campaigns", "Set your rates", "Get paid directly"],
-  },
-  {
-    type: "brand",
-    title: "Brand / Agency",
-    description: "Discover influencers and launch powerful campaigns",
-    icon: Briefcase,
-    href: "/register/brand",
-    features: ["Post campaigns", "Find creators", "Track performance"],
-  },
-];
-
 export default function RegisterSelectionDialog({
   open,
   onOpenChange,
@@ -51,10 +33,31 @@ export default function RegisterSelectionDialog({
     onOpenChange(false);
   };
 
+  const { t } = useTranslation();
+
+  const accountOptions: AccountOption[] = [
+    {
+      type: "creator",
+      title: t("mvpNotifications.creator"),
+      description: t("joinDialog.creatorDesc"),
+      icon: User,
+      href: "/register/creator",
+      features: [t("joinDialog.findCampaigns"), t("joinDialog.setYourRates"), t("joinDialog.getPaidDirectly")],
+    },
+    {
+      type: "brand",
+      title: t("mvpNotifications.brand"),
+      description: t("joinDialog.brandDesc"),
+      icon: Briefcase,
+      href: "/register/brand",
+      features: [t("joinDialog.postCampaigns"), t("joinDialog.findCreators"), t("joinDialog.trackPerformance")],
+    },
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex flex-col h-fit p-10 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white">
-        
+
         {/* Decorative background elements - hidden on extra small screens for performance */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-50 sm:opacity-100">
           <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary-foreground/5 blur-3xl" />
@@ -64,10 +67,10 @@ export default function RegisterSelectionDialog({
         <div className="relative z-10 flex flex-col justify-center flex-1 py-4 pt-10 pr-8 pl-8 pb-8 w-full">
           <DialogHeader className="space-y-2 sm:space-y-3 text-center">
             <DialogTitle className="text-2xl sm:text-4xl font-bold tracking-tight text-primary-foreground">
-              Join InfluLink
+              {t("joinDialog.title")}
             </DialogTitle>
             <DialogDescription className="text-sm sm:text-[17px] text-primary-foreground/70">
-              Select your account type to get started
+              {t("joinDialog.selectTypeToStart")}
             </DialogDescription>
           </DialogHeader>
 
@@ -85,13 +88,13 @@ export default function RegisterSelectionDialog({
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-100">
-            Already have an account?{" "}
+            {t("joinDialog.alreadyAccount")}{" "}
             <Link
               to="/login"
               onClick={handleOptionClick}
               className="font-medium text-white underline underline-offset-4 transition-colors hover:text-primary-foreground hover:underline"
             >
-              Sign in
+              {t("joinDialog.signIn")}
             </Link>
           </p>
         </div>
@@ -102,6 +105,8 @@ export default function RegisterSelectionDialog({
 
 function AccountOptionCard({ option, onClick }: { option: AccountOption; onClick: () => void }) {
   const Icon = option.icon;
+
+  const { t } = useTranslation();
 
   return (
     <Link
@@ -141,7 +146,7 @@ function AccountOptionCard({ option, onClick }: { option: AccountOption; onClick
 
       <div className="mt-auto flex items-center justify-between border-t border-primary-foreground/10 pt-4">
         <span className="text-xs sm:text-sm font-medium text-primary-foreground/80">
-          Get Started
+          {t("joinDialog.getStarted")}
         </span>
         <ArrowRight className="h-4 w-4 text-white opacity-70 group-hover:translate-x-1 transition-transform" />
       </div>

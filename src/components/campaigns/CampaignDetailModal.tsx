@@ -33,6 +33,7 @@ import {
 import { format } from "date-fns";
 import { profile } from "console";
 import { useUserStore } from "@/store/useUserStore";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface CampaignDetailModalProps {
   open: boolean;
@@ -88,6 +89,9 @@ export const CampaignDetailModal = ({
   const remainingBudget = campaign.budget - campaign.budgetSpent;
   const parsedDate = campaign.startDate ? new Date(campaign.startDate) : null;
 
+
+  const {t} = useTranslation();
+
   const handleConfirmDelete = async () => {
     try {
       const res = await fetch(
@@ -131,9 +135,9 @@ export const CampaignDetailModal = ({
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={onEdit}>
                   <Pencil className="mr-1.5 h-4 w-4" />
-                  Edit
+                  {t("mvpCampaignDetails.edit")}
                 </Button>
-                {campaign.status !== "Completed" &&
+                {/* {campaign.status !== "Completed" &&
                   campaign.status !== "Draft" && (
                     <Button variant="outline" size="sm" onClick={onPauseResume}>
                       {campaign.status === "Paused" ? (
@@ -148,7 +152,7 @@ export const CampaignDetailModal = ({
                         </>
                       )}
                     </Button>
-                  )}
+                  )} */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -156,7 +160,7 @@ export const CampaignDetailModal = ({
                   onClick={() => setDeleteDialogOpen(true)}
                 >
                   <Trash2 className="mr-1.5 h-4 w-4" />
-                  Delete
+                  {t("mvpCampaignDetails.delete")}
                 </Button>
               </div>
             </div>
@@ -169,19 +173,19 @@ export const CampaignDetailModal = ({
                   value="overview"
                   className="rounded-none border-b-2 border-transparent px-4 data-[state=active]:border-primary data-[state=active]:bg-transparent"
                 >
-                  Overview
+                  {t("mvpCampaignDetails.overview")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="analytics"
                   className="rounded-none border-b-2 border-transparent px-4 data-[state=active]:border-primary data-[state=active]:bg-transparent"
                 >
-                  Analytics
+                  {t("mvpCampaignDetails.analytics")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="media"
                   className="rounded-none border-b-2 border-transparent px-4 data-[state=active]:border-primary data-[state=active]:bg-transparent"
                 >
-                  Media
+                  {t("mvpCampaignDetails.media")}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -192,11 +196,11 @@ export const CampaignDetailModal = ({
                 {/* Campaign Description */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Campaign Details</CardTitle>
+                    <CardTitle className="text-base">{t("mvpCampaignDetails.title")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Description</p>
+                      <p className="text-sm font-medium text-muted-foreground">{t("mvpCampaignDetails.desc")}</p>
                       <p className="mt-1 text-sm">{campaign.description}</p>
                     </div>
 
@@ -207,7 +211,7 @@ export const CampaignDetailModal = ({
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Start Date</p>
+                          <p className="text-xs text-muted-foreground">{t("mvpCampaignDetails.startDate")}</p>
                           <p className="text-sm font-medium">
                             {parsedDate && !isNaN(parsedDate.getTime())
                               ? format(parsedDate, "MMM d, yyyy")
@@ -222,7 +226,7 @@ export const CampaignDetailModal = ({
                           <Target className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Primary Goal</p>
+                          <p className="text-xs text-muted-foreground">{t("mvpCampaignDetails.primaryGoal")}</p>
                           <p className="text-sm font-medium">{campaign.primaryGoal}</p>
                         </div>
                       </div>
@@ -231,7 +235,7 @@ export const CampaignDetailModal = ({
                     {/* Platforms, Niches, Content Types */}
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Platforms</p>
+                        <p className="text-sm font-medium text-muted-foreground">{t("mvpCampaignDetails.platforms")}</p>
                         <div className="mt-1 flex flex-wrap gap-2">
                           {campaign.platforms?.map((p) => (
                             <Badge key={p}>{p}</Badge>
@@ -240,7 +244,7 @@ export const CampaignDetailModal = ({
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Niches</p>
+                        <p className="text-sm font-medium text-muted-foreground">{t("mvpCampaignDetails.niches")}</p>
                         <div className="mt-1 flex flex-wrap gap-2">
                           {campaign.niches?.map((n) => (
                             <Badge key={n}>{n}</Badge>
@@ -249,7 +253,7 @@ export const CampaignDetailModal = ({
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Content Types</p>
+                        <p className="text-sm font-medium text-muted-foreground">{t("mvpCampaignDetails.contentTypes")}</p>
                         <div className="mt-1 flex flex-wrap gap-2">
                           {campaign.contentTypes?.map((c) => (
                             <Badge key={c}>{c}</Badge>
@@ -261,12 +265,12 @@ export const CampaignDetailModal = ({
                     {/* Country and Languages */}
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Country</p>
+                        <p className="text-sm font-medium text-muted-foreground">{t("mvpCampaignDetails.country")}</p>
                         <p className="mt-1 text-sm font-medium">{campaign.country || "N/A"}</p>
                       </div>
 
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Languages</p>
+                        <p className="text-sm font-medium text-muted-foreground">{t("mvpCampaignDetails.languages")}</p>
                         <div className="mt-1 flex flex-wrap gap-2">
                           {campaign.language?.map((l) => (
                             <Badge key={l}>{l}</Badge>
@@ -280,7 +284,7 @@ export const CampaignDetailModal = ({
                 {/* Budget Overview */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Budget Overview</CardTitle>
+                    <CardTitle className="text-base">{t("mvpCampaignDetails.budget")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-3">
@@ -289,7 +293,7 @@ export const CampaignDetailModal = ({
                       </div>
                       <div>
                         <p className="text-2xl font-bold">${campaign.budget?.toLocaleString()}</p>
-                        <p className="text-sm text-muted-foreground">Total Budget</p>
+                        <p className="text-sm text-muted-foreground">{t("mvpCampaignDetails.totalBudget")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -300,15 +304,15 @@ export const CampaignDetailModal = ({
               <TabsContent value="analytics" className="mt-0 space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Budget Tracker</CardTitle>
+                    <CardTitle className="text-base">{t("mvpCampaignDetails.budgetTracker")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Budget Spent
+                        {t("mvpCampaignDetails.budgetSpent")}
                       </span>
                       <span className="font-medium">
-                        ${campaign.budgetSpent?.toLocaleString()} of $
+                        ${campaign.budgetSpent?.toLocaleString()} {t("mvpCampaignDetails.of")} $
                         {campaign.budget?.toLocaleString()}
                       </span>
                     </div>
@@ -317,7 +321,7 @@ export const CampaignDetailModal = ({
                       <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full bg-primary" />
                         <span className="text-sm text-muted-foreground">
-                          Spent
+                          {t("mvpCampaignDetails.spent")}
                         </span>
                       </div>
                       <div className="text-right">
@@ -325,7 +329,7 @@ export const CampaignDetailModal = ({
                           ${remainingBudget?.toLocaleString()}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Remaining
+                          {t("mvpCampaignDetails.remaining")}
                         </p>
                       </div>
                     </div>
@@ -343,7 +347,7 @@ export const CampaignDetailModal = ({
                           {campaign.impressions?.toLocaleString()}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Impressions
+                          {t("mvpCampaignDetails.impressions")}
                         </p>
                       </div>
                     </CardContent>
@@ -358,7 +362,7 @@ export const CampaignDetailModal = ({
                         <p className="text-2xl font-bold">
                           {campaign.reach?.toLocaleString()}
                         </p>
-                        <p className="text-sm text-muted-foreground">Reach</p>
+                        <p className="text-sm text-muted-foreground">{t("mvpCampaignDetails.reach")}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -367,40 +371,44 @@ export const CampaignDetailModal = ({
 
               {/* Media Tab */}
               <TabsContent value="media" className="mt-0 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Company Logo</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex justify-center">
-                    {campaign.companyLogo ? (
-                      <div className="flex h-52 w-52 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                        <img
-                          src={`${API_BASE}${campaign.companyLogo}`}
-                          alt="Company logo"
-                          className="h-full w-full object-contain p-2"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-32 w-32 flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30">
-                        <Building2 className="mb-1 h-8 w-8 text-muted-foreground/50" />
-                        <p className="text-xs text-muted-foreground">No logo</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">
-                      Reference Images
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CampaignMediaCarousel
-                      images={campaign.referenceImages ?? []}
-                    />
-                  </CardContent>
-                </Card>
+                  {/* Left Column: Logo (Smaller) */}
+                  <Card className="lg:col-span-1">
+                    <CardHeader>
+                      <CardTitle className="text-base">{t("mvpCampaignDetails.companyLogo")}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex justify-center">
+                      {campaign.companyLogo ? (
+                        <div className="flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+                          <img
+                            src={`${API_BASE}${campaign.companyLogo}`}
+                            alt="Company logo"
+                            className="max-h-[80vh] w-full object-contain p-2"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex h-48 w-48 flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30">
+                          <Building2 className="mb-1 h-8 w-8 text-muted-foreground/50" />
+                          <p className="text-xs text-muted-foreground">{t("mvpCampaignDetails.noLogo")}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Right Column: Carousel (Wider) */}
+                  <Card className="lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle className="text-base">{t("mvpCampaignDetails.referenceImages")}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CampaignMediaCarousel
+                        images={campaign.referenceImages ?? []}
+                      />
+                    </CardContent>
+                  </Card>
+
+                </div>
               </TabsContent>
             </div>
           </Tabs>

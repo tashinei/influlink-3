@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { bg, enUS } from 'date-fns/locale';
 import {
     Dialog,
     DialogContent,
@@ -33,6 +34,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import avatarPickPlaceholder from "@/assets/avatarPickPlaceholder.png";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Notification {
     id: string;
@@ -150,6 +152,8 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
             .finally(() => setLoading(false));
     }, []);
 
+    const { t } = useTranslation();
+
     const handleClick = async (notification: Notification) => {
         // 1. Mark as read on backend (using notification.id)
         if (!notification.is_read) {
@@ -239,6 +243,56 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
         }
     };
 
+    const getTranslatedTitle = (type: string, fallback: string, t: any) => {
+        const keys: Record<string, string> = {
+            "proposal_received": "mvpNotifications.proposalReceived",
+            "proposal_accepted": "mvpNotifications.proposalAccepted",
+            "proposal_declined": "mvpNotifications.proposalDeclined", // Note: match your DB type
+            "proposal_rejected": "mvpNotifications.proposalDeclined", // Mapping both to same key
+            "campaign_invite": "mvpNotifications.campaignInvitation",
+            "invite_accepted": "mvpNotifications.inviteAccepted",
+        };
+
+        const key = keys[type];
+        return key ? t(key) : fallback;
+    };
+
+    const getNotificationCategory = (type: string, t: any) => {
+        const categoryKeys: Record<string, string> = {
+            "proposal_received": "mvpNotifications.typeProposal",
+            "proposal_accepted": "mvpNotifications.typeProposal",
+            "proposal_rejected": "mvpNotifications.typeProposal",
+            "campaign_invite": "mvpNotifications.typeInvite",
+            "invite_accepted": "mvpNotifications.typeInvite",
+            "invite_declined": "mvpNotifications.typeInvite",
+            "message": "mvpNotifications.typeMessage"
+        };
+
+        const key = categoryKeys[type];
+
+        if (key) {
+            return t(key);
+        }
+
+        const firstWord = type.split('_')[0];
+        return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+    };
+
+    const getTranslatedMessage = (notification: any, t: any) => {
+        const messageKeys: Record<string, string> = {
+            "proposal_received": "mvpNotifications.proposalReceivedMsg",
+            "proposal_accepted": "mvpNotifications.proposalAcceptedMsg",
+            "proposal_rejected": "mvpNotifications.proposalRejectedMsg",
+            "campaign_invite": "mvpNotifications.campaignInviteMsg",
+            "invite_accepted": "mvpNotifications.inviteAcceptedMsg",
+            "invite_declined": "mvpNotifications.inviteDeclinedMsg"
+        };
+
+        const key = messageKeys[notification.type];
+
+        return key ? t(key) : notification.message;
+    };
+
     const handleMarkAllRead = async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
@@ -322,6 +376,9 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
         }
     };
 
+    const { language } = useTranslation();
+    const languageSetting = language === "bg" ? bg : enUS;
+
     return (
         <>
             <div
@@ -330,7 +387,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b bg-popover rounded-t-lg">
                     <div className="flex items-center gap-2">
-                        <h2 className="text-base font-semibold">Notifications</h2>
+                        <h2 className="text-base font-semibold">{t("mvpNotifications.title")}</h2>
                         {unreadCount > 0 && (
                             <Badge className="h-5 min-w-5 flex items-center justify-center rounded-full text-xs">
                                 {unreadCount}
@@ -344,7 +401,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                             className="text-xs text-muted-foreground h-7"
                             onClick={handleMarkAllRead}
                         >
-                            Mark all as read
+                            {t("mvpNotifications.markAll")}
                         </Button>
                     )}
                 </div>
@@ -354,7 +411,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                     {loading && (
                         <div className="flex flex-col items-center justify-center py-12 gap-3">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                            <p className="text-sm text-muted-foreground">Loading notifications...</p>
+                            <p className="text-sm text-muted-foreground">{t("mvpNotifications.loadingNotifications")}</p>
                         </div>
                     )}
 
@@ -386,18 +443,20 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start justify-between gap-2">
                                         <p className={`text-sm line-clamp-1 ${!n.is_read ? "font-semibold" : "font-medium"}`}>
-                                            {n.title}
+                                            {getTranslatedTitle(n.type, n.title, t)}
                                         </p>
                                         {!n.is_read && (
                                             <span className="flex-shrink-0 h-2 w-2 rounded-full bg-primary mt-1.5" />
                                         )}
                                     </div>
                                     <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-                                        {n.message}
+                                        <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+                                            {getTranslatedMessage(n, t)}
+                                        </p>
                                     </p>
                                     <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                                         <Clock className="h-3 w-3" />
-                                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: languageSetting })}
                                     </p>
                                 </div>
                             </button>
@@ -427,15 +486,15 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                     )}
                                 </div>
                                 <DialogTitle className="text-xl font-semibold mb-2">
-                                    {selectedNotification?.title}
+                                    {selectedNotification && getTranslatedTitle(selectedNotification.type, selectedNotification.title, t)}
                                 </DialogTitle>
                                 <DialogDescription className="text-sm text-muted-foreground">
-                                    {selectedNotification?.message}
+                                    {selectedNotification && getTranslatedMessage(selectedNotification, t)}
                                 </DialogDescription>
                                 <p className="text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1">
                                     <Clock className="h-3 w-3" />
                                     {selectedNotification?.created_at
-                                        ? formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true })
+                                        ? formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true, locale: languageSetting })
                                         : "Unknown"}
                                 </p>
                             </div>
@@ -454,11 +513,11 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                         {selectedNotification && getNotificationIcon(selectedNotification.type)}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <DialogTitle className="text-lg font-semibold pr-8">
-                                            {selectedNotification?.title}
+                                        <DialogTitle className="text-xl font-semibold mb-2">
+                                            {selectedNotification && getTranslatedTitle(selectedNotification.type, selectedNotification.title, t)}
                                         </DialogTitle>
                                         <DialogDescription className="mt-1 text-sm">
-                                            {selectedNotification?.message}
+                                            {selectedNotification && getTranslatedMessage(selectedNotification, t)}
                                         </DialogDescription>
                                     </div>
                                 </div>
@@ -472,19 +531,19 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                         <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                                             <AlertCircle className="h-4 w-4 text-muted-foreground" />
                                             <div>
-                                                <p className="text-xs text-muted-foreground">Type</p>
-                                                <p className="text-sm font-medium capitalize">
-                                                    {selectedNotification?.type?.replace(/_/g, " ")}
+                                                <p className="text-xs text-muted-foreground">{t("mvpNotifications.type")}</p>
+                                                <p className="text-sm font-medium">
+                                                    {selectedNotification && getNotificationCategory(selectedNotification.type, t)}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                                             <Clock className="h-4 w-4 text-muted-foreground" />
                                             <div>
-                                                <p className="text-xs text-muted-foreground">Received</p>
+                                                <p className="text-xs text-muted-foreground">{t("mvpNotifications.received")}</p>
                                                 <p className="text-sm font-medium">
                                                     {selectedNotification?.created_at
-                                                        ? formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true })
+                                                        ? formatDistanceToNow(new Date(selectedNotification.created_at), { addSuffix: true, locale: languageSetting })
                                                         : "Unknown"}
                                                 </p>
                                             </div>
@@ -495,7 +554,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                         <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                                             <Package className="h-4 w-4 text-muted-foreground" />
                                             <div>
-                                                <p className="text-xs text-muted-foreground">Related To</p>
+                                                <p className="text-xs text-muted-foreground">{t("mvpNotifications.relatedTo")}</p>
                                                 <p className="text-sm font-medium capitalize">
                                                     {selectedNotification.entity_type} #{selectedNotification.entity_id}
                                                 </p>
@@ -510,7 +569,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
 
                                             <div className="max-h-fit">
                                                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                                    Campaign Invitation
+                                                    {t("mvpNotifications.campaignInvitation")}
                                                 </h4>
 
                                                 {inviteLoading ? (
@@ -627,7 +686,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                                 </div>
                                                             )}
                                                             <div className="p-3 rounded-lg border bg-card">
-                                                                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                                                                <p className="text-xs text-muted-foreground mb-1">{t("mvpNotifications.status")}</p>
                                                                 {getStatusBadge(inviteDetails.status)}
                                                             </div>
                                                         </div>
@@ -652,7 +711,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                             <div>
                                                 <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                                                     <FileText className="h-4 w-4" />
-                                                    Proposal Details
+                                                    {t("mvpNotifications.proposalDetails")}
                                                 </h4>
 
                                                 {proposalLoading ? (
@@ -696,15 +755,15 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                                                 <CheckCircle2 className="h-4 w-4 text-white/80 flex-shrink-0" />
                                                                             )}
                                                                         </div>
-                                                                        <p className="text-sm text-white/70 truncate">Creator</p>
-                                                                        <p className="text-xs text-white/50 mt-1">Click to view portfolio</p>
+                                                                        <p className="text-sm text-white/70 truncate">{t("mvpNotifications.creator")}</p>
+                                                                        <p className="text-xs text-white/50 mt-1">{t("mvpNotifications.clickToViewPortfolio")}</p>
                                                                     </div>
 
                                                                     {/* Stats */}
                                                                     <div className="flex items-center gap-4 text-white/90">
                                                                         <div className="text-center">
                                                                             <p className="text-lg font-bold">${proposalDetails.proposed_price?.toLocaleString() || "N/A"}</p>
-                                                                            <p className="text-xs text-white/60">Price</p>
+                                                                            <p className="text-xs text-white/60">{t("mvpNotifications.price")}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -715,7 +774,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                         <div className="p-3 rounded-lg border bg-card">
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                                                                <p className="text-xs text-muted-foreground">Message</p>
+                                                                <p className="text-xs text-muted-foreground">{t("mvpNotifications.message")}</p>
                                                             </div>
                                                             <p className="text-sm">{proposalDetails.message}</p>
                                                         </div>
@@ -725,7 +784,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                             <div className="p-3 rounded-lg border bg-card">
                                                                 <div className="flex items-center gap-2 mb-1">
                                                                     <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                                                    <p className="text-xs text-muted-foreground">Proposed Price</p>
+                                                                    <p className="text-xs text-muted-foreground">{t("mvpNotifications.proposedPrice")}</p>
                                                                 </div>
                                                                 <p className="text-lg font-semibold text-primary">
                                                                     {proposalDetails.proposed_price !== null
@@ -734,7 +793,7 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                                                                 </p>
                                                             </div>
                                                             <div className="p-3 rounded-lg border bg-card">
-                                                                <p className="text-xs text-muted-foreground mb-1">Status</p>
+                                                                <p className="text-xs text-muted-foreground mb-1">{t("mvpNotifications.status")}</p>
                                                                 {getStatusBadge(proposalDetails.status)}
                                                             </div>
                                                         </div>

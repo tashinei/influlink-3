@@ -109,6 +109,8 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
     });
   };
 
+  const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
+
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedNiches([]);
@@ -147,10 +149,10 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
         {/* HEADER */}
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-            Find Your <span className="bg-gradient-to-r from-primary via-secondary to-tertiary bg-clip-text text-transparent">Perfect Creator</span>
+            {t("mvpSearchSection.titleFirst")} <span className="bg-gradient-to-r from-primary via-secondary to-tertiary bg-clip-text text-transparent">{t("mvpSearchSection.titleSecond")}</span>
           </h2>
           <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Search through thousands of verified creators and find the perfect match for your brand
+            {t("mvpSearchSection.subTitle")}
           </p>
         </div>
 
@@ -163,7 +165,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search creators..."
+                  placeholder={t("mvpSearchSection.searchButton")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 pr-4 py-6 text-base md:text-lg border-2 border-border focus:border-primary rounded-xl bg-background w-full"
@@ -176,7 +178,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
                 className="w-full md:w-fit self-end flex items-center justify-center gap-2 h-10"
               >
                 <SlidersHorizontal className="w-4 h-4" />
-                {showAllFilters ? "Simple Search" : "Advanced Filters"}
+                {showAllFilters ? t("mvpSearchSection.simpleSearch") : t("mvpSearchSection.advancedSearch")}
               </Button>
             </div>
 
@@ -184,7 +186,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               {/* Niche - Scrollable box for mobile */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-primary">Niche/Category</Label>
+                <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.niche")}</Label>
                 <div className="flex flex-wrap gap-2 max-h-32 md:max-h-24 overflow-y-auto p-3 bg-muted/30 rounded-xl border border-border/50">
                   {niches.map((niche) => (
                     <Badge
@@ -201,7 +203,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
 
               {/* Platform */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-primary">Platform</Label>
+                <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.platform")}</Label>
                 <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-xl border border-border/50">
                   {platforms.map((platform) => (
                     <Badge
@@ -218,10 +220,10 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
 
               {/* Follower Range */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-primary">Follower Range</Label>
+                <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.followersRange")}</Label>
                 <Select value={followerRange ?? ""} onValueChange={setFollowerRange}>
                   <SelectTrigger className="bg-background border-2 h-12 rounded-xl">
-                    <SelectValue placeholder="Select range" />
+                    <SelectValue placeholder={t("mvpSearchSection.followersRangePlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>
                     {followerRanges.map((range) => (
@@ -237,21 +239,21 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-border animate-in fade-in slide-in-from-top-2">
                 {/* Country Button - Full width on mobile */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Country</Label>
+                  <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.country")}</Label>
                   <Button
                     variant="outline"
                     className="w-full justify-start h-12 border-2 rounded-xl bg-background"
                     onClick={() => setCountryModalOpen(true)}
                   >
                     <span className="truncate">
-                      {country?.name || "Select Country"}
+                      {country?.name || t("mvpSearchSection.selectCountry")}
                     </span>
                   </Button>
                 </div>
 
                 {/* Language - Fixed layout */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Language</Label>
+                  <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.language")}</Label>
                   <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-xl border border-border/50 max-h-32 overflow-y-auto">
                     {languagesList.map((lang) => {
                       const value = lang.toLowerCase();
@@ -273,7 +275,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
 
                 {/* Engagement */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Engagement Rate</Label>
+                  <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.engagementRate")}</Label>
                   <Select value={engagementRate} onValueChange={setEngagementRate}>
                     <SelectTrigger className="bg-background border-2 h-12 rounded-xl">
                       <SelectValue placeholder="Any" />
@@ -290,7 +292,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
                 <div className="md:col-span-2 lg:col-span-3">
                   <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
                     <div className="space-y-0.5">
-                      <Label htmlFor="vip" className="text-sm font-bold">VIP Creators Only</Label>
+                      <Label htmlFor="vip" className="text-sm font-bold">{t("mvpSearchSection.vipOnly")}</Label>
                       <p className="text-[11px] text-muted-foreground">Show top-tier verified talent</p>
                     </div>
                     <Switch id="vip" checked={vipAccount} onCheckedChange={setVipAccount} />
@@ -304,15 +306,15 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
               <Button
                 size="lg"
                 onClick={handleSearch}
-                className="w-full md:flex-1 h-14 bg-gradient-to-r from-primary to-accent text-lg font-bold rounded-xl shadow-lg shadow-primary/20"
+                className={`w-full md:flex-1 h-14 bg-gradient-to-r from-primary to-accent text-lg font-bold rounded-xl shadow-lg shadow-primary/20 ${primaryButtonClass}`}
               >
                 <Search className="w-5 h-5 mr-2" />
-                Search Creators
+                {t("mvpSearchSection.searchButton")}
               </Button>
               {hasActiveFilters && (
                 <Button variant="ghost" size="lg" onClick={clearFilters} className="h-14 rounded-xl text-muted-foreground">
                   <X className="w-5 h-5 mr-2" />
-                  Reset
+                  {t("mvpSearchSection.resetButton")}
                 </Button>
               )}
             </div>

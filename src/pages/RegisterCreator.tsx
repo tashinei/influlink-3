@@ -14,6 +14,7 @@ import { useUserStore } from '@/store/useUserStore';
 import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
     <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -58,7 +59,12 @@ const RegisterCreator = () => {
         }
     };
 
-    const encodeData = (data) => btoa(JSON.stringify(data));
+    const { t } = useTranslation();
+
+    const encodeData = (data: any) => {
+        const jsonString = JSON.stringify(data);
+        return btoa((encodeURIComponent(jsonString)));
+    };
     const decodeData = (encoded) => {
         try {
             return JSON.parse(atob(encoded));
@@ -187,9 +193,9 @@ const RegisterCreator = () => {
                 return (
                     <RegistrationForm
                         accountType="creator"
-                        isMultiStep={true} // This tells the form "Don't hit the DB yet!"
-                        title={isRegister ? "Become a Creator" : "Welcome Back"}
-                        description="First, let's secure your account."
+                        isMultiStep={true}
+                        title={isRegister ? t("mvpLogin.becomeCreator") : t("mvpLogin.welcomeBack")}
+                        description={t("mvpLogin.letsSecureFirst")}
                         initialData={{ name: formData.name, email: formData.email }}
                         onSuccess={(step1Data: any) => {
                             setFormData(prev => ({ ...prev, ...step1Data, accountType: 'creator' }));
@@ -204,14 +210,14 @@ const RegisterCreator = () => {
                         {/* Top Section: Header */}
                         <StepHeader
                             step={2}
-                            title="Your Identity"
+                            title={t("mvpLogin.yourIdentity")}
                             benefit="A professional handle and location help brands find you in local search results and verify your audience reach."
                         />
 
                         {/* Middle Section: Inputs (This fills the space) */}
                         <div className="flex-1 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <InputWrapper label="Full Name">
+                                <InputWrapper label={t("mvpLogin.fullName")}>
                                     <input
                                         className="step-input"
                                         placeholder="Alex Rivera"
@@ -223,7 +229,7 @@ const RegisterCreator = () => {
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">@</span>
                                         <input
-                                            className="step-input pl-8"
+                                            className="step-input !pl-[35px]"
                                             placeholder="alex_creates"
                                             value={formData.handle.replace(/^@/, '')}
                                             onChange={e => {
@@ -235,11 +241,11 @@ const RegisterCreator = () => {
                                 </InputWrapper>
                             </div>
 
-                            <InputWrapper label="Location (City, Country)">
+                            <InputWrapper label={`Location (${t("mvpLogin.countryCity")})`}>
                                 <div className="relative">
                                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                                     <input
-                                        className="step-input pl-11"
+                                        className="step-input !pl-[40px]"
                                         placeholder="London, UK"
                                         value={formData.location}
                                         onChange={e => setFormData({ ...formData, location: e.target.value })}
@@ -255,14 +261,14 @@ const RegisterCreator = () => {
                                 onClick={prevStep}
                                 className="text-white hover:bg-white/10 h-12 px-8"
                             >
-                                Back
+                                {t("mvpLogin.back")}
                             </Button>
                             <Button
                                 onClick={nextStep}
                                 disabled={!formData.name || !formData.handle}
                                 className={`flex-1 bg-white text-black hover:bg-white/90 font-bold h-12 rounded-xl disabled:opacity-50 ${primaryButtonClass}`}
                             >
-                                Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                                {t("mvpLogin.nextStep")} <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </div>
@@ -273,7 +279,7 @@ const RegisterCreator = () => {
                         {/* Top Section */}
                         <StepHeader
                             step={3}
-                            title="Your Niche"
+                            title={t("mvpLogin.yourNiche")}
                             benefit="Defining your category and bio lets our AI match you with campaigns that fit your actual content style, increasing your acceptance rate."
                         />
 
@@ -315,7 +321,7 @@ const RegisterCreator = () => {
                                 </div>
                             )}
 
-                            <InputWrapper label="Short Bio">
+                            <InputWrapper label={t("mvpLogin.shortBio")} >
                                 <textarea
                                     className="step-input min-h-[140px] pt-3 resize-none"
                                     placeholder="Tell brands what makes your content unique..."
@@ -332,14 +338,14 @@ const RegisterCreator = () => {
                                 onClick={prevStep}
                                 className="text-white hover:bg-white/10 h-12 px-8"
                             >
-                                Back
+                                {t("mvpLogin.back")}
                             </Button>
                             <Button
                                 onClick={nextStep}
                                 disabled={!formData.niche || (formData.niche === 'other' && !formData.otherNiche)}
                                 className={`flex-1 bg-white text-black hover:bg-white/90 font-bold h-12 rounded-xl ${primaryButtonClass}`}
                             >
-                                Almost There <ArrowRight className="ml-2 h-4 w-4" />
+                                {t("mvpLogin.almostThere")}  <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     </div>
@@ -359,12 +365,12 @@ const RegisterCreator = () => {
                             {error && <p className="text-red-400 text-sm mb-4 bg-red-400/10 py-2 rounded-lg">{error}</p>}
 
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-6 text-left">
-                                <h3 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">Review Summary</h3>
+                                <h3 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">{t("mvpLogin.reviewSummary")} </h3>
                                 <ul className="text-sm text-white/60 space-y-2">
-                                    <li><span className="text-white/40">Name:</span> {formData.name}</li>
-                                    <li><span className="text-white/40">Handle:</span> @{formData.handle.replace(/^@/, '')}</li>
+                                    <li><span className="text-white/40">{t("mvpLogin.name")} :</span> {formData.name}</li>
+                                    <li><span className="text-white/40">{t("mvpLogin.handle")} :</span> @{formData.handle.replace(/^@/, '')}</li>
                                     <li>
-                                        <span className="text-white/40">Niche:</span> {
+                                        <span className="text-white/40">{t("mvpLogin.niche")} :</span> {
                                             formData.niche === 'other'
                                                 ? formData.otherNiche
                                                 : (formData.niche || 'Not specified')
@@ -385,11 +391,11 @@ const RegisterCreator = () => {
                                     />
                                 </div>
                                 <label htmlFor="terms" className="text-xs text-white/60 leading-relaxed cursor-pointer select-none">
-                                    I agree to the{" "}
-                                    <a href="/terms" target="_blank" className="text-white underline hover:text-blue-400">Terms of Service</a>
-                                    {" "}and{" "}
-                                    <a href="/privacy" target="_blank" className="text-white underline hover:text-blue-400">Privacy Policy</a>.
-                                    I acknowledge the use of essential cookies for account security.
+                                    {t("mvpLogin.iAgreeToThe")} {" "}
+                                    <a href="/terms" target="_blank" className="text-white underline hover:text-blue-400">{t("mvpLogin.termsOfService")} </a>
+                                    {" "}{t("mvpLogin.and")}{" "}
+                                    <a href="/privacy" target="_blank" className="text-white underline hover:text-blue-400">{t("mvpLogin.privacy")} </a>.
+                                    {t("mvpLogin.acknowledgeUse")}
                                 </label>
                             </div>
                         </div>
@@ -404,7 +410,7 @@ const RegisterCreator = () => {
                                     : "bg-white/10 text-white/20 cursor-not-allowed"
                                     }`}
                             >
-                                {isSubmitting ? "Creating Account..." : "Confirm & Enter InfluLink"}
+                                {isSubmitting ? t("mvpLogin.creatingAccount") : t("mvpLogin.confirmAndEnter")}
                             </Button>
 
                             <button
@@ -412,7 +418,7 @@ const RegisterCreator = () => {
                                 disabled={isSubmitting}
                                 className="mt-4 text-white/40 text-xs hover:text-white underline disabled:opacity-50 pb-2"
                             >
-                                Back to details
+                                {t("mvpLogin.backToDetails")}
                             </button>
                         </div>
                     </div>
@@ -434,10 +440,11 @@ const RegisterCreator = () => {
 
                     <div className={`hidden lg:flex absolute left-20 bottom-20 z-10 flex-col space-y-4 max-w-xl transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                         <h1 className="text-7xl font-black text-white leading-tight drop-shadow-2xl">
-                            Quit Waiting,<br />Start Growing.
+                            {t("mvpLogin.quitWaiting")} ,<br />{t("mvpLogin.startGrowing")} .
                         </h1>
                         <p className="text-xl text-white/80 max-w-md drop-shadow-lg text-left">
                             The most powerful way for creators to bridge the gap between content and commerce.
+                            {t("mvpLogin.mostPowerfulWay")}
                         </p>
                     </div>
                 </>

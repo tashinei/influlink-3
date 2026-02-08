@@ -13,6 +13,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { CampaignData, CampaignFilterState } from "@/types/campaigns";
 import CampaignSearchSection from "@/components/home/CampaignSearchSection";
 import RegisterSelectionDialog from "@/components/RegisterSelectionDialog";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const HomeMVP = () => {
   const searchSectionRef = useRef<HTMLDivElement>(null);
@@ -22,6 +23,7 @@ const HomeMVP = () => {
   const isBrand = useUserStore((state) => state.accountType) === "brand";
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const isRegistered = useUserStore((state) => state.isRegistered);
+  const {t} = useTranslation();
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -96,13 +98,13 @@ const HomeMVP = () => {
       </div>
 
       <FeatureSection
-        title="Easy Discovery & Matching"
-        description="Find the perfect creators for your brand with our intelligent matching system."
+        title={t("mvpFeaturesSection.firstTitle")}
+        description={t("mvpFeaturesSection.firstSubtitle")}
         features={[
-          "Advanced search filters to narrow down your ideal creators",
-          "AI-powered matching based on audience demographics",
-          "Verified creator profiles with authentic engagement metrics",
-          "Save and analyze your favorite creators",
+          t("mvpFeaturesSection.firstBenefit1"),
+          t("mvpFeaturesSection.firstBenefit2"),
+          t("mvpFeaturesSection.firstBenefit3"),
+          t("mvpFeaturesSection.firstBenefit4"),
         ]}
         icon={Search}
         imagePosition="right"
@@ -112,14 +114,14 @@ const HomeMVP = () => {
 
       <div className="bg-muted/30">
         <FeatureSection
-          title="Global Reach. Local impact."
-          description="Communicate and manage campaigns all in one place."
-          features={[
-            "Built-in messaging with file sharing capabilities",
-            "Campaign briefs and content approval workflows",
-            "Real-time collaboration on content drafts",
-            "Calendar integration for scheduling posts",
-          ]}
+          title={t("mvpFeaturesSection.secondTitle")}
+        description={t("mvpFeaturesSection.secondSubtitle")}
+        features={[
+          t("mvpFeaturesSection.secondBenefit1"),
+          t("mvpFeaturesSection.secondBenefit2"),
+          t("mvpFeaturesSection.secondBenefit3"),
+          t("mvpFeaturesSection.secondBenefit4"),
+        ]}
           icon={MessageSquare}
           imagePosition="left"
           gradient="from-primary to-secondary/60"
@@ -128,13 +130,13 @@ const HomeMVP = () => {
       </div>
 
       <FeatureSection
-        title="Transparent Payments"
-        description="Secure, hassle-free payments for both creators and brands."
+        title={t("mvpFeaturesSection.thirdTitle")}
+        description={t("mvpFeaturesSection.thirdSubtitle")}
         features={[
-          "Protection for secure transactions",
-          "Multiple payment methods supported",
-          "Automatic invoicing and tax documentation",
-          "Milestone-based payment releases",
+          t("mvpFeaturesSection.thirdBenefit1"),
+          t("mvpFeaturesSection.thirdBenefit2"),
+          t("mvpFeaturesSection.thirdBenefit3"),
+          t("mvpFeaturesSection.thirdBenefit4"),
         ]}
         icon={CreditCard}
         imagePosition="right"
@@ -144,14 +146,14 @@ const HomeMVP = () => {
 
       <div className="bg-muted/30">
         <FeatureSection
-          title="Analytics & Growth"
-          description="Track performance and optimize your influencer marketing ROI."
-          features={[
-            "Real-time campaign performance dashboards",
-            "Audience reach and engagement analytics",
-            "ROI tracking and attribution modeling",
-            "Exportable reports",
-          ]}
+          title={t("mvpFeaturesSection.fourthTitle")}
+        description={t("mvpFeaturesSection.fourthSubtitle")}
+        features={[
+          t("mvpFeaturesSection.fourthBenefit1"),
+          t("mvpFeaturesSection.fourthBenefit2"),
+          t("mvpFeaturesSection.fourthBenefit3"),
+          t("mvpFeaturesSection.fourthBenefit4"),
+        ]}
           icon={BarChart3}
           imagePosition="left"
           gradient="from-primary to-secondary/60"

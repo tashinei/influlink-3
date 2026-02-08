@@ -80,6 +80,8 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
     }
   };
 
+  const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
+
   const handleSearch = () => {
     if (!isRegistered) {
       onClickSearch();
@@ -124,10 +126,10 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
         {/* HEADER */}
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-5xl font-bold mb-4">
-            Discover <span className="text-primary">Campaigns</span>
+            {t("mvpCampaignSearchSection.titleFirst")} <span className="text-primary">{t("mvpCampaignSearchSection.titleSecond")}</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-            Browse active brand campaigns and apply to the ones that fit you best
+            {t("mvpCampaignSearchSection.subTitle")}
           </p>
         </div>
 
@@ -139,10 +141,10 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
               <div className="relative w-full">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search campaigns..."
+                  placeholder={t("mvpCampaignSearchSection.searchButton")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 py-6 text-base md:text-lg border-2 rounded-xl w-full"
+                  className={`pl-12 py-6 text-base md:text-lg border-2 rounded-xl w-full`}
                 />
               </div>
             </div>
@@ -151,7 +153,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               {/* NICHES - Improved Mobile Scroll */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-primary">Niche</Label>
+                <Label className="text-sm font-semibold text-primary">{t("mvpCampaignSearchSection.niche")}</Label>
                 <div className="flex flex-wrap md:flex-nowrap md:overflow-x-auto gap-2 p-3 bg-muted/30 rounded-xl max-h-40 overflow-y-auto scrollbar-hide">
                   {niches.map((niche) => (
                     <Badge
@@ -168,7 +170,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
 
               {/* PLATFORM */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-primary">Platform</Label>
+                <Label className="text-sm font-semibold text-primary">{t("mvpCampaignSearchSection.platform")}</Label>
                 <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-xl">
                   {platforms.map((platform) => (
                     <Badge
@@ -185,7 +187,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
 
               {/* BUDGET */}
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-primary">Max Budget</Label>
+                <Label className="text-sm font-semibold text-primary">{t("mvpCampaignSearchSection.maxBudget")}</Label>
                 <Select value={budgetRange} onValueChange={setBudgetRange}>
                   <SelectTrigger className="h-12 rounded-xl border-2">
                     <SelectValue placeholder="Any" />
@@ -206,14 +208,14 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
               className="w-full flex items-center justify-center gap-2"
             >
               <SlidersHorizontal className="w-4 h-4" />
-              {showAllFilters ? "Hide Advanced Filters" : "Advanced Filters"}
+              {showAllFilters ? t("mvpCampaignSearchSection.simpleSearch") : t("mvpCampaignSearchSection.advancedSearch")}
             </Button>
 
             {/* EXTENDED FILTERS */}
             {showAllFilters && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t animate-in fade-in slide-in-from-top-4 duration-300">
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-primary">Content Type</Label>
+                  <Label className="text-sm font-semibold text-primary">{t("mvpCampaignSearchSection.contentType")}</Label>
                   <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-xl">
                     {contentTypes.map((type) => (
                       <Badge
@@ -228,7 +230,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label className="text-sm font-semibold text-primary">Payment Type</Label>
                   <Select value={paymentType} onValueChange={setPaymentType}>
                     <SelectTrigger className="h-12 rounded-xl">
@@ -240,12 +242,12 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <div className="flex items-center justify-between md:justify-start gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10 self-end">
                   <div className="space-y-0.5">
-                    <Label className="text-sm font-bold">Urgent Only</Label>
-                    <p className="text-[10px] text-muted-foreground">High priority campaigns</p>
+                    <Label className="text-sm font-bold">{t("mvpCampaignSearchSection.urgentOnly")}</Label>
+                    <p className="text-[12px] text-muted-foreground">{t("mvpCampaignSearchSection.urgentText")}</p>
                   </div>
                   <Switch checked={urgentOnly} onCheckedChange={setUrgentOnly} />
                 </div>
@@ -256,11 +258,11 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
             <div className="flex flex-col md:flex-row gap-3 pt-8 mt-4 border-t">
               <Button
                 size="lg"
-                className="w-full md:flex-1 h-14 rounded-xl text-lg font-bold shadow-lg shadow-primary/20"
+                className={`w-full md:flex-1 h-14 rounded-xl text-lg font-bold shadow-lg shadow-primary/20 ${primaryButtonClass}`}
                 onClick={handleSearch}
               >
                 <Search className="w-5 h-5 mr-2" />
-                Search Campaigns
+                {t("mvpCampaignSearchSection.searchButton")}
               </Button>
 
               {hasActiveFilters && (
@@ -271,7 +273,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
                   className="w-full md:w-fit text-muted-foreground hover:text-destructive"
                 >
                   <X className="w-5 h-5 mr-2" />
-                  Reset
+                  {t("mvpCampaignSearchSection.resetButton")}
                 </Button>
               )}
             </div>

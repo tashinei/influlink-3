@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Collaborator {
   id: string;
@@ -46,6 +47,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!open) return;
@@ -82,9 +84,9 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
         <DialogHeader className="p-6 pb-2 shrink-0">
           <div className="flex justify-between items-center">
             <div>
-              <DialogTitle className="text-xl font-bold text-black">Active Links</DialogTitle>
+              <DialogTitle className="text-xl font-bold text-black">{t("links.title")}</DialogTitle>
               <DialogDescription className="text-zinc-500">
-                People and brands you are currently working with.
+                {t("links.subtitle")}
               </DialogDescription>
             </div>
           </div>
@@ -92,7 +94,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
             <Input
-              placeholder="Search by name or @handle..."
+              placeholder={t("links.searchBy")}
               className="pl-10 bg-zinc-100 border-none text-black placeholder:text-zinc-500 focus-visible:ring-2 focus-visible:ring-primary/20"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -110,7 +112,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
               </div>
             ) : filteredItems.length === 0 ? (
               <div className="text-center py-12 text-zinc-400 text-sm italic">
-                No active collaborators found.
+                {t("links.noActive")}
               </div>
             ) : (
               filteredItems.map((person) => (
@@ -133,7 +135,12 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="text-sm font-bold text-white truncate">{person.name}</h4>
                         <Badge variant="outline" className="text-[10px] h-4 px-1.5 uppercase bg-white/20 text-white border-none">
-                          {person.role}
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] h-4 px-1.5 uppercase bg-white/20 text-white border-none"
+                          >
+                            {t(`mvpNotifications.${person.role.toLowerCase()}`)}
+                          </Badge>
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5 text-white/80">
@@ -165,7 +172,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
                       onClick={() => onChat?.(person)}
                     >
                       <MessageSquare className="h-4 w-4" />
-                      <span className="text-xs font-bold uppercase tracking-wider">Chat</span>
+                      <span className="text-xs font-bold uppercase tracking-wider">{t("links.chat")}</span>
                     </Button>
                   </div>
                 </div>

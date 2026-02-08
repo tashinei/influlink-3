@@ -33,6 +33,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useCreatorNiches } from "@/data/mockCreators";
+import { useTranslation } from "@/hooks/useTranslation";
 
 // --- 1. UPDATED FORM INTERFACE ---
 interface CampaignForm {
@@ -58,32 +59,6 @@ interface CreateCampaignModalProps {
 }
 
 // Define the steps and their content
-const Steps = [
-  {
-    key: 1,
-    title: "Core Campaign Details",
-    icon: Layers,
-    description: "Define the fundamental aspects of your campaign.",
-  },
-  {
-    key: 2,
-    title: "Goals & Budget",
-    icon: Zap,
-    description: "Set your objectives and allocate the necessary funds.",
-  },
-  {
-    key: 3,
-    title: "Targeting & Filters",
-    icon: Target,
-    description: "Choose platforms, niches, and audience reach.",
-  },
-  {
-    key: 4,
-    title: "Media & Branding (Optional)",
-    icon: Camera,
-    description: "Upload logos and creative references.",
-  },
-];
 
 type ValidationErrors = Partial<Record<keyof CampaignForm, string>>;
 
@@ -132,7 +107,7 @@ const validateStep = (
 
 const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
-
+  const { t } = useTranslation();
   const [errors, setErrors] = useState<ValidationErrors>({});
 
   const [form, setForm] = useState<CampaignForm>({
@@ -151,8 +126,36 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
     language: [],
   });
 
+  const Steps = [
+    {
+      key: 1,
+      title: t("mvpCreateCampaign.step1Title"),
+      icon: Layers,
+      description: t("mvpCreateCampaign.step1Desc"),
+    },
+    {
+      key: 2,
+      title: t("mvpCreateCampaign.step2Title"),
+      icon: Zap,
+      description: t("mvpCreateCampaign.step2Desc"),
+    },
+    {
+      key: 3,
+      title: t("mvpCreateCampaign.step3Title"),
+      icon: Target,
+      description: t("mvpCreateCampaign.step3Desc"),
+    },
+    {
+      key: 4,
+      title: t("mvpCreateCampaign.step4Title"),
+      icon: Camera,
+      description: t("mvpCreateCampaign.step4Desc"),
+    },
+  ];
+
+
   const API_BASE = "http://localhost:3000"
-  
+
   const niches = useCreatorNiches();
 
   const handleInputChange = (
@@ -290,7 +293,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
             <div className="space-y-3">
               <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
                 <Target className="h-4 w-4 text-primary/70" />
-                Campaign Name
+                {t("mvpCreateCampaign.name")}
               </Label>
               <Input
                 id="name"
@@ -309,12 +312,12 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
             <div className="space-y-3">
               <Label htmlFor="description" className="flex items-center gap-2 text-sm font-medium">
                 <FileText className="h-4 w-4 text-primary/70" />
-                Description
+                {t("mvpCreateCampaign.desc")}
               </Label>
               <Textarea
                 id="description"
                 name="description"
-                placeholder="Describe your campaign goals and target audience..."
+                placeholder={t("mvpCreateCampaign.describe")}
                 className="min-h-[120px] resize-none"
                 value={form.description}
                 onChange={handleInputChange}
@@ -327,17 +330,17 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               <div className="space-y-3">
                 <Label htmlFor="type" className="flex items-center gap-2 text-sm font-medium">
                   <Users className="h-4 w-4 text-primary/70" />
-                  Campaign Type
+                  {t("mvpCreateCampaign.type")}
                 </Label>
                 <Select value={form.type} onValueChange={(v) => handleSelectChange("type", v)} required>
                   <SelectTrigger id="type" className="h-11">
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t("mvpCreateCampaign.selectType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="email">Email Campaign</SelectItem>
-                    <SelectItem value="social">Social Media</SelectItem>
-                    <SelectItem value="ads">Paid Ads</SelectItem>
-                    <SelectItem value="content">Content Marketing</SelectItem>
+                    <SelectItem value="email">{t("mvpCreateCampaign.emailCampaign")}</SelectItem>
+                    <SelectItem value="social">{t("mvpCreateCampaign.socialMedia")}</SelectItem>
+                    <SelectItem value="ads">{t("mvpCreateCampaign.paidAds")}</SelectItem>
+                    <SelectItem value="content">{t("mvpCreateCampaign.contentMarketing")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -345,7 +348,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               <div className="space-y-3">
                 <Label htmlFor="date" className="flex items-center gap-2 text-sm font-medium">
                   <Calendar className="h-4 w-4 text-primary/70" />
-                  Start Date
+                  {t("mvpCreateCampaign.startDate")}
                 </Label>
                 <Input
                   id="date"
@@ -371,17 +374,17 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
             <div className="space-y-3">
               <Label htmlFor="goal" className="flex items-center gap-2 text-sm font-medium">
                 <Target className="h-4 w-4 text-primary/70" />
-                Primary Goal
+                {t("mvpCreateCampaign.primaryGoal")}
               </Label>
               <Select value={form.goal} onValueChange={(v) => handleSelectChange("goal", v)} required>
                 <SelectTrigger id="goal" className="h-11">
                   <SelectValue placeholder="Select goal" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="reach">Reach/Impressions</SelectItem>
-                  <SelectItem value="conversions">Conversions/Sales</SelectItem>
-                  <SelectItem value="engagement">Engagement/Likes</SelectItem>
-                  <SelectItem value="awareness">Brand Awareness</SelectItem>
+                  <SelectItem value="reach">{t("mvpCreateCampaign.reach")}</SelectItem>
+                  <SelectItem value="conversions">{t("mvpCreateCampaign.conversions")}</SelectItem>
+                  <SelectItem value="engagement">{t("mvpCreateCampaign.engagement")}</SelectItem>
+                  <SelectItem value="awareness">{t("mvpCreateCampaign.brandAwareness")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -390,7 +393,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
             <div className="space-y-3">
               <Label htmlFor="budget" className="flex items-center gap-2 text-sm font-medium">
                 <DollarSign className="h-4 w-4 text-primary/70" />
-                Total Budget ($)
+                {t("mvpCreateCampaign.totalBudget")} ($)
               </Label>
               <Input
                 id="budget"
@@ -415,11 +418,11 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
             {/* LEFT COLUMN */}
             <div className="space-y-8">
-              <h4 className="text-lg font-semibold">Platforms & Niches</h4>
+              <h4 className="text-lg font-semibold">{t("mvpCreateCampaign.platformsNiches")}</h4>
 
               {/* Platforms */}
               <div className="space-y-2">
-                <Label>Platforms</Label>
+                <Label>{t("mvpCreateCampaign.platforms")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {["Instagram", "TikTok", "YouTube", "X"].map(p => (
                     <Button
@@ -442,7 +445,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
               {/* Niches */}
               <div className="space-y-2">
-                <Label>Niches</Label>
+                <Label>{t("mvpCreateCampaign.niches")}</Label>
                 <div className="flex flex-wrap gap-2 max-h-[20vh] overflow-y-scroll">
                   {niches.map(n => (
                     <Button
@@ -466,13 +469,13 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
             {/* RIGHT COLUMN */}
             <div className="space-y-8">
-              <h4 className="text-lg font-semibold">Audience & Content</h4>
+              <h4 className="text-lg font-semibold">{t("mvpCreateCampaign.audienceContent")}</h4>
 
               {/* Content Types */}
               <div className="space-y-2">
-                <Label>Content Types</Label>
+                <Label>{t("mvpCreateCampaign.contentTypes")}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Post", "Story", "Reel", "Video", "Livestream"].map(c => (
+                  {[t("mvpCreateCampaign.post"), t("mvpCreateCampaign.story"), t("mvpCreateCampaign.reel"), t("mvpCreateCampaign.video"), t("mvpCreateCampaign.livestream")].map(c => (
                     <Button
                       key={c}
                       size="sm"
@@ -493,7 +496,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
               {/* Country */}
               <div className="space-y-2 max-w-sm">
-                <Label>Target Country</Label>
+                <Label>{t("mvpCreateCampaign.targetCountry")}</Label>
                 <Select
                   value={form.country ?? ""}
                   onValueChange={(v) => {
@@ -502,7 +505,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
+                    <SelectValue placeholder={t("mvpCreateCampaign.selectCountry")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="US">United States</SelectItem>
@@ -521,9 +524,10 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
               {/* Languages */}
               <div className="space-y-2">
-                <Label>Languages</Label>
+                <Label>{t("mvpCreateCampaign.languages")}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["English", "German", "French", "Spanish", "Bulgarian"].map(l => (
+                  {[t("mvpCreateCampaign.english"), t("mvpCreateCampaign.german"), t("mvpCreateCampaign.french"),
+                  t("mvpCreateCampaign.spanish"), t("mvpCreateCampaign.bulgarian")].map(l => (
                     <Button
                       key={l}
                       size="sm"
@@ -547,10 +551,10 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
       case 4:
         return (
-          <div className="space-y-8 max-w-xl">
+          <div className="space-y-8 max-w-fit">
 
             <div className="space-y-3">
-              <Label>Company Logo (Optional)</Label>
+              <Label>{t("mvpCreateCampaign.companyLogo")} ({t("mvpCreateCampaign.optional")})</Label>
               <Input
                 type="file"
                 accept=".png,.jpg,.jpeg"
@@ -562,7 +566,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
             </div>
 
             <div className="space-y-3">
-              <Label>Reference Images (Optional)</Label>
+              <Label>{t("mvpCreateCampaign.refImages")} ({t("mvpCreateCampaign.optional")})</Label>
               <Input
                 type="file"
                 multiple
@@ -574,8 +578,8 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               )}
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              Upload visuals to help creators understand your brand style.
+            <p className="text-sm text-muted-foreground min-w-fit">
+              {t("mvpCreateCampaign.tooltip")}
             </p>
           </div>
         );
@@ -590,7 +594,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
       <DialogContent
         className="
           h-[98vh] w-[60vw] max-w-[95vw] sm:max-w-[90vw] 
-          overflow-y-auto p-0
+          overflow-y-auto p-6
         "
       >
         <div className="flex flex-col h-full">
@@ -600,7 +604,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               {currentStepData?.title}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground mt-2">
-              Step {currentStep} of {Steps.length}: {currentStepData?.description}
+              {t("mvpCreateCampaign.step")} {currentStep} {t("mvpCreateCampaign.of")} {Steps.length}: {currentStepData?.description}
             </DialogDescription>
             {/* Simple Step Indicator */}
             <div className="w-full bg-muted rounded-full h-1.5 mt-4">
@@ -629,7 +633,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               onClick={currentStep > 1 ? handleBack : () => onOpenChange(false)}
             >
               {currentStep > 1 ? (
-                <><ArrowLeft className="mr-2 h-4 w-4" /> Back</>
+                <><ArrowLeft className="mr-2 h-4 w-4" /> {t("mvpCreateCampaign.back")}</>
               ) : (
                 "Cancel"
               )}
@@ -641,10 +645,10 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               onClick={handleNext}
             >
               {currentStep === Steps.length ? (
-                "Create Campaign"
+                t("mvpCreateCampaign.createButton")
               ) : (
                 <span className="flex items-center">
-                  Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                  {t("mvpCreateCampaign.nextStep")} <ArrowRight className="ml-2 h-4 w-4" />
                 </span>
               )}
             </Button>

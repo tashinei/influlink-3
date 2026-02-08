@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useTranslation";
 import { MeshGradient } from "@paper-design/shaders-react";
 import { ArrowDown, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react"; 
@@ -12,6 +13,7 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
     const colors = ["#90d5f3ff", "#6EC5E9", "#1E88E5"];
     const veilOpacity="bg-black/20"
     const overlayColor = "rgba(0,0,0,0.4)";
+    const {t} = useTranslation();
 
     const [dimensions, setDimensions] = useState({ 
         width: 0, 
@@ -87,11 +89,11 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
                 </div> */}
 
                 <h1 className="text-5xl md:text-7xl font-bold text-[white] mb-6 leading-tight mt-8">
-                    Where <span className="bg-gradient-to-r from-secondary via-tertiary to-primary bg-clip-text text-transparent">Brands</span> Meet <span className="bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent">Creators</span>
+                    {t("mvpHero.titleFirst")} <span className="bg-gradient-to-r from-tertiary via-secondary/80 to-secondary bg-clip-text text-transparent">{t("mvpHero.titleSecond")}</span> {t("mvpHero.titleThird")} <span className="bg-gradient-to-r from-secondary via-secondary/60 to-tertiary bg-clip-text text-transparent">{t("mvpHero.titleFourth")}</span>
                 </h1>
 
                 <p className="text-xl md:text-2xl text-[white] max-w-3xl mx-auto mb-12">
-                    The ultimate platform for influencer marketing. Find the perfect match, collaborate seamlessly, and grow together.
+                    {t("mvpHero.subtext")}
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -100,7 +102,7 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
                         onClick={onExploreClick}
                         className="border-2 border-primary hover:border-primary hover:bg-primary/5 hover:text-[white] px-8 py-6 text-lg rounded-[50px] bg-transparent text-[white]"
                     >
-                        Explore Features
+                        {t("mvpHero.secondaryButton")}
                         <ArrowDown className="ml-2 w-5 h-5" />
                     </Button>
 
@@ -109,7 +111,7 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
                         onClick={onJoinClick}
                         className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-[white] px-8 py-6 text-lg shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 rounded-[50px]"
                     >
-                        Join Us
+                        {t("mvpHero.primaryButton")}
                     </Button>
                 </div>
             </div>

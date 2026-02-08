@@ -34,6 +34,7 @@ import NavigationDock from "@/components/NavigationDock";
 import { useUserStore } from "@/store/useUserStore";
 import { CampaignDetailModal } from "@/components/campaigns/CampaignDetailModal";
 import { EditCampaignModal } from "@/components/campaigns/EditCampaignModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -257,6 +258,8 @@ const Profile = () => {
     }
   };
 
+  const {t} = useTranslation();
+
   const handleProfilePicChange = async (file: File) => {
     try {
       const formData = new FormData();
@@ -328,7 +331,7 @@ const Profile = () => {
                   value="portfolio"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
                 >
-                  Portfolio
+                  {t("mvpProfileTabs.portfolio")}
                   <Badge
                     variant="secondary"
                     className="ml-2 bg-muted text-muted-foreground text-xs"
@@ -343,7 +346,7 @@ const Profile = () => {
                     value="campaigns"
                     className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
                   >
-                    Campaigns
+                    {t("mvpProfileTabs.campaigns")}
                     <Badge
                       variant="secondary"
                       className="ml-2 bg-muted text-muted-foreground text-xs"
@@ -358,7 +361,7 @@ const Profile = () => {
                 value="analytics"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
               >
-                Analytics
+                {t("mvpAnalytics.title")}
               </TabsTrigger>
             </TabsList>
 
@@ -369,7 +372,7 @@ const Profile = () => {
                 className="gap-2 rounded-full bg-gradient-to-br from-primary to-secondary hover:scale-105 transition"
               >
                 <Plus className="w-5 h-5" />
-                <span className="hidden md:inline">Add Work</span>
+                <span className="hidden md:inline">{t("mvpProfileTabs.addWork")}</span>
               </Button>
             )}
           </div>
@@ -383,11 +386,11 @@ const Profile = () => {
               ) : portfolioToDisplay.length === 0 ? (
                 <div className="text-center py-20 bg-muted/20 rounded-2xl border-2 border-dashed">
                   <p className="text-muted-foreground mb-4">
-                    No portfolio items yet
+                    {t("mvpProfileTabs.noPortfolioItems")}
                   </p>
                   {isOwner && (
                     <Button onClick={() => setIsAddPostOpen(true)}>
-                      Add Your First Work
+                      {t("mvpProfileTabs.addFirstWork")}
                     </Button>
                   )}
                 </div>
@@ -412,9 +415,9 @@ const Profile = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold">Your campaigns</h3>
+                      <h3 className="text-lg font-semibold">{t("mvpProfileTabs.yourCampaigns")}</h3>
                       <p className="text-sm text-muted-foreground">
-                        Manage and tract the progress of your projects.
+                        {t("mvpProfileTabs.manageCampaigns")}
                       </p>
                     </div>
                   </div>
@@ -429,13 +432,13 @@ const Profile = () => {
                         <Rocket className="w-10 h-10 text-primary/40" />
                       </div>
                       <p className="text-muted-foreground mb-4">
-                        You don't have any campaigns yet.
+                        {t("mvpProfileTabs.noCampaignsYet")}
                       </p>
                       <Button
                         variant="outline"
                         onClick={() => setIsCreateCampaignOpen(true)}
                       >
-                        Start now
+                        {t("mvpProfileTabs.startNow")}
                       </Button>
                     </div>
                   ) : (

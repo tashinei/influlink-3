@@ -10,6 +10,7 @@ import { Info } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "./dialog";
 import { } from "./dialog";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -36,7 +37,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
   const [editNiche, setEditNiche] = useState(profile.niche);
   const [loading, setLoading] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-
+  const {t} = useTranslation();
   const isOwner = !!onChangeProfilePic;
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -99,7 +100,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                     <CheckCircle2 className="w-6 h-6 text-primary fill-[white]" aria-label="Approved" />
                   )}
                   <Badge variant="secondary" className="bg-gradient-to-br from-primary to-secondary text-primary-foreground ml-2 py-1 md:py-2">
-                    {profile.type === "creator" ? "Creator" : "Brand"}
+                    {profile.type === "creator" ? t("mvpNotifications.creator") : t("mvpNotifications.brand")}
                   </Badge>
                 </div>
                 <p className="text-muted-foreground font-medium mb-2">{profile.niche}</p>
@@ -134,10 +135,10 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                       onClick={onToggleFollow}
                       aria-pressed={isFollowing}
                     >
-                      {isFollowing ? "Following" : "Follow"}
+                      {isFollowing ? t("profile.following") : t("profile.follow")}
                     </Button>
                     <Button variant="outline" className="flex-1 md:flex-none rounded-full px-6">
-                      Get in touch
+                      {t("profile.getInTouch")}
                     </Button>
                   </>
                 ) : (
@@ -148,7 +149,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                     onClick={onEditProfile}
                   >
                     <UserCog className="w-5 h-5 mr-1" />
-                    Edit Profile
+                    {t("profile.editProfile")}
                   </Button>
                 )}
 
@@ -163,7 +164,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                     {/* Menu items for all users (e.g., Share Profile) */}
                     <DropdownMenuItem onClick={() => navigator.clipboard.writeText(`https://influ-link.com/${profile.handle}`)} className="cursor-pointer">
                       <LinkIcon className="mr-2 h-4 w-4" />
-                      <span>Share Profile</span>
+                      <span>{t("profile.shareProfile")}</span>
                     </DropdownMenuItem>
 
                     {/* Logout is only for the Profile Owner */}
@@ -175,7 +176,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                           className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700"
                         >
                           <LogOut className="mr-2 h-4 w-4" />
-                          <span>Logout</span>
+                          <span>{t("profile.logout")}</span>
                         </DropdownMenuItem>
                       </>
                     )}
@@ -228,15 +229,15 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
               <div className="flex gap-8 md:gap-12">
                 <div className="text-center md:text-left">
                   <p className="text-2xl font-bold text-foreground">{profile.stats.followers}</p>
-                  <p className="text-sm text-muted-foreground">Followers</p>
+                  <p className="text-sm text-muted-foreground">{t("profile.followers")}</p>
                 </div>
                 <div className="text-center md:text-left">
                   <p className="text-2xl font-bold text-foreground">{profile.stats.engagementRate}</p>
-                  <p className="text-sm text-muted-foreground">Eng. Rate</p>
+                  <p className="text-sm text-muted-foreground">{t("profile.engRate")}</p>
                 </div>
                 <div className="text-center md:text-left">
                   <p className="text-2xl font-bold text-foreground">{profile.stats.totalReach}</p>
-                  <p className="text-sm text-muted-foreground">Reach</p>
+                  <p className="text-sm text-muted-foreground">{t("profile.reach")}</p>
                 </div>
               </div>
             </div>
@@ -252,17 +253,17 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
             <div className="flex flex-row gap-8 align-middle justify-start" style={{ alignItems: "center" }}>
               <DialogTitle className="text-xl font-semibold w-[90%]">
-                Confirm Logout
+               {t("profile.confirmLogout")}
               </DialogTitle>
             </div>
 
 
             <DialogDescription className="text-sm text-muted-foreground max-w-sm">
-              Are you sure you want to log out of your account?
+              {t("profile.sureLogout")}
             </DialogDescription>
             <div className="rounded-md bg-transparent px-2 py-1 text-sm text-[gray] flex items-startt justify-start gap-2 pl-0">
               <span><Info></Info></span>
-              You will be redirected to the home page.
+              {t("profile.redirectHome")}
             </div>
           </DialogHeader>
 
@@ -281,7 +282,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
               className="w-full sm:w-auto bg-gradient-to-br from-primary to-secondary text-[white]"
               onClick={() => setIsLogoutModalOpen(false)}
             >
-              Cancel
+              {t("profile.cancel")}
             </Button>
 
             <Button
@@ -290,7 +291,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
               onClick={onLogout}
             >
               <LogOut className="w-4 h-4 mr-2 text-red-400" />
-              Log Out
+              {t("profile.logOut")}
             </Button>
           </DialogFooter>
 

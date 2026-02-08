@@ -661,7 +661,7 @@ app.get(
 
       // 3. Prepare Chart Data (Using the live totals for placeholders)
       const viewsByPlatform = [
-        { platform: "Web", views: Math.round(totalViews * 0.7) },
+        { platform: "Desktop", views: Math.round(totalViews * 0.7) },
         { platform: "Mobile", views: Math.round(totalViews * 0.3) },
       ];
 
@@ -838,7 +838,6 @@ const FOLLOWER_RANGES = {
 // =======================
 app.post("/api/creators/search", async (req, res) => {
   try {
-    console.log("Just a test");
     const {
       query = "",
       niche = [],
@@ -849,8 +848,6 @@ app.post("/api/creators/search", async (req, res) => {
       maxFollowers = 10000000,
       isVIP = false,
       availableNow = false,
-      budgetMin = 0,
-      budgetMax = 100000000,
       page = 1,
       limit = 12,
       minEngagement,
@@ -859,28 +856,24 @@ app.post("/api/creators/search", async (req, res) => {
       collabTypes = [],
     } = req.body;
 
-    console.log("Received body:", req.body);
-
     const where = [];
     const params = [];
 
-    // Only creators
-    // where.push(`accounttype = 'creator'`);
+    where.push(`type = 'creator'`);
 
     // 🔍 Text search
     if (query.trim()) {
       where.push(`(
-        name LIKE ? OR
-        handle LIKE ? OR
-        bio LIKE ? OR
-        niche LIKE ? OR
-        location LIKE ? OR
-        country LIKE ? OR
-        JSON_SEARCH(collab_types, 'one', ?) IS NOT NULL OR
-        JSON_SEARCH(content_types, 'one', ?) IS NOT NULL OR
+        name LIKE ? OR 
+        handle LIKE ? OR 
+        bio LIKE ? OR 
+        niche LIKE ? OR 
+        location LIKE ? OR 
+        country LIKE ? OR 
+        JSON_SEARCH(collab_types, 'one', ?) IS NOT NULL OR 
+        JSON_SEARCH(content_types, 'one', ?) IS NOT NULL OR 
         JSON_SEARCH(platforms, 'one', ?) IS NOT NULL
-    )`);
-
+      )`);
       const q = `%${query}%`;
       params.push(q, q, q, q, q, q, q, q, q);
     }
@@ -894,22 +887,15 @@ app.post("/api/creators/search", async (req, res) => {
     // Country
     if (country) {
       where.push(`country = ?`);
-      params.push(country); // we only pass the country name string
+      params.push(country);
     }
 
-    // Availability
-    if (availableNow) {
-      where.push(`available_now = 1`);
-    }
-
-    // Vip status
-    if (isVIP) {
-      where.push(`isVip = 1`);
-    }
-
-    const languages = Array.isArray(req.body.language) ? req.body.language : [];
+    // Availability & VIP
+    if (availableNow) where.push(`available_now = 1`);
+    if (isVIP) where.push(`isVip = 1`);
 
     // Language
+    const languages = Array.isArray(language) ? language : [];
     if (languages.length > 0) {
       const orClauses = languages
         .map(() => `JSON_SEARCH(LOWER(languages), 'one', LOWER(?)) IS NOT NULL`)
@@ -920,110 +906,57 @@ app.post("/api/creators/search", async (req, res) => {
 
     // Platforms
     if (platforms?.length > 0) {
-      const orClauses = platforms
-        .map(() => `JSON_CONTAINS(platforms, ?)`)
-        .join(" OR ");
+      const orClauses = platforms.map(() => `JSON_CONTAINS(platforms, ?)`).join(" OR ");
       where.push(`(${orClauses})`);
-      params.push(...platforms.map((platform) => `"${platform}"`));
+      params.push(...platforms.map((p) => `"${p}"`));
     }
 
-    // Followers (range OR explicit)
-    let minF = minFollowers ?? 0;
-    let maxF = maxFollowers ?? 10000000;
+    // Stats Ranges
+    where.push(`followers >= ? AND followers <= ?`);
+    params.push(minFollowers ?? 0, maxFollowers ?? 10000000);
 
-    console.log("Using follower limits:", minF, maxF);
+    where.push(`engagement_rate >= ? AND engagement_rate <= ?`);
+    params.push(minEngagement ?? 0, maxEngagement ?? 100);
 
-    if (minF >= 0) {
-      where.push(`followers >= ?`);
-      params.push(minF);
-    }
-    if (maxF <= 10000000) {
-      where.push(`followers <= ?`);
-      params.push(maxF);
-    }
-
-    let minEng = minEngagement ?? 0;
-    let maxEng = maxEngagement ?? 100;
-
-    if (minEng >= 0) {
-      where.push(`engagement_rate >= ?`);
-      params.push(minEng);
-    }
-    if (maxEng <= 100) {
-      where.push(`engagement_rate <= ?`);
-      params.push(maxEng);
-    }
-
+    // Content & Collab Types
     if (contentTypes.length > 0) {
-      const orClauses = contentTypes
-        .map(() => `JSON_CONTAINS(content_types, ?)`)
-        .join(" OR ");
-
+      const orClauses = contentTypes.map(() => `JSON_CONTAINS(content_types, ?)`).join(" OR ");
       where.push(`(${orClauses})`);
       params.push(...contentTypes.map((t) => `"${t.toLowerCase()}"`));
     }
 
     if (collabTypes.length > 0) {
-      const orClauses = collabTypes
-        .map(() => `JSON_CONTAINS(collab_types, ?)`)
-        .join(" OR ");
-
+      const orClauses = collabTypes.map(() => `JSON_CONTAINS(collab_types, ?)`).join(" OR ");
       where.push(`(${orClauses})`);
       params.push(...collabTypes.map((t) => `"${t.toLowerCase()}"`));
     }
 
-    // 💰 Budget (custom numeric)
-    // if (budgetMin !== null) {
-    //     where.push(`budget_min >= ?`);
-    //     params.push(budgetMin);
-    // }
+    // 2. GET TOTAL COUNT (For Pagination)
+    const countSql = `SELECT COUNT(*) as total FROM profiles WHERE ${where.join(" AND ")}`;
+    const [countResult] = await pool.query(countSql, params);
+    const totalCount = countResult[0].total;
 
-    // if (budgetMax !== null) {
-    //     where.push(`budget_max <= ?`);
-    //     params.push(budgetMax);
-    // }
-
-    // 📄 Pagination
+    // 3. GET PAGINATED DATA
     const offset = (page - 1) * limit;
-
-    const sql = `
-      SELECT
-        id,
-        name,
-        handle,
-        niche,
-        location,
-        avatar,
-        followers,
-        engagement_rate,
-        isVIP,
-        budget_min,
-        budget_max,
-        country,
-        languages,
-        platforms,
-        content_types,
-        collab_types
+    const dataSql = `
+      SELECT id, name, handle, niche, location, avatar, followers, 
+             engagement_rate, isVIP, budget_min, budget_max, 
+             country, languages, platforms, content_types, collab_types
       FROM profiles
-      ${where.length ? "WHERE " + where.join(" AND ") : ""}
-      ORDER BY
-        isVIP DESC,
-        followers DESC
+      WHERE ${where.join(" AND ")}
+      ORDER BY isVIP DESC, followers DESC
       LIMIT ? OFFSET ?
     `;
 
-    params.push(Number(limit), Number(offset));
-
-    const [rows] = await pool.query(sql, params);
+    const [rows] = await pool.query(dataSql, [...params, Number(limit), Number(offset)]);
 
     res.json({
-      page,
-      limit,
-      count: rows.length,
+      page: Number(page),
+      limit: Number(limit),
+      count: totalCount, // Returns total matching creators in DB, not just the page size
       results: rows,
     });
 
-    console.log(rows);
   } catch (err) {
     console.error("Creator search error:", err);
     res.status(500).json({ message: "Failed to search creators" });

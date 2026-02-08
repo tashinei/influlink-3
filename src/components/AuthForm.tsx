@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { BsGoogle } from 'react-icons/bs';
 import { Mail, Lock, User, Briefcase, CheckCircle2 } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AuthFormProps {
   accountType: 'creator' | 'brand';
@@ -25,6 +26,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const setAccountType = useUserStore((state) => state.setAccountType);
 
   const [mode, setMode] = useState<'register' | 'login'>('register');
+
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -63,6 +66,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!isValidPassword(formData.password)) {
+      setError("Password must contain only Latin characters.");
+      setLoading(false);
+      return;
+    }
 
     if (mode === 'register' && isMultiStep) {
       setTimeout(() => {
@@ -157,6 +166,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     }
   };
 
+  const isValidPassword = (password: string) => {
+    // Allows English letters, numbers, and common symbols. 
+    // Blocks Cyrillic, emojis, and other non-standard encodings.
+    const asciiRegex = /^[\x20-\x7E]*$/;
+    return asciiRegex.test(password);
+  };
+
   const isCreator = accountType === 'creator';
   const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
 
@@ -187,7 +203,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
               <Input
                 id="name"
                 type="text"
-                placeholder={isCreator ? 'Full Name' : 'Company Name'}
+                placeholder={isCreator ? t("mvpLogin.fullName") : t("mvpLogin.companyName")}
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -201,7 +217,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
             <Input
               id="email"
               type="email"
-              placeholder="Email"
+              placeholder={t("mvpLogin.email")}
               value={formData.email}
               onChange={handleChange}
               required
@@ -214,7 +230,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
             <Input
               id="password"
               type="password"
-              placeholder="Password"
+              placeholder={t("mvpLogin.password")}
               value={formData.password}
               onChange={handleChange}
               required
@@ -227,23 +243,23 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
             disabled={loading}
             className={`w-[50%] py-2 text-base font-semibold h-11 mx-auto ${primaryButtonClass} shadow-md`}
           >
-            {loading ? (mode === 'register' ? 'Registering...' : 'Logging in...') : (mode === 'register' ? 'Sign Up' : 'Login')}
+            {loading ? (mode === 'register' ? t("mvpLogin.registering") : t("mvpLogin.logging")) : (mode === 'register' ? t("mvpLogin.signUp") : t("mvpLogin.logIn"))}
           </Button>
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-          <p className="font-bold text-white/80 mb-4">Or</p>
+          <p className="font-bold text-white/80 mb-4">{t("mvpLogin.or")}</p>
           <Button
             variant="outline"
             className="w-full max-w-sm h-11 bg-white/20 dark:text-white mx-auto flex items-center justify-center space-x-2"
           >
             <BsGoogle className="h-4 w-4 text-white" />
-            <span className='text-white'>Sign in with Google</span>
+            <span className='text-white'>{t("mvpLogin.signWithGoogle")}</span>
           </Button>
         </div>
 
         <div className="mt-8 text-center text-sm text-white/80 dark:text-gray-400">
-          {mode === 'register' ? 'Already have an account? ' : "Don't have an account? "}
+          {mode === 'register' ? t("mvpLogin.alreadyAccount") : t("mvpLogin.noAccount")}
           <button
             onClick={() => {
               setMode(mode === 'register' ? 'login' : 'register');
@@ -252,7 +268,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
             }}
             className="font-medium text-secondary hover:underline"
           >
-            {mode === 'register' ? 'Login' : 'Register'}
+            {mode === 'register' ? t("mvpLogin.login") : t("mvpLogin.register")}
           </button>
         </div>
       </div>
@@ -272,11 +288,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
               </div>
 
               <h2 className="text-2xl font-bold mb-2 text-white animate-fade-in" style={{ animationDelay: '0.3s' }}>
-                Registration Successful
+                {t("mvpLogin.registrationSuccess")}
               </h2>
 
               <p className="text-white mb-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                Your account has been created successfully!
+                {t("mvpLogin.accountCreatedSuccess")}
               </p>
 
               <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
@@ -287,7 +303,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
                   }}
                   className="bg-white text-black rounded-full px-8 py-6 text-[16px] font-semibold shadow-md shadow-primary transition duration-300 ease-in-out hover:scale-105 hover:text-white hover:bg-white/30"
                 >
-                  Continue
+                  {t("mvpLogin.continue")}
                 </Button>
               </div>
             </div>

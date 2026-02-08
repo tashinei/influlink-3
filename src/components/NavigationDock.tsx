@@ -6,6 +6,7 @@ import CreateCampaignModal from "./CampaignModal";
 import CampaignHistoryModal from "./CampaignHistoryModal";
 import { useUserStore } from "@/store/useUserStore";
 import LinksModal from "./LinksModal";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface NavigationDockProps {
   onCampaignCreated?: () => void;
@@ -17,6 +18,8 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
 
+  const {t} = useTranslation();
+
   const accountType = useUserStore((state) => state.accountType);
 
   let actionItem = null;
@@ -24,13 +27,13 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
   if (accountType === "brand") {
     actionItem = {
       icon: Megaphone,
-      label: "New Campaign",
+      label: t("dock.newCampaign"),
       onClick: () => setIsNewCampaignModalOpen(true),
     };
   } else if (accountType === "creator") {
     actionItem = {
       icon: Briefcase,
-      label: "Campaigns",
+      label:  t("dock.campaigns"),
       onClick: () => setIsHistoryModalOpen(true),
     };
   }
@@ -38,7 +41,7 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
   const links = [
     {
       icon: MessageCircle,
-      label: "Chat",
+      label:  t("dock.chat"),
       onClick: () => setIsChatOpen(true),
       isActive: isChatOpen,
     },
@@ -47,7 +50,7 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
 
     {
       icon: Link,
-      label: "Links",
+      label:  t("dock.links"),
       onClick: () => setIsLinksModalOpen(true),
     },
   ];

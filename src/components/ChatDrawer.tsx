@@ -11,6 +11,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "./ui/tooltip";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Message {
     id: string;
@@ -53,6 +54,8 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
     const [activeContact, setActiveContact] = useState<ChatContact>(mockContacts[0]);
 
     const [mounted, setMounted] = useState(false);
+
+    const {t} = useTranslation();
 
     useEffect(() => {
         if (isOpen) {
@@ -172,7 +175,7 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                             <div>
                                 <h3 className="font-semibold text-foreground">{activeContact.name}</h3>
                                 <p className="text-xs text-muted-foreground">
-                                    {activeContact.isOnline ? "Online" : "Offline"}
+                                    {activeContact.isOnline ? t("chat.online") : t("chat.offline")}
                                 </p>
                             </div>
                         </div>
@@ -226,7 +229,7 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Type a message..."
+                                placeholder={t("chat.typeMessage")}
                                 className="flex-1 bg-[white] border-border/50 focus-visible:ring-primary backdrop-blur-sm text-[black]"
                             />
                             <Button

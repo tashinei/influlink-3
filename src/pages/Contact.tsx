@@ -16,6 +16,8 @@ const Contact = () => {
     message: "",
   });
 
+  const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
+
   const { t } = useTranslation();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,7 +52,7 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-20" style={{position:"relative", top:"-80px"}}>
+    <div className="min-h-screen pt-20" style={{ position: "relative", top: "-80px" }}>
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
         <div className="container mx-auto px-4 text-center">
@@ -84,7 +86,7 @@ const Contact = () => {
           <div className="max-w-2xl mx-auto">
             <Card className="rounded-3xl border-border">
               <CardHeader>
-                <CardTitle className="text-3xl text-center">{t("contacts.sendMessage")}</CardTitle>
+                <CardTitle className={`text-3xl text-center`}>{t("contacts.sendMessage")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -149,7 +151,7 @@ const Contact = () => {
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full rounded-full text-lg">
+                  <Button type="submit" size="lg" className={`w-full rounded-full text-lg ${primaryButtonClass}`}>
                     {t("contacts.button")}
                   </Button>
                 </form>

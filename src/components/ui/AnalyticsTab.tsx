@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { AnalyticsData } from "@/types/profile";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface AnalyticsTabProps {
   analytics: AnalyticsData | null;
@@ -27,18 +28,19 @@ interface AnalyticsTabProps {
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted))"];
 
 export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps) => {
+  const { t } = useTranslation();
   if (!isVIP) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-card rounded-3xl border border-dashed" role="alert">
         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center mb-4">
           <TrendingUp className="w-7 h-7" />
         </div>
-        <h3 className="text-xl font-semibold text-foreground mb-2">Analytics</h3>
-        <p className="text-center max-w-md mb-6">
-          Unlock detailed insights about your audience engagement, reach trends, and performance metrics.
+        <h3 className="text-xl font-semibold text-foreground mb-2">{t("mvpAnalytics.title")}</h3>
+        <p className="text-center max-w-xl mb-6">
+          {t("mvpAnalytics.unlockInsights")}
         </p>
         <Button className="bg-gradient-to-br from-primary to-secondary text-md py-6 rounded-full px-5 hover:scale-105 transition duration-300 ease-in-out">
-          Request VIP Access
+          {t("mvpAnalytics.requestVIP")}
         </Button>
       </div>
     );
@@ -55,7 +57,7 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
   if (!analytics) {
     return (
       <div className="text-center py-20 text-muted-foreground" role="alert">
-        <p>No analytics data available</p>
+        <p>{t("mvpAnalytics.noData")}</p>
       </div>
     );
   }
@@ -83,15 +85,15 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Views</p>
+                <p className="text-sm text-muted-foreground">{t("mvpAnalytics.totalViews")}</p>
                 <p className="text-2xl font-bold text-foreground">{totalViews.toLocaleString()}</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +{viewsChange}% this month
+                  +{viewsChange}% {t("mvpAnalytics.thisMonth")}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                <Eye className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center">
+                <Eye className="w-6 h-6 " />
               </div>
             </div>
           </CardContent>
@@ -101,14 +103,14 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Likes</p>
+                <p className="text-sm text-muted-foreground">{t("mvpAnalytics.totalLikes")}</p>
                 <p className="text-2xl font-bold text-foreground">{totalLikes.toLocaleString()}</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +{likesChange}% this month
+                  +{likesChange}% {t("mvpAnalytics.thisMonth")}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-secondary/10 text-secondary flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center">
                 <Heart className="w-6 h-6" />
               </div>
             </div>
@@ -119,14 +121,14 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Avg. Engagement</p>
+                <p className="text-sm text-muted-foreground">{t("mvpAnalytics.avgEngagement")}</p>
                 <p className="text-2xl font-bold text-foreground">{avgEngagement.toFixed(1)}%</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +{engagementChange}% this month
+                  +{engagementChange}% {t("mvpAnalytics.thisMonth")}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-accent/10 text-accent flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center">
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
@@ -137,14 +139,14 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">New Followers</p>
+                <p className="text-sm text-muted-foreground">{t("mvpAnalytics.newFollowers")}</p>
                 <p className="text-2xl font-bold text-foreground">{newFollowers.toLocaleString()}</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-3 h-3 mr-1" />
-                  +{newFollowersChange}% this month
+                  +{newFollowersChange}% {t("mvpAnalytics.thisMonth")}
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary text-white flex items-center justify-center">
                 <Users className="w-6 h-6" />
               </div>
             </div>
@@ -157,12 +159,12 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
         {/* Engagement Over Time */}
         <Card>
           <CardHeader>
-            <CardTitle>Engagement Rate Trend</CardTitle>
+            <CardTitle>{t("mvpAnalytics.engRateTrend")}</CardTitle>
           </CardHeader>
           <CardContent className="relative">
             {analytics.engagementOverTime.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-muted-foreground">
-                Data not available yet
+                {t("mvpAnalytics.dataNotAvailableYet")}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
@@ -184,12 +186,12 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
         {/* Views by Platform */}
         <Card>
           <CardHeader>
-            <CardTitle>Views by Platform</CardTitle>
+            <CardTitle>{t("mvpAnalytics.viewsByPlatform")}</CardTitle>
           </CardHeader>
           <CardContent className="relative">
             {analytics.viewsByPlatform.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-muted-foreground">
-                Data not available yet
+                {t("mvpAnalytics.dataNotAvailableYet")}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
@@ -221,12 +223,12 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
         {/* Reach Trend */}
         <Card>
           <CardHeader>
-            <CardTitle>Weekly Reach</CardTitle>
+            <CardTitle>{t("mvpAnalytics.reachTrend")}</CardTitle>
           </CardHeader>
           <CardContent className="relative">
             {analytics.reachTrend.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-muted-foreground">
-                Data not available yet
+                {t("mvpAnalytics.dataNotAvailableYet")}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
@@ -248,12 +250,12 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
         {/* Top Performing Posts */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Performing Content</CardTitle>
+            <CardTitle>{t("mvpAnalytics.topPerformingContent")}</CardTitle>
           </CardHeader>
           <CardContent>
             {analytics.topPerformingPosts.length === 0 ? (
               <div className="flex items-center justify-center h-72 text-muted-foreground">
-                Data not available yet
+                {t("mvpAnalytics.dataNotAvailableYet")}
               </div>
             ) : (
               <div className="space-y-4">
