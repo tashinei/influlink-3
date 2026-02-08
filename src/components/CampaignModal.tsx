@@ -154,7 +154,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
   ];
 
 
-  const API_BASE = "http://localhost:3000"
+  const API_BASE = "https://api.influ-link.com"
 
   const niches = useCreatorNiches();
 

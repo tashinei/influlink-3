@@ -40,7 +40,7 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
 };
 
 export const CampaignCard = ({ campaign, onApply }: Props) => {
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = "https://api.influ-link.com";
   const isCreator = useUserStore((state) => state.accountType === "creator");
   const {
     name,

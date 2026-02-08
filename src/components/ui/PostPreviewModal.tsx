@@ -18,7 +18,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
   const [isLiked, setIsLiked] = useState(false);
   const [hasViewed, setHasViewed] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = "https://api.influ-link.com";
 
   if (!API_BASE_URL) {
     throw new Error("API_BASE_URL environment variable is not set.");

@@ -83,7 +83,7 @@ export const CampaignDetailModal = ({
   onDelete,
 }: CampaignDetailModalProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = "https://api.influ-link.com";
   const userId = useUserStore((state) => state.user?.id);
   const budgetPercentage = (campaign.budgetSpent / campaign.budget) * 100;
   const remainingBudget = campaign.budget - campaign.budgetSpent;

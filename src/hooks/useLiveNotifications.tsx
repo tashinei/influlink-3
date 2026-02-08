@@ -4,7 +4,7 @@ export const useLiveNotifications = (user: any) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const prevCountRef = useRef(0);
-  const API_BASE_URL = "http://localhost:3000/api"
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchNotifications = async () => {
     if (!user) return;

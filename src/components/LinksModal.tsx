@@ -39,7 +39,7 @@ interface CollaboratorsModalProps {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
-const IMAGE_BASE = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:3000";
+const IMAGE_BASE = import.meta.env.VITE_IMAGE_BASE_URL || "https://api.influ-link.com";
 
 export default function LinksModal({ open, onOpenChange, onChat }: CollaboratorsModalProps) {
   const [loading, setLoading] = useState(true);

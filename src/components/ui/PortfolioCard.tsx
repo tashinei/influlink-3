@@ -15,7 +15,7 @@ export const PortfolioCard = ({ item, onClick, onShare }: PortfolioCardProps) =>
     e.stopPropagation();
     onShare?.();
   };
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = "https://api.influ-link.com";
 
   return (
     <Card 

@@ -221,6 +221,8 @@ export const CampaignApplyDialog: React.FC<CampaignApplyDialogProps> = ({
     }
   };
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(s => s - 1);
@@ -293,7 +295,7 @@ export const CampaignApplyDialog: React.FC<CampaignApplyDialogProps> = ({
 ${formData.coverLetter.trim()}`;
 
     try {
-      const res = await fetch("http://localhost:3000/api/proposals", {
+      const res = await fetch(`${API_BASE_URL}/api/proposals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

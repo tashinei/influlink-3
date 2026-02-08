@@ -70,7 +70,7 @@ export const CreatorCard = ({ creator, index, onInvite }: CreatorCardProps) => {
     });
   };
 
-  const API_BASE = "http://localhost:3000";
+  const API_BASE = "https://api.influ-link.com";
 
   return (
     <article
