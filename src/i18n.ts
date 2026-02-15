@@ -195,6 +195,31 @@ export const translations = {
       content: "Съдържание"
     },
 
+    mvpCampaignHistory: {
+      title: "История на кампании",
+      searchCampaigns: "Търсете кампания...",
+      campaign: "Кампания",
+      status: "Статус",
+      brand: "Бранд",
+      reach: "Обхват",
+      engagement: "Ангажираност",
+      earnings: "Приходи",
+      desc: "Описание",
+      back: "Назад",
+      certifiedMetrics: "Потвърдени данни",
+      performanceSince: "Представяне от",
+      engagementRate: "Ангажираност",
+      trafficInsights: "Данни за трафика",
+      reportGenerated: "Генериран отчет",
+      downloadPDF: "Свалете PDF",
+      data: "Данни",
+      viewAnalytics: "Вижте аналитики",
+      impressions: "Импресии",
+      completed: "Завършен",
+      inProgress: "В процес",
+      pending: "Изчакващ"
+    },
+
     mvpSearchSection: {
       titleFirst: "Намерете своя",
       titleSecond: "Идеален създател",
@@ -225,7 +250,7 @@ export const translations = {
 
     mvpCampaignSearchSection: {
       titleFirst: "Намерете",
-      titleSecond: "Кампании",
+      titleSecond: "кампании",
       subTitle: "Browse active brand campaigns and apply to the ones that fit you best",
       niche: "Ниша/Категория",
       platform: "Платформа",
@@ -233,7 +258,7 @@ export const translations = {
       selectCountry: "Изберете държава",
       language: "Език",
       maxBudget: "Максимален бюджет",
-      searchButton: "Намерете Кампания",
+      searchButton: "Намерете кампания",
       resetButton: "Изчисти",
       simpleSearch: "Прости филтри",
       advancedSearch: "Разширени филтри",
@@ -363,9 +388,42 @@ export const translations = {
       continue: "Продължете",
       signUp: "Регистрация",
       logIn: "Влизане",
-      reviewSummary:"Преглед на данните",
-      and:"и",
+      reviewSummary: "Преглед на данните",
+      and: "и",
       acknowledgeUse: "Потвърждавам използването на задължителни бисквитки (cookies) за сигурността на акаунта."
+    },
+
+    mvpRegisterBrand: {
+      launchYourBrand: "Стартирайте Вашия бранд",
+      welcomeBack: "Добре дошли отново!",
+      setupBusinessAcc: "Нека настроим Вашия бизнес профил",
+      businessIdentity: "Бизнес идентичност",
+      benefit1: "Името на вашия бранд и местоположението на централата ни помагат да ви свържем със създатели, които отговарят на вашите регионални пазарни цели.",
+      companyName: "Име на компанията",
+      brandUsername: "Потребителско име",
+      headquarters: "Централа",
+      cityCountry: "Град, държава",
+      nextStep: "Следваща стъпка",
+      industryFocus: "Фокус върху индустрията",
+      benefit2: "Изборът на индустрия позволява на нашия алгоритъм да препоръчва създатели с доказан опит във Вашия специфичен пазарен сегмент.",
+      primaryIndustry: "Основна индустрия",
+      selectYourIndustry: "Изберете вашата индустрия",
+      companyBioMission: "Биография / Мисия на компанията",
+      tellCreatorsWhatStand: "Разкажете на създателите в какво вярвате",
+      back: "Назад",
+      finalize: "Финализиране",
+      businessSummary: "Резюме на бизнеса",
+      brand: "Бранд",
+      industry: "Индустрия",
+      creatingBrandProfile: "Създаване на профил на бранда...",
+      confirmLaunch: "Потвърждаване и стартиране",
+      backDetails: "Обратно към детайлите",
+      buildYour: "Изградете наследството",
+      brandLegacy: "на бранда си",
+      brandAdvantage:"Предимство",
+      partnerWithPros:"Работете с професионалисти",
+      crossBridgeBetween: "Свържете своя бранд със световноизвестни създатели.",
+      benefit3: "Присъединявайки се, вие отключвате възможността да публикувате кампании и да използвате нашите автоматизирани инструменти за договори със създатели."
     },
 
     mvpCookies: {
@@ -448,7 +506,7 @@ export const translations = {
       german: "Немски",
       french: "Френски",
       spanish: "Испански",
-      bulgarian: "Български"
+      bulgarian: "Български",
     },
 
     mvpAnalytics: {
@@ -939,15 +997,15 @@ export const translations = {
     mvpAnalytics: {
       title: "Analytics",
       noData: "No data available yet.",
-      totalViews: "Total Views",
+      totalViews: "Total views",
       thisMonth: "this month",
-      totalLikes: "Total Likes",
+      totalLikes: "Total likes",
       avgEngagement: "Avg. Engagement",
-      newFollowers: "New Followers",
-      engRateTrend: "Engagement Trend",
-      viewsByPlatform: "Views by Device",
+      newFollowers: "New followers",
+      engRateTrend: "Engagement trend",
+      viewsByPlatform: "Views by device",
       reachTrend: "Reach",
-      topPerformingContent: "Top Performing Content",
+      topPerformingContent: "Top performing content",
       dataNotAvailableYet: "No data available yet.",
       deviceWeb: "Desktop",
       deviceMobile: "Mobile",
@@ -961,7 +1019,8 @@ export const translations = {
       addWork: "Add work",
       yourCampaigns: "Your campaigns",
       noPortfolioItems: "There are no items in this portfolio yet.",
-      manageCampaigns: "Manage and track the progress of your campaigns"
+      manageCampaigns: "Manage and track the progress of your campaigns",
+      addFirstWork: "Add an item"
     },
 
     addPost: {
@@ -1002,7 +1061,9 @@ export const translations = {
       selectTypeToStart: "Select account type to get started",
       signIn: "Sign in",
       getStarted: "Get started",
-      alreadyAccount: "Already have an account?"
+      alreadyAccount: "Already have an account?",
+      creatorDesc: "Create content and grow as a creator",
+      brandDesc: "Find creators and manage your campaigns"
     },
 
     mvpNotifications: {
@@ -1151,9 +1212,9 @@ export const translations = {
       continue: "Continue",
       signUp: "Sign Up",
       logIn: "Log In",
-      reviewSummary:"Review summary",
-      and:"and",
-      acknowledgeUse:"I acknowledge the use of essential cookies for account security."
+      reviewSummary: "Review summary",
+      and: "and",
+      acknowledgeUse: "I acknowledge the use of essential cookies for account security."
     },
 
     mvpCampaignSearchSection: {
@@ -1313,6 +1374,31 @@ export const translations = {
       cookies: "Cookies"
     },
 
+    mvpCampaignHistory: {
+      title: "Campaign history",
+      searchCampaigns: "Search campaigns",
+      campaign: "Campaign",
+      status: "Status",
+      brand: "Brand",
+      reach: "Reach",
+      engagement: "Engagement",
+      earnings: "Earnings",
+      desc: "Description",
+      back: "Back",
+      certifiedMetrics: "Certified metrics",
+      performanceSince: "Performance since",
+      engagementRate: "Engagement rate",
+      trafficInsights: "Traffic insights",
+      reportGenerated: "Report generated",
+      downloadPDF: "Download PDF",
+      data: "Data",
+      viewAnalytics: "View analytics",
+      impressions: "Impressions",
+      completed: "Completed",
+      inProgress: "In Progress",
+      pending: "Pending"
+    },
+
     mvpCreateCampaign: {
       name: "Campaign name",
       desc: "Description",
@@ -1364,7 +1450,41 @@ export const translations = {
       german: "German",
       french: "French",
       spanish: "Spanish",
-      bulgarian: "Bulgarian"
+      bulgarian: "Bulgarian",
+      paidAds: "Paid ads"
+    },
+
+    mvpRegisterBrand: {
+      launchYourBrand: "Launch your brand",
+      welcomeBack: "Welcome back!",
+      setupBusinessAcc: "Let's setup your business account",
+      businessIdentity: "Business identity",
+      benefit1: "Your brand name and headquarters location help us match you with creators who align with your regional market goals.",
+      companyName: "Company name",
+      brandUsername: "Brand username",
+      headquarters: "Headquarters",
+      cityCountry: "City, Country",
+      nextStep: "Next step",
+      industryFocus: "Industry focus",
+      benefit2: "Selecting your industry allows our algorithm to recommend creators with a proven track record in your specific market segment.",
+      primaryIndustry: "Primary industry",
+      selectYourIndustry: "Select your industry",
+      companyBioMission: "Company bio / mission",
+      tellCreatorsWhatStand: "Tell creators what you stand for.",
+      back: "Back",
+      finalize: "Finalize",
+      businessSummary: "Business summary",
+      brand: "Brand",
+      industry: "Industry",
+      creatingBrandProfile: "Creating brand profile...",
+      confirmLaunch: "Confirm & launch",
+      backDetails: "Back to details",
+      buildYour: "Build your",
+      brandLegacy: "Brand's legacy",
+      brandAdvantage:"Advantage",
+      partnerWithPros:"Partner with Pros",
+      crossBridgeBetween: "Cross the bridge between professional brands and world-class creators.",
+      benefit3: "By joining, you unlock the ability to post campaigns and use our automated creator contracting tools."
     },
 
     cookies: {

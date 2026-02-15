@@ -45,6 +45,7 @@ export const useProfile = (profileIdentifier?: string) => {
     return n.toString();
   };
 
+  const { token } = useUserStore();
 
   const fetchProfile = useCallback(async (identifier: string) => {
     if (!identifier) return;
@@ -54,7 +55,11 @@ export const useProfile = (profileIdentifier?: string) => {
 
       const res = await fetch(`${API_BASE_URL}/profiles/${identifier}`, {
         method: "GET",
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        credentials: "include"
       });
 
       if (!res.ok) {
@@ -96,7 +101,10 @@ export const useProfile = (profileIdentifier?: string) => {
 
       const res = await fetch(`${API_BASE_URL}/profiles/${targetProfileId}/follow`, {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          "Authorization": `Bearer ${token}`, // ТОВА Е КЛЮЧОВО
+          "Content-Type": "application/json",
+        },
       });
 
       if (!res.ok) {

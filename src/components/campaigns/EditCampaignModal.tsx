@@ -25,6 +25,7 @@ import {
   CAMPAIGN_TYPE_LABELS,
 } from "@/types/campaigns";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/store/useUserStore";
 
 interface Props {
   open: boolean;
@@ -73,6 +74,7 @@ export const EditCampaignModal = ({
     setReferenceImages([]);
   }, [campaign]);
 
+  const {token} = useUserStore();
   /** ---------- SUBMIT ---------- */
   const handleSave = async () => {
     setLoading(true);
@@ -97,6 +99,10 @@ export const EditCampaignModal = ({
       const res = await fetch(`${API_BASE}/api/campaigns/${campaign.id}`, {
         method: "PUT",
         credentials: "include",
+         headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
         body: formData,
       });
 

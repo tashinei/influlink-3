@@ -53,7 +53,7 @@ export interface AnalyticsData {
   totalViews: number;
   totalLikes: number;
   avgEngagement: number;
-  newFollowers: number;
+  newFollowersCount: number;
   viewsChange?: number;
   likesChange?: number;
   engagementChange?: number;

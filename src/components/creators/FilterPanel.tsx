@@ -1,11 +1,10 @@
+import { useState, useMemo } from "react";
 import { FilterState } from '@/types/creator';
-import { useCreatorCountries, useCreatorNiches } from '@/data/mockCreators';
+import { useCreatorNiches } from '@/data/mockCreators';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { FOLLOWER_PRESETS } from '@/types/followers';
-import { ENGAGEMENT_PRESETS } from '@/types/followers';
+import { FOLLOWER_PRESETS, ENGAGEMENT_PRESETS } from '@/types/followers';
 import {
     Select,
     SelectContent,
@@ -13,9 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { X, Filter, RotateCcw } from 'lucide-react';
-import { formatFollowers } from '@/utils/formatters';
-import { useState } from "react";
+import { X, Filter, RotateCcw, MapPin, EyeIcon, EyeOff } from 'lucide-react';
 import CountryPickerModal from '../CountryPickerModal';
 
 interface FilterPanelProps {
@@ -33,324 +30,188 @@ export const FilterPanel = ({
     isOpen,
     onClose,
 }: FilterPanelProps) => {
-    const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-        onFilterChange({ ...filters, [key]: value });
-    };
+    const [collapsed, setCollapsed] = useState(false);
     const [countryModalOpen, setCountryModalOpen] = useState(false);
-
     const niches = useCreatorNiches();
-    const countries = useCreatorCountries();
 
-    const followerPreset = filters.followerRange
-        ? FOLLOWER_PRESETS[filters.followerRange]
-        : { min: 0, max: 10_000_000 };
-
-    const hasActiveFilters =
+    const hasActiveFilters = useMemo(() => (
         filters.niche.length > 0 ||
         filters.followerRange ||
         filters.isVIP ||
         filters.country ||
-        filters.language;
+        filters.engagementRate !== 'any'
+    ), [filters]);
+
+    const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
+        onFilterChange({ ...filters, [key]: value });
+    };
+
+    // Keep hooks above this line
+    if (!isOpen) return null;
 
     return (
         <>
             {/* Mobile Overlay */}
-            {isOpen && (
-                <div
-                    className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
-                    onClick={onClose}
-                />
-            )}
+            <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] lg:hidden animate-in fade-in duration-300"
+                onClick={onClose}
+            />
 
-            {/* Filter Panel */}
             <aside
                 className={`
-          fixed lg:sticky top-0 right-0 lg:right-auto h-full lg:h-auto lg:top-6
-          w-80 lg:w-72 glass-card rounded-none lg:rounded-2xl p-6 z-50
-          transform transition-transform duration-300 ease-out
-          ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-          lg:transform-none overflow-y-auto max-h-screen lg:max-h-[calc(100vh-3rem)]
-        `}
+                    /* Positioning */
+                    fixed lg:sticky top-0 right-0 h-full lg:h-auto lg:top-6 z-[51]
+                    w-[85%] sm:w-80 lg:w-72
+                    
+                    /* Style & Background */
+                    bg-white dark:bg-zinc-950 lg:bg-transparent
+                    border-l dark:border-zinc-800 lg:border-none
+                    lg:glass-card rounded-none lg:rounded-2xl p-6
+                    
+                    /* Animation & Scroll */
+                    transform transition-transform duration-300 ease-out
+                    ${isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
+                    overflow-y-auto max-h-screen lg:max-h-[calc(100vh-3rem)]
+                    shadow-2xl lg:shadow-none
+                `}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-6 sticky top-0 bg-inherit z-10 pb-2 pt-2 border-b lg:border-none">
                     <div className="flex items-center gap-2">
                         <Filter className="w-5 h-5 text-primary" />
-                        <h2 className="font-semibold text-foreground">Filters</h2>
+                        <h2 className="font-semibold text-foreground tracking-tight">Filters</h2>
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center gap-1">
                         {hasActiveFilters && (
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={onClearFilters}
-                                className="text-muted-foreground hover:text-foreground"
+                                className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive transition-colors"
                             >
-                                <RotateCcw className="w-4 h-4 mr-1" />
+                                <RotateCcw className="w-3.5 h-3.5 mr-1" />
                                 Reset
                             </Button>
                         )}
+
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={onClose}
-                            className="lg:hidden"
+                            className="h-8 w-8"
+                            onClick={() => setCollapsed(!collapsed)}
                         >
+                            {collapsed ? <EyeIcon className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </Button>
+
+                        <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden h-8 w-8">
                             <X className="w-5 h-5" />
                         </Button>
                     </div>
                 </div>
 
-                {/* Niche */}
-                <div className="space-y-3 mb-6">
-                    <Label className="text-sm font-medium">Niche / Category</Label>
-                    <div className="space-y-2">
-                        {niches.map((niche) => (
-                            <label key={niche} className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.niche.includes(niche)}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            updateFilter('niche', [...filters.niche, niche]);
-                                        } else {
-                                            updateFilter('niche', filters.niche.filter((n) => n !== niche));
+                {/* Collapsible content */}
+                <div className={`
+                    space-y-6 transition-all duration-500 ease-in-out
+                    ${collapsed ? 'opacity-0 pointer-events-none max-h-0' : 'opacity-100 max-h-[2000px]'}
+                `}>
+                    
+                    {/* Niches - Using the pill-style from your campaign panel */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Niches</Label>
+                        <div className="flex flex-wrap gap-2">
+                            {niches.map((niche) => {
+                                const isSelected = filters.niche.includes(niche);
+                                return (
+                                    <Button
+                                        key={niche}
+                                        variant={isSelected ? "default" : "outline"}
+                                        size="sm"
+                                        className={`rounded-full px-4 h-8 text-xs ${isSelected ? 'shadow-md shadow-primary/20' : ''}`}
+                                        onClick={() =>
+                                            updateFilter(
+                                                "niche",
+                                                isSelected
+                                                    ? filters.niche.filter((n) => n !== niche)
+                                                    : [...filters.niche, niche]
+                                            )
                                         }
-                                    }}
-                                />
-                                <span>{niche}</span>
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="space-y-3 mb-6">
-                    <div className="flex items-center justify-between">
-                        <Label className="text-sm font-medium">Followers</Label>
-                        <span className="text-xs text-muted-foreground">
-                            {formatFollowers(followerPreset.min)} – {formatFollowers(followerPreset.max)}
-                        </span>
+                                    >
+                                        {niche}
+                                    </Button>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <Select
-                        value={filters.followerRange ?? 'any'}
-                        onValueChange={(value) =>
-                            updateFilter(
-                                'followerRange',
-                                value === 'any' ? null : (value as FilterState['followerRange'])
-                            )
-                        }
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Any size" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="any">Any</SelectItem>
-                            <SelectItem value="nano">Nano (0–10K)</SelectItem>
-                            <SelectItem value="micro">Micro (10K–100K)</SelectItem>
-                            <SelectItem value="mid">Mid (100K–500K)</SelectItem>
-                            <SelectItem value="macro">Macro (500K–1M)</SelectItem>
-                            <SelectItem value="mega">Mega (1M+)</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Engagement Rate */}
-                <div className="space-y-3 mb-6">
-                    <div className="flex items-center justify-between">
-                        <Label className="text-sm font-medium">Engagement Rate</Label>
-                        <span className="text-xs text-muted-foreground">
-                            {filters.engagementRate
-                                ? `${ENGAGEMENT_PRESETS[filters.engagementRate].min}%+`
-                                : 'Any'}
-                        </span>
-                    </div>
-
-                    <Select
-                        value={filters.engagementRate || 'any'}
-                        onValueChange={(value) => updateFilter('engagementRate', value as any)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select engagement" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Object.keys(ENGAGEMENT_PRESETS).map((key) => (
-                                <SelectItem key={key} value={key}>
-                                    {ENGAGEMENT_PRESETS[key].label} ({ENGAGEMENT_PRESETS[key].min}%+)
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Platforms */}
-                <div className="space-y-3 mb-6">
-                    <Label className="text-sm font-medium">Platforms</Label>
-
-                    <div className="flex flex-wrap gap-2">
-                        {['Instagram', 'TikTok', 'YouTube', 'Twitch'].map((platform) => {
-                            const selected = filters.platforms.includes(platform);
-
-                            return (
-                                <Button
-                                    key={platform}
-                                    type="button"
-                                    variant={selected ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() =>
-                                        updateFilter(
-                                            'platforms',
-                                            selected
-                                                ? filters.platforms.filter(p => p !== platform)
-                                                : [...filters.platforms, platform]
-                                        )
-                                    }
-                                >
-                                    {platform}
-                                </Button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Content Types */}
-                <div className="space-y-3 mb-6">
-                    <Label className="text-sm font-medium">Content Type</Label>
-
-                    <div className="flex flex-wrap gap-2">
-                        {['Reels', 'Stories', 'Posts', 'Lives'].map((type) => {
-                            const selected = filters.contentTypes.includes(type);
-
-                            return (
-                                <Button
-                                    key={type}
-                                    type="button"
-                                    variant={selected ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() =>
-                                        updateFilter(
-                                            'contentTypes',
-                                            selected
-                                                ? filters.contentTypes.filter(t => t !== type)
-                                                : [...filters.contentTypes, type]
-                                        )
-                                    }
-                                >
-                                    {type}
-                                </Button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Collaboration Types */}
-                <div className="space-y-3 mb-6">
-                    <Label className="text-sm font-medium">Collaboration Type</Label>
-
-                    <div className="flex flex-wrap gap-2">
-                        {['Sponsored', 'Affiliate', 'UGC', 'Brand Ambassador'].map((type) => {
-                            const selected = filters.collabTypes.includes(type);
-
-                            return (
-                                <Button
-                                    key={type}
-                                    type="button"
-                                    variant={selected ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() =>
-                                        updateFilter(
-                                            'collabTypes',
-                                            selected
-                                                ? filters.collabTypes.filter(t => t !== type)
-                                                : [...filters.collabTypes, type]
-                                        )
-                                    }
-                                >
-                                    {type}
-                                </Button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Budget */}
-                <div className="space-y-3 mb-6">
-                    <Label className="text-sm font-medium">Budget Range</Label>
-
-                    <Select
-                        value={filters.budgetRange ?? 'any'}
-                        onValueChange={(value) =>
-                            updateFilter('budgetRange', value === 'any' ? null : value)
-                        }
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Any budget" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="any">Any</SelectItem>
-                            <SelectItem value="low">$0 – $100</SelectItem>
-                            <SelectItem value="mid">$100 – $1,000</SelectItem>
-                            <SelectItem value="high">$1,000+</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Country */}
-                <div className="space-y-3 mb-6">
-                    <Label className="text-sm font-medium">Country</Label>
-
-                    <div
-                        onClick={() => setCountryModalOpen(true)}
-                        className="cursor-pointer border-2 border-input rounded-md px-3 py-2 bg-background hover:bg-accent transition text-sm flex items-center justify-between"
-                    >
-                        {filters.country ? (
-                            <span className="text-foreground">
-                                {filters.country}
-                            </span>
-                        ) : (
-                            <span className="text-muted-foreground">
-                                Select country
-                            </span>
-                        )}
-                    </div>
-
-                    {filters.country && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-fit px-0 text-xs text-muted-foreground"
-                            onClick={() => updateFilter("country", filters.country)}
+                    {/* Followers Select */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Follower Count</Label>
+                        <Select
+                            value={filters.followerRange ?? 'any'}
+                            onValueChange={(val) => updateFilter('followerRange', val === 'any' ? null : (val as any))}
                         >
-                            Clear country
-                        </Button>
-                    )}
-                </div>
+                            <SelectTrigger className="w-full bg-background/50">
+                                <SelectValue placeholder="Any size" />
+                            </SelectTrigger>
+                            <SelectContent className="z-[100]">
+                                <SelectItem value="any">Any size</SelectItem>
+                                <SelectItem value="nano">Nano (0–10K)</SelectItem>
+                                <SelectItem value="micro">Micro (10K–100K)</SelectItem>
+                                <SelectItem value="mid">Mid (100K–500K)</SelectItem>
+                                <SelectItem value="macro">Macro (500K–1M)</SelectItem>
+                                <SelectItem value="mega">Mega (1M+)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
 
+                    {/* Location Picker */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Location</Label>
+                        <div
+                            onClick={() => setCountryModalOpen(true)}
+                            className="flex items-center justify-between cursor-pointer border dark:border-zinc-800 rounded-lg px-4 py-2 bg-background/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all group"
+                        >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <MapPin className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                                <span className={`text-sm truncate ${filters.country ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                                    {filters.country || "Select country"}
+                                </span>
+                            </div>
+                            {filters.country && (
+                                <X className="w-4 h-4 hover:text-destructive" onClick={(e) => { e.stopPropagation(); updateFilter("country", ""); }} />
+                            )}
+                        </div>
+                    </div>
 
-                {/* Toggles */}
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">VIP Only</span>
-                            <span className="text-xs px-2 py-0.5 rounded-full badge-vip">Premium</span>
+                    {/* VIP Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800">
+                        <div className="space-y-0.5">
+                            <span className="text-sm font-bold">VIP Creators</span>
+                            <p className="text-[10px] text-muted-foreground">Premium verified only</p>
                         </div>
                         <Switch
                             checked={filters.isVIP}
                             onCheckedChange={(checked) => updateFilter('isVIP', checked)}
                         />
                     </div>
+
+                    {/* Mobile Apply Button */}
+                    <div className="lg:hidden pt-4 pb-10">
+                        <Button className="w-full shadow-lg" onClick={onClose}>
+                            Apply Filters
+                        </Button>
+                    </div>
                 </div>
             </aside>
+
             <CountryPickerModal
                 open={countryModalOpen}
                 onClose={() => setCountryModalOpen(false)}
                 selected={filters.country ? [filters.country] : []}
                 setSelected={(countryData) => {
                     const country = Array.isArray(countryData) ? countryData[0] : countryData;
-
-                    if (country && country.name) {
-                        updateFilter("country", country.name);
-                    }
+                    if (country?.name) updateFilter("country", country.name);
                 }}
                 onSave={() => setCountryModalOpen(false)}
                 shouldHaveOverlay={false}

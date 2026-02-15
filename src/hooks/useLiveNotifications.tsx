@@ -1,3 +1,4 @@
+import { useUserStore } from "@/store/useUserStore";
 import { useState, useEffect, useRef } from "react";
 
 export const useLiveNotifications = (user: any) => {
@@ -6,43 +7,61 @@ export const useLiveNotifications = (user: any) => {
   const prevCountRef = useRef(0);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  const { token } = useUserStore();
+
   const fetchNotifications = async () => {
     if (!user) return;
     try {
       // 1. Light check: just the number
-      const countRes = await fetch(`${API_BASE_URL}/notifications/unread-count`, { credentials: "include" });
+      const countRes = await fetch(`${API_BASE_URL}/notifications/unread-count`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            // ТОВА Е КЛЮЧЪТ:
+            ...(token && { "Authorization": `Bearer ${token}` })
+          },
+          credentials: "include"
+        });
       const { count } = await countRes.json();
 
       // 2. Only fetch full list if count is different (new notification or one was read)
       if (count !== prevCountRef.current) {
-        const listRes = await fetch(`${API_BASE_URL}/notifications`, { credentials: "include" });
-        const listData = await listRes.json();
-        
-        setNotifications(listData);
-        setUnreadCount(count);
-        
-        // Trigger a sound if a NEW notification arrived
-        if (count > prevCountRef.current) {
-          console.log("New notification received!");
-          // Optional: new Audio('/pop.mp3').play();
-        }
-        
-        prevCountRef.current = count;
+        const listRes = await fetch(`${API_BASE_URL}/notifications`,
+          {
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              // ЗАДЪЛЖИТЕЛНО И ТУК:
+              ...(token && { "Authorization": `Bearer ${token}` })
+            }
+        });
+      const listData = await listRes.json();
+
+      setNotifications(listData);
+      setUnreadCount(count);
+
+      // Trigger a sound if a NEW notification arrived
+      if (count > prevCountRef.current) {
+        console.log("New notification received!");
+        // Optional: new Audio('/pop.mp3').play();
       }
-    } catch (err) {
-      console.error("Live update failed:", err);
+
+      prevCountRef.current = count;
     }
-  };
+    } catch (err) {
+    console.error("Live update failed:", err);
+  }
+};
 
-  useEffect(() => {
-    fetchNotifications(); // Initial fetch
+useEffect(() => {
+  fetchNotifications(); // Initial fetch
 
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 20000); // 20 seconds: balance between "live" and server load
+  const interval = setInterval(() => {
+    fetchNotifications();
+  }, 20000); // 20 seconds: balance between "live" and server load
 
-    return () => clearInterval(interval);
-  }, [user]);
+  return () => clearInterval(interval);
+}, [user]);
 
-  return { notifications, unreadCount, refresh: fetchNotifications };
+return { notifications, unreadCount, refresh: fetchNotifications };
 };

@@ -63,6 +63,7 @@ export const useUserStore = create<UserState>()(
         });
 
         useUserStore.persist.clearStorage();
+        localStorage.removeItem("user-storage");
       },
     }),
     { name: "user-storage" }

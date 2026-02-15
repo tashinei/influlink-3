@@ -12,10 +12,17 @@ const sessionTrackedCampaigns = new Set<number>();
 export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const userId = useUserStore((state) => state.user?.id);
+  const token = useUserStore((state) => state.token); // 1. Вземи токена от стора
 
   useEffect(() => {
-    // 2. Early exit if already tracked in this browser session
-    if (!ref.current || !userId || sessionTrackedCampaigns.has(campaignId)) return;
+    // 2. Добави проверка за токен и валидни ID-та
+    if (
+      !ref.current ||
+      !userId ||
+      !campaignId ||
+      !token || // Задължително провери за токен
+      sessionTrackedCampaigns.has(campaignId)
+    ) return;
 
     const trackImpression = async () => {
       try {
@@ -24,23 +31,23 @@ export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) 
           {
             method: "POST",
             credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
           }
         );
       } catch (e) {
         console.error("Failed to track impression", e);
-        // Optional: remove from set if you want to retry on failure
-        // sessionTrackedCampaigns.delete(campaignId); 
       }
     };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !sessionTrackedCampaigns.has(campaignId)) {
-          // 3. Mark as tracked immediately BEFORE the async call
           sessionTrackedCampaigns.add(campaignId);
           trackImpression();
-          
-          // 4. Optimization: Stop watching this element once tracked
+
           if (ref.current) observer.unobserve(ref.current);
         }
       },
@@ -50,7 +57,7 @@ export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) 
     observer.observe(ref.current);
 
     return () => observer.disconnect();
-  }, [campaignId, userId]);
+  }, [campaignId, userId, token]);
 
   return ref;
 };

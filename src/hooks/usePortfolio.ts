@@ -22,6 +22,8 @@ export const usePortfolio = (targetProfileId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { token } = useUserStore();
+
   // Helper function to format large numbers (K/M)
   const formatStat = (num: number, isViews = false): string => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -44,7 +46,12 @@ export const usePortfolio = (targetProfileId?: string) => {
 
       // Use the ID determined from targetProfileId or currentUserId
       const response = await fetch(`${API_BASE_URL}/profiles/${idToFetch}/portfolio`, {
-        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          // АКО ИМА ТОКЕН, ГО ПРАЩАМЕ:
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        credentials: "include"
       });
 
       if (!response.ok) {

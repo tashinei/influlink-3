@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserStore } from "@/store/useUserStore";
 
 interface Collaborator {
   id: string;
@@ -48,7 +49,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { t } = useTranslation();
-
+  const {token} = useUserStore();
   useEffect(() => {
     if (!open) return;
 
@@ -56,7 +57,14 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/links`, { credentials: "include" });
+        const res = await fetch(`${API_BASE_URL}/links`, 
+        { 
+          credentials: "include" ,
+           headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        });
         if (!res.ok) throw new Error("Failed to load collaborators");
         const data = await res.json();
         setCollaborators(data);

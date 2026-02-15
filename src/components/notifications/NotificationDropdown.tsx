@@ -35,6 +35,7 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import avatarPickPlaceholder from "@/assets/avatarPickPlaceholder.png";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserStore } from "@/store/useUserStore";
 
 interface Notification {
     id: string;
@@ -141,10 +142,15 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
     const [actionLoading, setActionLoading] = useState<"accept" | "decline" | null>(null);
 
     const unreadCount = notifications.filter((n) => !n.is_read).length;
+    const { token } = useUserStore();
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/notifications`, {
             credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                ...(token && { "Authorization": `Bearer ${token}` })
+            },
         })
             .then((res) => res.json())
             .then((data) => setNotifications(data))
@@ -161,6 +167,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 await fetch(`${API_BASE_URL}/notifications/${notification.id}/read`, {
                     method: "POST",
                     credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token && { "Authorization": `Bearer ${token}` })
+                    },
                 });
                 // Update local state for immediate feedback
                 setNotifications((prev) =>
@@ -185,6 +195,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 // Fetch the actual proposal, NOT the read status
                 const res = await fetch(`${API_BASE_URL}/proposals/${notification.entity_id}`, {
                     credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token && { "Authorization": `Bearer ${token}` })
+                    },
                 });
                 const proposalData = await res.json();
                 setProposalDetails(proposalData);
@@ -192,6 +206,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 if (proposalData.creator_id) {
                     const profileRes = await fetch(`${API_BASE_URL}/profiles/${proposalData.creator_id}`, {
                         credentials: "include",
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...(token && { "Authorization": `Bearer ${token}` })
+                        },
                     });
                     const profileData = await profileRes.json();
                     setCreatorProfile({
@@ -216,6 +234,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 // Updated to plural 'invites' to match our backend route
                 const res = await fetch(`${API_BASE_URL}/invite/${notification.entity_id}`, {
                     credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token && { "Authorization": `Bearer ${token}` })
+                    },
                 });
                 const inviteData = await res.json();
                 setInviteDetails(inviteData);
@@ -223,6 +245,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
                 if (inviteData.brand_id) {
                     const brandRes = await fetch(`${API_BASE_URL}/profiles/${inviteData.brand_id}`, {
                         credentials: "include",
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...(token && { "Authorization": `Bearer ${token}` })
+                        },
                     });
                     const brandData = await brandRes.json();
                     setBrandProfile({
@@ -298,6 +324,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
             const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
                 method: "POST",
                 credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { "Authorization": `Bearer ${token}` })
+                },
             });
 
             if (res.ok) {
@@ -326,7 +356,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
         try {
             const res = await fetch(`${API_BASE_URL}/invite/${inviteDetails.id}/action`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { "Authorization": `Bearer ${token}` })
+                },
                 credentials: "include",
                 body: JSON.stringify({ action: action }), // Backend expects "action" key
             });
@@ -356,7 +389,10 @@ export default function NotificationDropdown({ className, setDropdownOpen }: Not
         try {
             const res = await fetch(`${API_BASE_URL}/proposals/${proposalDetails.id}/action`, {
                 method: "POST", // Match the backend we wrote
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { "Authorization": `Bearer ${token}` })
+                },
                 credentials: "include",
                 body: JSON.stringify({ action: action }), // Match the backend "action" key
             });

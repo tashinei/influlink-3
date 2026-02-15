@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BsGoogle } from 'react-icons/bs';
-import { Mail, Lock, User, Briefcase, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Briefcase, CheckCircle2, Earth } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -27,7 +27,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
 
   const [mode, setMode] = useState<'register' | 'login'>('register');
 
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -140,6 +140,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
         }
       }
 
+      if (data.token) {
+        setToken(data.token); // Това трябва да запише в Zustand + LocalStorage
+      } else {
+        console.warn("No token received from backend!");
+      }
       setUser({
         id: data.user.id,
         email: data.user.email,
@@ -173,11 +178,54 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     return asciiRegex.test(password);
   };
 
+  const [langOpen, setLangOpen] = useState(false);
+
+  type LanguageCode = 'en' | 'bg';
+
+  interface LanguageOption {
+    code: LanguageCode;
+    label: string;
+  }
+
+  const languages: LanguageOption[] = [
+    { code: 'en', label: 'English' },
+    { code: 'bg', label: 'Български' }
+  ];
+
   const isCreator = accountType === 'creator';
   const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
 
   return (
     <>
+      <div className="absolute top-6 right-6 z-50">
+        <div className="relative">
+          <button
+            onClick={() => setLangOpen(!langOpen)}
+            className="p-2 rounded-full transition-colors duration-300 text-white hover:bg-white/10"
+            aria-label="Select language"
+          >
+            <Earth size={24} />
+          </button>
+
+          {langOpen && (
+            <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50 overflow-hidden">
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setLangOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${language === lang.code ? 'font-bold text-primary' : 'text-gray-800'
+                    }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
       <div className="w-full max-w-[36rem] lg:p-6 bg-transparent dark:bg-background flex flex-col justify-center h-full">
         <div className="flex items-center mb-6">
           <Link to="/" className="flex items-center space-x-2 text-[22px] font-bold text-white dark:text-white">

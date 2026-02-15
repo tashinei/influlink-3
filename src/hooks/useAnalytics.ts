@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { AnalyticsData } from "@/types/profile";
 import { useProfile } from "./useProfile";
+import { useUserStore } from "@/store/useUserStore";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -11,6 +12,7 @@ if (!API_BASE_URL) {
 export const useAnalytics = () => {
   const { profile } = useProfile();
   const profileId = profile?.id ?? null;
+  const { token } = useUserStore();
 
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +30,12 @@ export const useAnalytics = () => {
     try {
       setIsLoading(true);
       const response = await fetch(`${API_BASE_URL}/profiles/${profileId}/analytics`, {
+        method: "GET",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -37,7 +44,12 @@ export const useAnalytics = () => {
       }
 
       const data = await response.json();
-      setAnalytics(data);
+      const sanitizedData = {
+        ...data,
+        avgEngagement: Number(data.avgEngagement || 0),
+        totalViews: Number(data.totalViews || 0)
+      };
+      setAnalytics(sanitizedData);
       setError(null);
     } catch (err) {
       console.error("Error fetching analytics:", err);
@@ -59,7 +71,7 @@ export const useAnalytics = () => {
     }, 60000); // every 10 seconds, adjust as needed
 
     return () => clearInterval(interval);
-  }, [fetchAnalytics, profile?.isVIP]);
+  }, [fetchAnalytics, profile?.isVIP, token]);
 
   return { analytics, isLoading, error, refetchAnalytics: fetchAnalytics, isVIP: profile?.isVIP ?? false };
 };

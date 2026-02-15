@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useUserStore } from "@/store/useUserStore";
 
 interface CampaignApplyDialogProps {
   open: boolean;
@@ -231,6 +232,8 @@ export const CampaignApplyDialog: React.FC<CampaignApplyDialogProps> = ({
     }
   };
 
+  const {token} = useUserStore();
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -295,9 +298,12 @@ export const CampaignApplyDialog: React.FC<CampaignApplyDialogProps> = ({
 ${formData.coverLetter.trim()}`;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/proposals`, {
+      const res = await fetch(`${API_BASE_URL}/proposals`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+         headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
         credentials: "include",
         body: JSON.stringify({
           campaignId: campaign.id,
@@ -658,7 +664,7 @@ ${formData.coverLetter.trim()}`;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="h-[90vh] w-full max-w-2xl overflow-hidden p-0 gap-0 flex flex-col">
+      <DialogContent className="h-[90vh] w-full max-w-2xl overflow-hidden p-6 gap-0 flex flex-col">
         {/* Header */}
         <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b space-y-4">
           <div>

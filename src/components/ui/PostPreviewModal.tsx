@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PortfolioItem } from "@/types/profile";
 import { useState, useEffect } from "react";
+import { useUserStore } from "@/store/useUserStore";
 
 interface PostPreviewModalProps {
   post: PortfolioItem | null;
@@ -19,10 +20,16 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
   const [hasViewed, setHasViewed] = useState(false);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const API_BASE = "https://api.influ-link.com";
+  const {token} = useUserStore();
 
   if (!API_BASE_URL) {
     throw new Error("API_BASE_URL environment variable is not set.");
   }
+
+  const getHeaders = () => ({
+    "Content-Type": "application/json",
+    ...(token && { "Authorization": `Bearer ${token}` }),
+  });
 
   const trackView = async (postToTrack: PortfolioItem) => {
     if (!currentPost) return;
@@ -33,6 +40,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
         {
           method: "POST",
           credentials: "include",
+          headers: getHeaders(),
         }
       );
 
@@ -71,7 +79,10 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
       try {
         const res = await fetch(
           `${API_BASE_URL}/profiles/${post.profileId}/portfolio`,
-          { credentials: "include" }
+          { 
+            credentials: "include",
+            headers: getHeaders(),
+          }
         );
         if (!res.ok) throw new Error("Failed to fetch portfolio");
 
@@ -102,6 +113,7 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
         {
           method: isLiked ? "DELETE" : "POST",
           credentials: "include",
+          headers: getHeaders(),
         }
       );
 
@@ -125,7 +137,11 @@ export const PostPreviewModal = ({ post, isOpen, onClose, onLikeSuccess }: PostP
     try {
       const res = await fetch(
         `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}`,
-        { method: "DELETE", credentials: "include" }
+        { 
+          method: "DELETE", 
+          credentials: "include",
+          headers: getHeaders(),
+        }
       );
       if (!res.ok) throw new Error("Failed to delete post");
 

@@ -9,11 +9,43 @@ import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { createNotification } from "./src/utils/notifications.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { createClient } from "redis";
+import { createAdapter } from "@socket.io/redis-adapter";
+import cron from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = createServer(app);
+
+// --- Redis Setup ---
+const pubClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+const subClient = pubClient.duplicate();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://influ-link.com",   // Истинският сайт
+  "https://www.influ-link.com" // Версията с www (за всеки случай)
+];
+
+// --- Socket.io Setup ---
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
+});
+
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  io.adapter(createAdapter(pubClient, subClient));
+  console.log("🚀 Redis Adapter connected for Socket.io");
+}).catch(err => console.error("❌ Redis connection failed:", err));
+
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -21,10 +53,28 @@ import multer from "multer";
 const upload = multer({ dest: path.join(__dirname, "uploads/") });
 
 // --- Middleware ---
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Позволяваме заявки без origin (като мобилни приложения или Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log("CORS Blocked for origin:", origin); // Дебуг лог
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // --- Database Connection Pool ---
 const pool = mysql.createPool({
@@ -160,7 +210,8 @@ app.post("/api/register", async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      domain: '.influ-link.com',
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -219,14 +270,20 @@ app.post("/api/login", async (req, res) => {
     // Set HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
+      secure: true,      // Вече винаги ползваме HTTPS за API-то
+      domain: '.influ-link.com',
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({
       message: "Logged in successfully",
-      user: { id: user.id, email: user.email, accountType: user.account_type },
+      token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        accountType: user.account_type
+      },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -236,15 +293,72 @@ app.post("/api/login", async (req, res) => {
 
 // Middleware to verify JWT from cookie
 const authenticate = (req, res, next) => {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).json({ message: "Not authenticated" });
+  let token = req.cookies.token;
+
+  if (!token && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    }
+  }
+
+  if (!token) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch {
+  } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+io.use((socket, next) => {
+  // Проверяваме на две места: auth обекта И headers (някои клиенти го пращат там)
+  const token = socket.handshake.auth?.token || 
+                socket.handshake.headers?.['authorization']?.split(' ')[1] ||
+                parseCookie(socket.handshake.headers?.cookie); // Твоята функция за бисквитки
+
+  if (!token) {
+    console.log("❌ Socket Auth: No token found in handshake");
+    return next(new Error("Authentication error"));
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.log("❌ Socket Auth: JWT Verification failed", err.message);
+      return next(new Error("Authentication error"));
+    }
+    socket.user = decoded;
+    next();
+  });
+});
+
+// Помощна функция, ако се наложи:
+function parseCookie(cookieStr) {
+  return cookieStr?.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+}
+
+io.on("connection", (socket) => {
+  const userId = socket.user.id;
+  console.log(`👤 User connected: ${userId}`);
+
+  socket.join(`user_${userId}`);
+
+  socket.on("disconnect", () => {
+    console.log(`👋 User disconnected: ${userId}`);
+  });
+});
+
+app.set('socketio', io); // Закачи я към express app-а за лесен достъп
+
+export const emitNotification = (userId, data) => {
+  if (io) {
+    io.to(`user_${userId}`).emit("notification_received", data);
+  } else {
+    console.error("Socket.io (io) is not initialized yet!");
   }
 };
 
@@ -633,63 +747,76 @@ app.delete(
 );
 
 // Get analytics
-app.get(
-  "/api/profiles/:profileId/analytics",
-  authenticate,
-  async (req, res) => {
-    const { profileId } = req.params;
+app.get("/api/profiles/:profileId/analytics", authenticate, async (req, res) => {
+  const { profileId } = req.params;
 
-    try {
-      const [portfolioTotals] = await pool.query(
-        "SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?",
-        [profileId]
-      );
+  try {
+    // 1. Вземаме исторически данни за последните 14 дни (за графиките)
+    const [historyRows] = await pool.query(
+      `SELECT date, views, likes, reach 
+       FROM daily_stats 
+       WHERE profile_id = ? 
+       ORDER BY date ASC LIMIT 14`,
+      [profileId]
+    );
 
-      const totalLikes = Number(portfolioTotals[0].totalLikes || 0);
-      const totalViews = Number(portfolioTotals[0].totalViews || 0);
+    // 2. Вземаме общите суми от портфолиото за главните метрики
+    const [portfolioTotals] = await pool.query(
+      "SELECT SUM(likes) AS totalLikes, SUM(views) AS totalViews FROM portfolio WHERE profile_id = ?",
+      [profileId]
+    );
 
-      const [topPostsRows] = await pool.query(
-        "SELECT id, title, (likes + views) as engagement FROM portfolio WHERE profile_id = ? ORDER BY engagement DESC LIMIT 5",
-        [profileId]
-      );
+    const totalLikes = Number(portfolioTotals[0].totalLikes || 0);
+    const totalViews = Number(portfolioTotals[0].totalViews || 0);
 
-      const topPerformingPosts = topPostsRows.map((post) => ({
-        id: post.id.toString(),
-        title: post.title,
-        engagement: Number(post.engagement),
-      }));
+    // 3. Вземаме топ 5 най-ангажиращи поста
+    const [topPostsRows] = await pool.query(
+      `SELECT id, title, (likes + views) as engagement 
+       FROM portfolio 
+       WHERE profile_id = ? 
+       ORDER BY engagement DESC LIMIT 5`,
+      [profileId]
+    );
 
-      // 3. Prepare Chart Data (Using the live totals for placeholders)
-      const viewsByPlatform = [
-        { platform: "Desktop", views: Math.round(totalViews * 0.7) },
-        { platform: "Mobile", views: Math.round(totalViews * 0.3) },
-      ];
+    // 4. Форматиране на данните за Recharts (Engagement Over Time)
+    const engagementOverTime = historyRows.map(row => ({
+      date: new Date(row.date).toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit' }),
+      value: row.views > 0 ? Number(((row.likes / row.views) * 100).toFixed(1)) : 0
+    }));
 
-      // trend charts
-      const engagementOverTime = [];
-      const reachTrend = [];
+    // 5. Форматиране за Reach Trend графиката
+    const reachTrend = historyRows.map(row => ({
+      date: new Date(row.date).toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit' }),
+      reach: row.reach
+    }));
 
-      const analyticsData = {
-        // Live Totals (used by key metrics)
-        totalLikes: totalLikes.toString(),
-        totalViews: totalViews.toString(),
+    // 6. Форматиране на топ постовете
+    const topPerformingPosts = topPostsRows.map((post) => ({
+      id: post.id.toString(),
+      title: post.title,
+      engagement: Number(post.engagement),
+    }));
 
-        // Chart/List data (used by charts and list)
-        engagementOverTime,
-        viewsByPlatform,
-        reachTrend,
-        topPerformingPosts,
+    // 7. Подготовка на финалния обект (съвпада с Frontend-а)
+    const analyticsData = {
+      totalLikes: totalLikes.toString(),
+      totalViews: totalViews.toString(),
+      engagementOverTime, // [{date, value}, ...]
+      reachTrend,         // [{date, reach}, ...]
+      viewsByPlatform: [
+        { platform: "Mobile", views: Math.round(totalViews * 0.82) },
+        { platform: "Desktop", views: Math.round(totalViews * 0.18) }
+      ],
+      topPerformingPosts,
+      newFollowersCount: 0 // Може да се добави по-късно при нужда
+    };
 
-        newFollowersCount: 0,
-      };
-
-      res.json(analyticsData);
-    } catch (err) {
-      console.error("Error fetching analytics:", err);
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
+    res.json(analyticsData);
+  } catch (err) {
+    console.error("❌ Analytics Route Error:", err);
+    res.status(500).json({ message: "Failed to fetch analytics" });
   }
-);
+});
 
 app.post(
   "/api/profiles/me/avatar",
@@ -758,6 +885,16 @@ setInterval(async () => {
 
     // --- 2. Flush profile analytics (reach + engagement rate) ---
     for (const [profileId, { views, likes }] of analyticsEntries) {
+      await connection.query(
+        `INSERT INTO daily_stats (profile_id, date, views, likes, reach) 
+         VALUES (?, CURDATE(), ?, ?, ?) 
+         ON DUPLICATE KEY UPDATE 
+         views = views + VALUES(views), 
+         likes = likes + VALUES(likes), 
+         reach = reach + VALUES(reach)`,
+        [profileId, views, likes, views + likes]
+      );
+
       const reachIncrement = views + likes;
       await connection.query(
         "UPDATE profiles SET total_reach = total_reach + ? WHERE id = ?",
@@ -1153,7 +1290,6 @@ app.post(
   }
 );
 
-
 app.get("/api/campaigns", authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -1200,15 +1336,14 @@ app.get("/api/campaigns/history", authenticate, async (req, res) => {
 
     const query = `
       SELECT 
-        c.id, c.name, c.start_date as date, c.platforms, c.company_logo,
-        cp.status, cp.earnings, cp.performance_reach as reach, cp.performance_engagement as engagement,
+        c.id, c.name, c.start_date as date, c.company_logo,
+        cp.status, cp.earnings, cp.performance_reach, cp.performance_engagement,
         u.name as brand_name
       FROM campaign_participants cp
       INNER JOIN campaigns c ON cp.campaign_id = c.id
       INNER JOIN users u ON c.brand_id = u.id
       WHERE cp.user_id = ?
-      ORDER BY c.start_date DESC
-      LIMIT 50; 
+      ORDER BY c.start_date DESC;
     `;
 
     const [rows] = await pool.query(query, [creatorId]);
@@ -1219,16 +1354,15 @@ app.get("/api/campaigns/history", authenticate, async (req, res) => {
       brand: r.brand_name,
       date: r.date,
       status: r.status,
-      earnings: Number(r.earnings),
-      reach: formatReach(r.reach),
-      engagement: r.engagement,
-      platforms: r.platforms ? JSON.parse(r.platforms) : [],
+      earnings: parseFloat(r.earnings || 0),
+      reach: r.performance_reach?.toLocaleString() || "0", 
+      engagement: r.performance_engagement || "0%",
       brandLogo: r.company_logo
     }));
 
     res.json(history);
   } catch (err) {
-    console.error("Efficiency Error:", err);
+    console.error("Database Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -1242,7 +1376,7 @@ const migrateExistingConnections = async () => {
     const [campaigns] = await connection.query("SELECT id, brand_id, budget FROM campaigns");
 
     // 2. Fetch creators (Adjust 'role' based on your users table)
-    const [creators] = await connection.query("SELECT id FROM users WHERE role = 'creator'");
+    const [creators] = await connection.query("SELECT id FROM users WHERE account_type = 'creator'");
 
     if (campaigns.length === 0 || creators.length === 0) {
       console.log("Nothing to migrate.");
@@ -1255,7 +1389,7 @@ const migrateExistingConnections = async () => {
     // In a real app, you might match these based on an 'applications' table
     campaigns.forEach((campaign) => {
       // Example: Assigning the first 2 creators to every campaign for testing
-      const assignedCreators = creators.slice(0, 2);
+      const assignedCreators = creators;
 
       assignedCreators.forEach(creator => {
         values.push([
@@ -1708,6 +1842,26 @@ app.get("/api/notifications", authenticate, async (req, res) => {
   }
 });
 
+cron.schedule("0 0 * * *", async () => {
+  try {
+    const query = `
+      DELETE FROM notifications 
+      WHERE created_at < NOW() - INTERVAL 30 DAY
+    `;
+
+    // Изпълняваме заявката директно през pool-а
+    const [result] = await pool.query(query);
+
+    if (result.affectedRows > 0) {
+      console.log(`[${new Date().toISOString()}] 🧹 Auto-Cleanup: Изтрити са ${result.affectedRows} стари известия.`);
+    } else {
+      console.log(`[${new Date().toISOString()}] 🧹 Auto-Cleanup: Няма известия за триене.`);
+    }
+  } catch (err) {
+    console.error("❌ Cron Job Error (Notification Cleanup):", err.message);
+  }
+});
+
 app.post("/api/notifications", authenticate, async (req, res) => {
   try {
     const { user_id, type, title, message, entity_type, entity_id } = req.body;
@@ -1756,13 +1910,22 @@ app.post("/api/proposals/:id/action", authenticate, async (req, res) => {
       "UPDATE proposals SET status = ? WHERE id = ?",
       [newStatus, proposalId]
     );
-
     if (action === "accept") {
-      await connection.query(
-        `INSERT IGNORE INTO campaign_participants (campaign_id, user_id, status) 
-         VALUES (?, ?, 'In Progress')`,
-        [proposal.campaign_id, proposal.creator_id]
+      console.log(`Attempting to create chat for Creator: ${proposal.creator_id} and Brand: ${userId}`);
+
+      // Махаме IGNORE за теста, за да видим реалната грешка в конзолата
+      const [chatResult] = await connection.query(
+        `INSERT INTO chat_rooms (creator_id, brand_id, last_message) 
+        	 VALUES (?, ?, ?)
+        	 ON DUPLICATE KEY UPDATE last_message = VALUES(last_message)`, // По-добре от IGNORE
+        [
+          proposal.creator_id,
+          userId,
+          "Proposal accepted! You can now start chatting."
+        ]
       );
+
+      console.log("Chat room operation result:", chatResult);
     }
 
     // 3. Create the Notification for the creator who sent the proposal
@@ -2229,13 +2392,113 @@ app.get("/api/links", authenticate, async (req, res) => {
   }
 });
 
+// Вземи всички чатове на текущия потребител
+app.get("/api/chats", authenticate,async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const [rooms] = await pool.query(
+      `SELECT 
+        cr.id, 
+        cr.creator_id, 
+        cr.brand_id, 
+        cr.created_at,
+        p.name, 
+        p.avatar, 
+        p.handle
+      FROM chat_rooms cr
+      JOIN profiles p ON p.id = (CASE 
+                                   WHEN cr.creator_id = ? THEN cr.brand_id 
+                                   ELSE cr.creator_id 
+                                 END)
+      WHERE cr.creator_id = ? OR cr.brand_id = ?
+      ORDER BY cr.updated_at DESC`,
+      [userId, userId, userId]
+    );
+
+    res.json(rooms);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// Вземи съобщенията от конкретен чат
+app.get("/api/chats/:roomId/messages", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  const { roomId } = req.params;
+
+  try {
+    // Проверка дали потребителят е част от стаята
+    const [[room]] = await pool.query(
+      "SELECT id FROM chat_rooms WHERE id = ? AND (creator_id = ? OR brand_id = ?)",
+      [roomId, userId, userId]
+    );
+
+    if (!room) return res.status(403).json({ error: "Access denied" });
+
+    const [msgs] = await pool.query(
+      "SELECT * FROM messages WHERE room_id = ? ORDER BY created_at ASC LIMIT 100",
+      [roomId]
+    );
+    res.json(msgs);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching messages" });
+  }
+});
+
+  io.on("connection", (socket) => {
+    const userId = socket.user.id;
+    socket.join(`user_${userId}`); // CRITICAL: Allows personal notifications
+
+    socket.on("join_room", (roomId) => {
+      socket.join(`room_${roomId}`);
+  });
+
+  socket.on("send_message", async (data) => {
+    const { roomId, text, receiverId } = data;
+    try {
+      const [result] = await pool.query(
+        "INSERT INTO messages (room_id, sender_id, text) VALUES (?, ?, ?)",
+        [roomId, userId, text]
+      );
+
+      // Update the room's metadata for the sidebar
+      await pool.query(
+        "UPDATE chat_rooms SET last_message = ?, last_message_at = NOW() WHERE id = ?",
+        [text, roomId]
+      );
+
+      const newMessage = {
+        id: result.insertId,
+        room_id: roomId,
+        sender_id: userId,
+        text,
+        is_read: 0,
+        created_at: new Date()
+      };
+
+      io.to(`room_${roomId}`).emit("receive_message", newMessage);
+      
+      // Notify the receiver personally
+      io.to(`user_${receiverId}`).emit("new_chat_notification", {
+        fromId: userId,
+        text: "sent you a message"
+      });
+    } catch (err) {
+      console.error("Chat error:", err);
+    }
+  });
+});
+
+migrateExistingConnections()
+  .then(() => console.log("✅ Migration check completed"))
+  .catch(err => console.error("❌ Migration failed:", err));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // =======================
 // START SERVER
 // =======================
-app.listen(PORT, () => {
-  console.log(`\n🎉 Backend running on http://localhost:${PORT}`);
-  console.log(`   (MariaDB port: ${process.env.DB_PORT})`);
+httpServer.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });

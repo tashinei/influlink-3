@@ -10,33 +10,33 @@ import { useUserStore } from '@/store/useUserStore';
 import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // Brand-specific industries instead of creator niches
 
-const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
-    <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="flex items-center gap-2">
-            <Badge className="bg-white/20 text-white hover:bg-white/20 backdrop-blur-md border-white/10">
-                Step {step} of 4
-            </Badge>
-            <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
-                <div
-                    className="h-full bg-white transition-all duration-500"
-                    style={{ width: `${(step / 4) * 100}%` }}
-                />
+const RegisterBrand = () => {
+    const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
+        <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-2">
+                <Badge className="bg-white/20 text-white hover:bg-white/20 backdrop-blur-md border-white/10">
+                    Step {step} of 4
+                </Badge>
+                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-white transition-all duration-500"
+                        style={{ width: `${(step / 4) * 100}%` }}
+                    />
+                </div>
+            </div>
+            <h2 className="text-4xl font-extrabold tracking-tight text-white">{title}</h2>
+            <div className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                <BsQuestionCircleFill className="h-5 w-5 text-white shrink-0" />
+                <p className="text-sm text-blue-100/80 leading-relaxed">
+                    <span className="font-semibold text-white">{t("mvpRegisterBrand.brandAdvantage")}:</span> {benefit}
+                </p>
             </div>
         </div>
-        <h2 className="text-4xl font-extrabold tracking-tight text-white">{title}</h2>
-        <div className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <BsQuestionCircleFill className="h-5 w-5 text-white shrink-0" />
-            <p className="text-sm text-blue-100/80 leading-relaxed">
-                <span className="font-semibold text-white">Brand Advantage:</span> {benefit}
-            </p>
-        </div>
-    </div>
-);
-
-const RegisterBrand = () => {
+    );
     // 🎨 Professional Brand Palette: Deep Slates and Navys
     const colors = ["#90d5f3ff", "#6EC5E9", "#1E88E5"];
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -45,7 +45,7 @@ const RegisterBrand = () => {
     const [isRegister, setIsRegister] = useState(true);
     const BRAND_INDUSTRIES = useCreatorNiches();
     const isMobile = useIsMobile();
-
+    const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const updateDimensions = (entries: ResizeObserverEntry[]) => {
         const entry = entries[0];
@@ -142,8 +142,8 @@ const RegisterBrand = () => {
                     <RegistrationForm
                         accountType="brand"
                         isMultiStep={true}
-                        title={isRegister ? "Launch Your Brand" : "Welcome Back"}
-                        description="Let's set up your business account."
+                        title={isRegister ? t("mvpRegisterBrand.launchYourBrand") : t("mvpRegisterBrand.welcomeBack")}
+                        description={t("mvpRegisterBrand.setupBusinessAcc")}
                         onSuccess={(step1Data: any) => {
                             setFormData(prev => ({ ...prev, ...step1Data }));
                             setStep(2);
@@ -156,29 +156,29 @@ const RegisterBrand = () => {
                     <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full lg:p-10">
                         <StepHeader
                             step={2}
-                            title="Business Identity"
-                            benefit="Your brand name and headquarters location help us match you with creators who align with your regional market goals."
+                            title={t("mvpRegisterBrand.businessIdentity")}
+                            benefit={t("mvpRegisterBrand.benefit1")}
                         />
                         <div className="flex-1 space-y-6">
-                            <InputWrapper label="Company Name">
+                            <InputWrapper label={t("mvpRegisterBrand.companyName")}>
                                 <input className="step-input" placeholder="e.g. Acme Corp" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
                             </InputWrapper>
-                            <InputWrapper label="Brand Username">
+                            <InputWrapper label={t("mvpRegisterBrand.brandUsername")}>
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">@</span>
-                                    <input className="step-input pl-8" placeholder="acme_official" value={formData.handle} onChange={e => setFormData({ ...formData, handle: e.target.value })} />
+                                    <input className="step-input !pl-10" placeholder="acme_official" value={formData.handle} onChange={e => setFormData({ ...formData, handle: e.target.value })} />
                                 </div>
                             </InputWrapper>
-                            <InputWrapper label="Headquarters (City, Country)">
+                            <InputWrapper label={`${t("mvpRegisterBrand.headquarters")} (${t("mvpRegisterBrand.cityCountry")})`}>
                                 <div className="relative">
                                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                                    <input className="step-input pl-11" placeholder="New York, USA" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
+                                    <input className="step-input !pl-10" placeholder="New York, USA" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
                                 </div>
                             </InputWrapper>
                         </div>
                         <div className="flex gap-3 pt-8 mt-auto">
-                            <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10 h-12 px-8">Back</Button>
-                            <Button onClick={nextStep} disabled={!formData.name || !formData.handle} className={`flex-1 bg-white text-black font-bold h-12 rounded-xl ${primaryButtonClass}`}>Next Step <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                            <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10 h-12 px-8">{t("mvpRegisterBrand.back")}</Button>
+                            <Button onClick={nextStep} disabled={!formData.name || !formData.handle} className={`flex-1 bg-white text-black font-bold h-12 rounded-xl ${primaryButtonClass}`}>{t("mvpRegisterBrand.nextStep")} <ArrowRight className="ml-2 h-4 w-4" /></Button>
                         </div>
                     </div>
                 );
@@ -187,18 +187,18 @@ const RegisterBrand = () => {
                     <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full lg:p-10">
                         <StepHeader
                             step={3}
-                            title="Industry Focus"
-                            benefit="Selecting your industry allows our algorithm to recommend creators with a proven track record in your specific market segment."
+                            title={t("mvpRegisterBrand.industryFocus")}
+                            benefit={t("mvpRegisterBrand.benefit2")}
                         />
                         <div className="flex-1 space-y-4">
-                            <InputWrapper label="Primary Industry">
+                            <InputWrapper label={t("mvpRegisterBrand.primaryIndustry")}>
                                 <div className="relative group">
                                     <select
                                         className="step-input appearance-none w-full h-14 px-4 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all cursor-pointer"
                                         value={formData.niche}
                                         onChange={e => setFormData({ ...formData, niche: e.target.value })}
                                     >
-                                        <option value="" className="bg-gray-900 text-white/50">Select your industry...</option>
+                                        <option value="" className="bg-gray-900 text-white/50">{t("mvpRegisterBrand.selectYourIndustry")}...</option>
                                         {BRAND_INDUSTRIES.map((niche) => (
                                             <option key={niche} value={niche.toLowerCase()} className="bg-gray-900">
                                                 {niche}
@@ -211,38 +211,38 @@ const RegisterBrand = () => {
                                     </div>
                                 </div>
                             </InputWrapper>
-                            <InputWrapper label="Company Bio / Mission">
-                                <textarea className="step-input min-h-[140px] pt-3 resize-none" placeholder="Tell creators what your brand stands for..." value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
+                            <InputWrapper label={t("mvpRegisterBrand.companyBioMission")}>
+                                <textarea className="step-input min-h-[140px] pt-3 resize-none" placeholder={`${t("mvpRegisterBrand.tellCreatorsWhatStand")}...`} value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
                             </InputWrapper>
                         </div>
                         <div className="flex gap-3 pt-8 mt-auto">
-                            <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10 h-12 px-8">Back</Button>
-                            <Button onClick={nextStep} disabled={!formData.niche} className={`flex-1 bg-white text-black font-bold h-12 rounded-xl ${primaryButtonClass}`}>Finalize <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                            <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10 h-12 px-8">{t("mvpRegisterBrand.back")}</Button>
+                            <Button onClick={nextStep} disabled={!formData.niche} className={`flex-1 bg-white text-black font-bold h-12 rounded-xl ${primaryButtonClass}`}>{t("mvpRegisterBrand.finalize")} <ArrowRight className="ml-2 h-4 w-4" /></Button>
                         </div>
                     </div>
                 );
             case 4:
                 return (
                     <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col h-full text-center lg:p-10">
-                        <StepHeader step={4} title="Partner with Pros" benefit="By joining, you unlock the ability to post campaigns and use our automated creator contracting tools." />
+                        <StepHeader step={4} title={t("mvpRegisterBrand.partnerWithPros")} benefit={t("mvpRegisterBrand.benefit3")} />
                         <div className="flex-1">
                             <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-6 text-left">
-                                <h3 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">Business Summary</h3>
+                                <h3 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">{t("mvpRegisterBrand.businessSummary")}</h3>
                                 <ul className="text-sm text-white/60 space-y-2">
-                                    <li><span className="text-white/40">Brand:</span> {formData.name}</li>
-                                    <li><span className="text-white/40">Industry:</span> {formData.niche}</li>
+                                    <li><span className="text-white/40">{t("mvpRegisterBrand.brand")}:</span> {formData.name}</li>
+                                    <li><span className="text-white/40">{t("mvpRegisterBrand.industry")}:</span> {formData.niche}</li>
                                 </ul>
                             </div>
                             <div className="flex items-start gap-3 px-2 text-left mb-6">
                                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-1 w-5 h-5" />
-                                <label className="text-xs text-white/60">I agree to the Terms for Business Partners and Privacy Policy.</label>
+                                <label className="text-xs text-white/60">{t("mvpRegisterBrand.agreeTermsPolicy")}</label>
                             </div>
                         </div>
                         <div className="mt-auto pt-6">
                             <Button onClick={handleFinalSubmit} disabled={isSubmitting || !agreed} className={`w-full h-14 rounded-2xl font-extrabold text-lg bg-white text-black ${primaryButtonClass}`}>
-                                {isSubmitting ? "Creating Brand Profile..." : "Confirm & Launch"}
+                                {isSubmitting ? t("mvpRegisterBrand.creatingBrandProfile") : t("mvpRegisterBrand.confirmLaunch")}
                             </Button>
-                            <button onClick={prevStep} className="mt-4 text-white/40 text-xs underline">Back to info</button>
+                            <button onClick={prevStep} className="mt-4 text-white/40 text-xs underline">{t("mvpRegisterBrand.backDetails")}</button>
                         </div>
                     </div>
                 );
@@ -262,10 +262,10 @@ const RegisterBrand = () => {
 
                     <div className={`hidden lg:flex absolute left-20 bottom-20 z-10 flex-col space-y-4 max-w-xl transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                         <h1 className="text-7xl font-black text-white leading-tight drop-shadow-2xl">
-                            Build Your<br />Brand's Legacy.
+                            {t("mvpRegisterBrand.buildYour")}<br />{t("mvpRegisterBrand.brandLegacy")}.
                         </h1>
                         <p className="text-xl text-white/80 max-w-md drop-shadow-lg">
-                            Cross the bridge between professional brands and world-class creators.
+                            {t("mvpRegisterBrand.crossBridgeBetween")}
                         </p>
                     </div>
                 </>

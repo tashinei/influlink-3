@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Filter, Loader2 } from 'lucide-react';
 import { CreatorCard } from '@/components/creators/CreatorCard';
 import { FilterPanel } from '@/components/creators/FilterPanel';
 import { SearchHeader } from '@/components/creators/SearchHeader';
@@ -30,6 +30,7 @@ export const defaultFilters: FilterState = {
 
 import { useLocation } from "react-router-dom";
 import { InviteModal } from '@/components/campaigns/InviteModal';
+import { useUserStore } from '@/store/useUserStore';
 
 const SearchResults = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -64,7 +65,7 @@ const SearchResults = () => {
     const [filters, setFilters] = useState<FilterState>(initialFilters);
     const [sortBy, setSortBy] = useState<SortOption>('followers');
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isFilterOpen, setIsFilterOpen] = useState(true);
 
     const normalizeCreator = (c: any): Creator => ({
         id: c.id.toString(),
@@ -123,6 +124,7 @@ const SearchResults = () => {
         }
     };
 
+    const { token } = useUserStore();
 
     // Fetch creators from backend
     const fetchCreators = async (reset = false) => {
@@ -141,7 +143,10 @@ const SearchResults = () => {
             const res = await fetch(`${API_BASE_URL}/creators/search`, {
                 method: "POST",
                 credentials: "include",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { "Authorization": `Bearer ${token}` })
+                },
                 body: JSON.stringify({
                     query: searchQuery,
 
@@ -209,72 +214,34 @@ const SearchResults = () => {
     const activeFilterCount = useMemo(() => {
         let count = 0;
         if (filters.niche.length > 0) count++;
+        if (filters.platforms.length > 0) count++;
+        if (filters.followerRange) count++;
+        if (filters.engagementRate !== 'any') count++;
+        if (filters.country) count++;
         if (filters.isVIP) count++;
         if (filters.availableNow) count++;
         return count;
     }, [filters]);
 
     return (
-        <>
-            <div className="min-h-screen bg-background">
-                <div className="fixed inset-0 gradient-subtle pointer-events-none" />
+        <div className="min-h-screen bg-background relative">
+            <div className="fixed inset-0 gradient-subtle pointer-events-none" />
 
-                <div className="relative container mx-auto px-4 py-6">
-                    <SearchHeader
-                        searchQuery={searchQuery}
-                        onSearchChange={setSearchQuery}
-                        resultCount={totalCount}
-                        sortBy={sortBy}
-                        onSortChange={setSortBy}
-                        viewMode={viewMode}
-                        onViewModeChange={setViewMode}
-                        onOpenFilters={() => setIsFilterOpen(true)}
-                        activeFilterCount={activeFilterCount}
-                    />
+            <div className="relative container mx-auto px-4 py-6">
+                <SearchHeader
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    resultCount={totalCount}
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                    viewMode={viewMode}
+                    onViewModeChange={setViewMode}
+                    onOpenFilters={() => setIsFilterOpen(true)}
+                    activeFilterCount={activeFilterCount}
+                />
 
-                    <div className="flex gap-8 mt-8">
-                        {/* Desktop Filter Panel */}
-                        <div className="hidden lg:block flex-shrink-0">
-                            <FilterPanel
-                                filters={filters}
-                                onFilterChange={setFilters}
-                                onClearFilters={handleClearFilters}
-                                isOpen={isFilterOpen}
-                                onClose={() => setIsFilterOpen(false)}
-                            />
-                        </div>
-
-                        {/* Results */}
-                        <div className="flex-1">
-                            {isLoading ? (
-                                <div className="flex justify-center py-20">
-                                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                                </div>
-                            ) : creators.length > 0 ? (
-                                <>
-                                    <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-                                        {creators.map((creator, index) => (
-                                            <CreatorCard key={creator.id} creator={creator} index={index} onInvite={(creator) => handleOpenInviteModal(creator)} />
-                                        ))}
-                                    </div>
-
-                                    {creators.length < totalCount && (
-                                        <div className="flex justify-center mt-10">
-                                            <Button onClick={handleLoadMore} size="lg" className="min-w-[200px]">
-                                                Load More ({totalCount - creators.length} remaining)
-                                            </Button>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <EmptyState onClearFilters={handleClearFilters} />
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Filter Panel */}
-                <div className='lg:hidden'>
+                <div className="flex flex-col lg:flex-row gap-8 mt-8 items-start">
+                    {/* 1. Filter Panel */}
                     <FilterPanel
                         filters={filters}
                         onFilterChange={setFilters}
@@ -282,19 +249,77 @@ const SearchResults = () => {
                         isOpen={isFilterOpen}
                         onClose={() => setIsFilterOpen(false)}
                     />
+
+                    {/* 2. Main Results */}
+                    <main className={`flex-1 w-full transition-all duration-300`}>
+                        {isLoading && page === 1 ? (
+                            <div className="flex justify-center py-20">
+                                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                            </div>
+                        ) : creators.length > 0 ? (
+                            <div className="space-y-10">
+                                <div className={`grid gap-6 ${viewMode === 'grid'
+                                    ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+                                    : 'grid-cols-1'
+                                    }`}>
+                                    {creators.map((creator, index) => (
+                                        <CreatorCard
+                                            key={creator.id}
+                                            creator={creator}
+                                            index={index}
+                                            onInvite={handleOpenInviteModal}
+                                        />
+                                    ))}
+                                </div>
+
+                                {creators.length < totalCount && (
+                                    <div className="flex justify-center pb-10">
+                                        <Button
+                                            onClick={handleLoadMore}
+                                            variant="outline"
+                                            disabled={isLoading}
+                                            className="min-w-[200px] glass-card"
+                                        >
+                                            {isLoading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : 'Load More'}
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <EmptyState onClearFilters={handleClearFilters} />
+                        )}
+                    </main>
                 </div>
             </div>
+
+            {/* Mobile Floating Filter Trigger */}
+            {!isFilterOpen && (
+                <div className="fixed bottom-6 right-6 lg:hidden z-40">
+                    <Button
+                        onClick={() => setIsFilterOpen(true)}
+                        className="rounded-full h-14 w-14 shadow-2xl p-0"
+                    >
+                        <div className="relative">
+                            <Filter className="w-6 h-6" />
+                            {activeFilterCount > 0 && (
+                                <span className="absolute -top-2 -right-2 bg-destructive text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </div>
+                    </Button>
+                </div>
+            )}
+
+            {/* Modals */}
             {isInviteModalOpen && selectedCreator && (
                 <InviteModal
-                    open={isInviteModalOpen} // Changed 'isOpen' to 'open'
+                    open={isInviteModalOpen}
                     onOpenChange={setIsInviteModalOpen}
                     creator={selectedCreator}
-                // onClose isn't used in your Modal definition, 
-                // but onOpenChange handles it.
                 />
             )}
-        </>
+        </div>
     );
 };
-
 export default SearchResults;

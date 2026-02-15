@@ -70,7 +70,7 @@ export const AnalyticsTab = ({ analytics, isVIP, isLoading }: AnalyticsTabProps)
     avgEngagement = (totalLikes / totalViews) * 100;
   }
 
-  const newFollowers = Number((analytics as any).newFollowersCount || 0);
+  const newFollowers = Number(analytics.newFollowersCount ?? 0);
 
   const viewsChange = 0;
   const likesChange = 0;

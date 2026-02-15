@@ -1,31 +1,32 @@
-import React, { useEffect, useState } from "react";
-import { X, Send, Sparkles } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { X, Send, MessageSquare } from "lucide-react";
+import { io, Socket } from "socket.io-client";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserStore } from "@/store/useUserStore";
+import Cookies from "js-cookie";
 
 interface Message {
-    id: string;
-    content: string;
-    sender: "user" | "ai";
-    timestamp: Date;
+    id: number;
+    room_id: number;
+    sender_id: string | number;
+    text: string;
+    is_read: boolean;
+    created_at: string;
 }
 
 interface ChatContact {
-    id: string;
+    id: number;
     name: string;
     avatar?: string;
-    initials: string;
-    isOnline?: boolean;
+    handle: string;
+    creator_id: string | number;
+    brand_id: string | number;
 }
 
 interface ChatDrawerProps {
@@ -33,215 +34,207 @@ interface ChatDrawerProps {
     onClose: () => void;
 }
 
-const mockContacts: ChatContact[] = [
-    { id: "1", name: "AI Assistant", initials: "AI", isOnline: true },
-    { id: "2", name: "Sarah Chen", initials: "SC", isOnline: true },
-    { id: "3", name: "Mike Johnson", initials: "MJ", isOnline: false },
-    { id: "4", name: "Emma Wilson", initials: "EW", isOnline: true },
-    { id: "5", name: "Alex Rivera", initials: "AR", isOnline: false },
-];
-
 export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: "1",
-            content: "Hey! How can I help you today?",
-            sender: "ai",
-            timestamp: new Date(),
-        },
-    ]);
+    const { user, token: storeToken } = useUserStore();
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
-    const [activeContact, setActiveContact] = useState<ChatContact>(mockContacts[0]);
-
+    const [contacts, setContacts] = useState<ChatContact[]>([]);
+    const [activeContact, setActiveContact] = useState<ChatContact | null>(null);
     const [mounted, setMounted] = useState(false);
-
-    const {t} = useTranslation();
+    const API_BASE = import.meta.env.VITE_API_URL;
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const socketRef = useRef<Socket | null>(null);
+    const activeToken = storeToken || Cookies.get('token');
 
     useEffect(() => {
         if (isOpen) {
-            // Trigger entry animation on next tick
-            const timer = setTimeout(() => setMounted(true), 10);
-            return () => clearTimeout(timer);
+            setMounted(true);
         } else {
-            setMounted(false); // prepare for exit
+            const timer = setTimeout(() => setMounted(false), 300);
+            return () => clearTimeout(timer);
         }
     }, [isOpen]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
+    useEffect(() => {
+        const currentToken = storeToken || Cookies.get('token');
 
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            content: input,
-            sender: "user",
-            timestamp: new Date(),
-        };
+        if (isOpen && user && currentToken) {
+            console.log("🟢 Connecting Socket...");
 
-        setMessages((prev) => [...prev, userMessage]);
-        setInput("");
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
 
-        setTimeout(() => {
-            const aiMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                content: "Thanks for your message! I'm here to assist you.",
-                sender: "ai",
-                timestamp: new Date(),
+            fetchContacts();
+
+            socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
+                withCredentials: true,
+                auth: { token: currentToken }
+            });
+
+            const s = socketRef.current;
+
+            s.on("connect", () => console.log("✅ Socket Connected"));
+
+            // ВАЖНО: Слушателят трябва да е ВЪТРЕ в useEffect
+            s.off("receive_message"); // Махаме стария, за да няма дублиране
+            s.on("receive_message", (newMessage: Message) => {
+                setMessages((prev) => {
+                    // 1. Проверка по ID
+                    if (prev.some(m => m.id === newMessage.id)) return prev;
+
+                    return [...prev, newMessage];
+                });
+                scrollToBottom();
+            });
+
+            return () => {
+                console.log("🔌 Disconnecting Socket...");
+                s.disconnect();
+                socketRef.current = null;
             };
-            setMessages((prev) => [...prev, aiMessage]);
-        }, 1000);
+        }
+    }, [isOpen, user, storeToken]);
+
+    useEffect(() => {
+        if (activeContact && socketRef.current) {
+            socketRef.current.emit("join_room", activeContact.id);
+            fetchMessages(activeContact.id);
+        }
+    }, [activeContact]);
+
+    const scrollToBottom = () => {
+        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSend();
-        }
+    const fetchContacts = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
+                headers: { "Authorization": `Bearer ${activeToken}` }
+            });
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setContacts(data);
+                if (data.length > 0 && !activeContact) setActiveContact(data[0]);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    const fetchMessages = async (roomId: number) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${roomId}/messages`, {
+                headers: { "Authorization": `Bearer ${activeToken}` }
+            });
+            const data = await res.json();
+            setMessages(Array.isArray(data) ? data : []);
+            scrollToBottom();
+        } catch (err) { console.error(err); }
+    };
+
+    const handleSend = () => {
+        if (!input.trim() || !activeContact || !user || !socketRef.current) return;
+
+        const textToSend = input.trim();
+        // Използваме String за ID-то, за да сме сигурни при сравнението по-късно
+        const myId = String(user.id);
+
+        scrollToBottom();
+        setInput(""); // Изчистваме веднага
+
+        // 2. Емитваме към сървъра
+        socketRef.current.emit("send_message", {
+            roomId: activeContact.id,
+            text: textToSend,
+            receiverId: String(activeContact.brand_id) === myId
+                ? activeContact.creator_id
+                : activeContact.brand_id
+        });
+    };
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
     };
 
     if (!isOpen && !mounted) return null;
 
     return (
         <>
-            <div
-                onClick={onClose}
-                className={cn(
-                    "fixed inset-0 bg-background/40 backdrop-blur-sm z-40 transition-opacity duration-300",
-                    isOpen ? "opacity-100" : "opacity-0"
-                )}
-            />
+            <div onClick={onClose} className={cn("fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity", isOpen ? "opacity-100" : "opacity-0")} />
+            <div className={cn(
+                "fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-2xl h-[60vh] rounded-2xl overflow-hidden flex shadow-2xl border bg-white dark:bg-card transition-all duration-500",
+                isOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+            )}>
+                {/* Sidebar */}
+                <div className="w-16 flex flex-col items-center py-4 gap-4 bg-gradient-to-b from-primary via-secondary to-tertiary text-white shrink-0">
+                    {contacts.map((contact) => (
+                        <button key={contact.id} onClick={() => setActiveContact(contact)} className={cn("p-1 rounded-full transition-all", activeContact?.id === contact.id ? "ring-2 ring-white scale-110" : "opacity-70")}>
+                            <Avatar className="w-10 h-10 border border-white/20">
+                                <AvatarImage src={`${API_BASE}${contact.avatar}`} />
+                                <AvatarFallback className="bg-white text-primary text-xs uppercase">{contact.name?.substring(0, 2)}</AvatarFallback>
+                            </Avatar>
+                        </button>
+                    ))}
+                </div>
 
-            {/* Chat Panel */}
-            <div
-                className={cn(
-                    "fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-2xl h-[70vh] max-h-[600px] rounded-2xl overflow-hidden flex shadow-2xl border border-border/50 transition-all duration-500 ease-out",
-                    mounted
-                        ? "translate-y-0 opacity-100 scale-100"
-                        : "translate-y-8 opacity-0 scale-95"
-                )}
-            >
-                {/* Glass background */}
-                <div className="absolute inset-0 bg-[white] backdrop-blur-lg" />
-                <div className="absolute inset-0 bg-card/80 backdrop-blur-md" />
-
-                {/* Contacts Sidebar */}
-                <TooltipProvider delayDuration={0}>
-                    <div className="relative z-10 w-16 flex flex-col items-center py-4 gap-3 bg-gradient-to-br from-primary via-secondary to-[#90d5f3ff]">
-                        {mockContacts.map((contact) => (
-                            <Tooltip key={contact.id}>
-                                <TooltipTrigger asChild>
-                                    <button
-                                        onClick={() => setActiveContact(contact)}
-                                        className={cn(
-                                            "relative p-0.5 rounded-full transition-all duration-200",
-                                            activeContact.id === contact.id
-                                                ? "ring-2 ring-primary ring-offset-2 ring-offset-card"
-                                                : "hover:ring-2 hover:ring-muted-foreground/30"
-                                        )}
-                                    >
-                                        <Avatar className="w-10 h-10">
-                                            <AvatarImage src={contact.avatar} />
-                                            <AvatarFallback className="bg-[white] text-[primary] text-xs font-medium">
-                                                {contact.initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        {contact.isOnline && (
-                                            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
-                                        )}
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="font-medium">
-                                    {contact.name}
-                                </TooltipContent>
-                            </Tooltip>
-                        ))}
-                    </div>
-                </TooltipProvider>
-
-                {/* Main Chat Area */}
-                <div className="relative z-10 flex-1 flex flex-col">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-border/50 bg-muted/20">
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <Avatar className="w-10 h-10">
-                                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-[#22222]">
-                                        {activeContact.initials}
-                                    </AvatarFallback>
-                                </Avatar>
-                                {activeContact.isOnline && (
-                                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
-                                )}
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-foreground">{activeContact.name}</h3>
-                                <p className="text-xs text-muted-foreground">
-                                    {activeContact.isOnline ? t("chat.online") : t("chat.offline")}
-                                </p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onClose}
-                            className="rounded-full hover:bg-destructive/10 hover:text-destructive"
-                        >
-                            <X className="w-5 h-5" />
-                        </Button>
-                    </div>
-
-                    {/* Messages */}
-                    <ScrollArea className="flex-1 p-4">
-                        <div className="space-y-4">
-                            {messages.map((message) => (
-                                <div
-                                    className={cn(
-                                        "relative max-w-[80%] px-4 py-2.5 rounded-2xl overflow-hidden",
-                                        "backdrop-blur-xl border shadow-lg",
-                                        message.sender === "user"
-                                            ? "bg-gradient-to-br from-secondary/80 via-primary/100 to-secondary/80 border-white/30 text-primary-foreground rounded-br-md shadow-black/20"
-                                            : "bg-gradient-to-br from-gray-400/35 via-white/30 to-gray-400/35 border-gray-00/40 text-foreground rounded-bl-md shadow-black/20"
-                                    )}
-
-                                    style={message.sender === "user" ? {justifySelf:"flex-end"} : {justifySelf:"flex-start"}}
-                                >
-                                    {/* Inner highlight for glass depth */}
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-                                    <p className="relative text-sm">{message.content}</p>
-                                    <p
-                                        className={cn(
-                                            "relative text-[10px] mt-1",
-                                            message.sender === "user"
-                                                ? "text-primary-foreground/80"
-                                                : "text-foreground/60"
-                                        )}
-                                    >
-                                        {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </p>
+                {/* Chat */}
+                <div className="flex-1 flex flex-col min-w-0 bg-white">
+                    {activeContact ? (
+                        <>
+                            <div className="p-4 border-b flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <Avatar><AvatarImage src={`${API_BASE}${activeContact.avatar}`} /><AvatarFallback className="uppercase">{activeContact.name?.substring(0, 2)}</AvatarFallback></Avatar>
+                                    <h3 className="font-bold text-sm">{activeContact.name}</h3>
                                 </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
+                                <Button variant="ghost" size="icon" onClick={onClose}><X className="w-4 h-4" /></Button>
+                            </div>
 
-                    {/* Input */}
-                    <div className="p-4 bg-gradient-to-r from-[#90d5f3ff] via-secondary to-primary">
-                        <div className="flex items-center gap-2">
-                            <Input
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                placeholder={t("chat.typeMessage")}
-                                className="flex-1 bg-[white] border-border/50 focus-visible:ring-primary backdrop-blur-sm text-[black]"
-                            />
-                            <Button
-                                onClick={handleSend}
-                                disabled={!input.trim()}
-                                size="icon"
-                                className="rounded-full text-[black] bg-[white] hover:bg-primary/90 disabled:opacity-100"
-                            >
-                                <Send className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    </div>
+                            <ScrollArea className="flex-1 p-4 bg-slate-50">
+                                <div className="flex flex-col gap-3">
+                                    {messages.map((msg) => {
+                                        const isMe = String(msg.sender_id) === String(user?.id);
+
+                                        return (
+                                            <div
+                                                key={msg.id}
+                                                className={cn(
+                                                    "flex flex-col max-w-[75%]",
+                                                    isMe ? "self-end items-end" : "self-start items-start"
+                                                )}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        "py-2 rounded-2xl text-sm shadow-sm text-center",
+                                                        isMe
+                                                            ? "bg-gradient-to-br from-primary/90 via-secondary to-tertiary text-white px-4"
+                                                            : "bg-gradient-to-br from-gray-200 via-white to-gray-200 px-4"
+                                                    )}
+                                                >
+                                                    {msg.text}
+                                                </div>
+
+                                                <span className={`text-xs text-muted-foreground mt-1 px-1 ${isMe ? "self-end" : "self-start !ml-2"}}`}>
+                                                    {formatTime(msg.created_at)}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+
+                                    <div ref={scrollRef} />
+                                </div>
+                            </ScrollArea>
+
+                            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-4 border-t flex gap-2 bg-gradient-to-r from-tertiary via-secondary to-primary">
+                                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type..." className="rounded-xl" />
+                                <Button type="submit" size="icon" className="rounded-xl bg-white"><Send className="w-4 h-4 text-primary" /></Button>
+                            </form>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground"><MessageSquare className="opacity-10 w-12 h-12" /></div>
+                    )}
                 </div>
             </div>
         </>

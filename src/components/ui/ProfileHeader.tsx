@@ -37,7 +37,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
   const [editNiche, setEditNiche] = useState(profile.niche);
   const [loading, setLoading] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const isOwner = !!onChangeProfilePic;
 
   const [preview, setPreview] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
   };
-  
+
   const API_BASE = "https://api.influ-link.com";
   return (
     <>
@@ -228,7 +228,9 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
               <div className="flex gap-8 md:gap-12">
                 <div className="text-center md:text-left">
-                  <p className="text-2xl font-bold text-foreground">{profile.stats.followers}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {Number(profile.stats.followers).toLocaleString()}
+                  </p>
                   <p className="text-sm text-muted-foreground">{t("profile.followers")}</p>
                 </div>
                 <div className="text-center md:text-left">
@@ -253,7 +255,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
             <div className="flex flex-row gap-8 align-middle justify-start" style={{ alignItems: "center" }}>
               <DialogTitle className="text-xl font-semibold w-[90%]">
-               {t("profile.confirmLogout")}
+                {t("profile.confirmLogout")}
               </DialogTitle>
             </div>
 

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Loader2, Send, Megaphone } from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
 
 interface Creator {
   id: string;
@@ -46,6 +47,8 @@ export const InviteModal = ({
   const [sendingCampaignId, setSendingCampaignId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { token } = useUserStore();
+
   useEffect(() => {
     if (!open) {
       // Reset state when modal closes
@@ -62,6 +65,10 @@ export const InviteModal = ({
       try {
         const response = await fetch(`${API_BASE_URL}/campaigns`, {
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` })
+          },
         });
 
         if (!response.ok) {
@@ -91,7 +98,10 @@ export const InviteModal = ({
     try {
       const response = await fetch(`${API_BASE_URL}/campaigns/invite`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
         credentials: "include",
         body: JSON.stringify({
           creatorId: creator.id,
@@ -152,7 +162,7 @@ export const InviteModal = ({
           {/* Campaigns List */}
           <div className="space-y-2">
             <Label>Select a Campaign</Label>
-            
+
             {isFetching ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -171,6 +181,10 @@ export const InviteModal = ({
                       try {
                         const response = await fetch(`${API_BASE_URL}/campaigns`, {
                           credentials: "include",
+                          headers: {
+                            "Content-Type": "application/json",
+                            ...(token && { "Authorization": `Bearer ${token}` })
+                          },
                         });
                         if (!response.ok) throw new Error();
                         setCampaigns(await response.json());

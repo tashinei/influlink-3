@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useCreatorNiches } from "@/data/mockCreators";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserStore } from "@/store/useUserStore";
 
 // --- 1. UPDATED FORM INTERFACE ---
 interface CampaignForm {
@@ -109,6 +110,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
   const [currentStep, setCurrentStep] = useState(1);
   const { t } = useTranslation();
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const {token} = useUserStore();
 
   const [form, setForm] = useState<CampaignForm>({
     name: "",
@@ -249,6 +251,9 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
         method: "POST",
         body: formData,
         credentials: "include", // if using cookies for auth
+         headers: {
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
       });
 
       if (!res.ok) {

@@ -116,13 +116,20 @@ const Profile = () => {
   const [campaignsLoading, setCampaignsLoading] = useState(false);
   const [isCreateCampaignOpen, setIsCreateCampaignOpen] = useState(false);
 
+  const { token } = useUserStore();
+
   // Fetch Campaigns
   const fetchCampaigns = async () => {
     if (!isOwner) return;
     setCampaignsLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/campaigns`, {
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          // АКО ИМА ТОКЕН, ГО ПРАЩАМЕ:
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        credentials: "include"
       });
       if (res.ok) {
         const data = await res.json();
@@ -160,16 +167,35 @@ const Profile = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
+  console.log("Current Analytics Data:", analytics);
+
   const profileWithLiveStats: ProfileData = {
     ...profile,
     stats: {
       ...profile?.stats,
-      totalReach: analytics
-        ? analytics?.totalViews.toString()
-        : profile?.stats.totalReach,
-      engagementRate: analytics?.avgEngagement
-        ? (analytics?.avgEngagement * 100).toFixed(1) + "%"
-        : profile?.stats.engagementRate,
+      totalReach: analytics?.totalViews
+        ? Number(analytics.totalViews).toLocaleString()
+        : profile?.stats?.totalReach || "0",
+
+      engagementRate: (() => {
+        if (!analytics) return profile?.stats?.engagementRate || "0%";
+
+        const likes = Number(analytics.totalLikes || 0);
+        const views = Number(analytics.totalViews || 0);
+        const backendEngagement = Number(analytics.avgEngagement || 0);
+
+        if (backendEngagement === 0 && views > 0) {
+          return ((likes / views) * 100).toFixed(1) + "%";
+        }
+
+        if (backendEngagement > 0 && backendEngagement < 1) {
+          return (backendEngagement * 100).toFixed(1) + "%";
+        }
+
+        return backendEngagement > 0
+          ? backendEngagement.toFixed(1) + "%"
+          : (profile?.stats?.engagementRate || "0.0%");
+      })(),
     },
   } as ProfileData;
 
@@ -178,7 +204,10 @@ const Profile = () => {
       const res = await fetch(`${API_BASE_URL}/profiles/me/update`, {
         method: "POST",
         credentials: "include",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
         body: JSON.stringify(updated),
       });
       if (!res.ok) {
@@ -225,7 +254,10 @@ const Profile = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` }) // Добави това
+        },
         credentials: "include",
       });
       if (response.ok) {
@@ -242,6 +274,10 @@ const Profile = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/campaigns`, {
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
       });
 
       if (!res.ok) return;
@@ -258,7 +294,7 @@ const Profile = () => {
     }
   };
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const handleProfilePicChange = async (file: File) => {
     try {
@@ -266,6 +302,9 @@ const Profile = () => {
       formData.append("avatar", file);
       const res = await fetch(`${API_BASE_URL}/profiles/me/avatar`, {
         method: "POST",
+        headers: {
+          ...(token && { "Authorization": `Bearer ${token}` })
+        },
         body: formData,
         credentials: "include",
       });

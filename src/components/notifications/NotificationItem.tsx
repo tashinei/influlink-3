@@ -5,10 +5,13 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 import { bg, enUS } from "date-fns/locale";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function NotificationItem({ notification, onRead, onClick, getNotificationIcon }) {
 
-    const {t, language} = useTranslation();
+    const { t, language } = useTranslation();
+
+    const {token} = useUserStore();
 
     const localSetting = language === "bg" ? bg : enUS;
 
@@ -30,6 +33,10 @@ export default function NotificationItem({ notification, onRead, onClick, getNot
             await fetch(`${API_BASE_URL}/notifications/${notification.id}/read`, {
                 method: "POST",
                 credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { "Authorization": `Bearer ${token}` })
+                },
             });
             onRead(notification.id);
         }

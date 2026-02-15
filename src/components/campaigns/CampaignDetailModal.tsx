@@ -90,7 +90,8 @@ export const CampaignDetailModal = ({
   const parsedDate = campaign.startDate ? new Date(campaign.startDate) : null;
 
 
-  const {t} = useTranslation();
+  const { t } = useTranslation();
+  const {token} = useUserStore();
 
   const handleConfirmDelete = async () => {
     try {
@@ -99,6 +100,10 @@ export const CampaignDetailModal = ({
         {
           method: "DELETE",
           credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` })
+          },
         }
       );
 
