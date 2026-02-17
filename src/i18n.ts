@@ -1147,7 +1147,7 @@ export const translations = {
     },
 
     mvpFeaturesSection: {
-      firstTitle: "Easy Discovery & Matching",
+      firstTitle: "Easy discovery & Matching",
       firstSubtitle: "Find the perfect creators for your brand with our intelligent matching system.",
       firstBenefit1: "Advanced search filters to narrow down your ideal creators",
       firstBenefit2: "AI-powered matching based on audience demographics",
@@ -1159,7 +1159,7 @@ export const translations = {
       secondBenefit2: "Campaign briefs and content approval workflows",
       secondBenefit3: "Real-time collaboration on content drafts",
       secondBenefit4: "Calendar integration for scheduling posts",
-      thirdTitle: "Transparent Payments",
+      thirdTitle: "Transparent payments",
       thirdSubtitle: "Secure, hassle-free payments for both creators and brands.",
       thirdBenefit1: "Protection for secure transactions",
       thirdBenefit2: "Multiple payment methods supported",
@@ -1227,7 +1227,7 @@ export const translations = {
       selectCountry: "Select country",
       language: "Language",
       maxBudget: "Maximum budget",
-      searchButton: "Find Campaign",
+      searchButton: "Find campaign",
       resetButton: "Clear",
       simpleSearch: "Simple filters",
       advancedSearch: "Advanced filters",

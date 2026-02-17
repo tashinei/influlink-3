@@ -49,6 +49,7 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
     useEffect(() => {
         if (isOpen) {
             setMounted(true);
+            scrollToBottom();
         } else {
             const timer = setTimeout(() => setMounted(false), 300);
             return () => clearTimeout(timer);
@@ -59,14 +60,6 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
         const currentToken = storeToken || Cookies.get('token');
 
         if (isOpen && user && currentToken) {
-            console.log("🟢 Connecting Socket...");
-
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-            }
-
-            fetchContacts();
-
             socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
                 withCredentials: true,
                 auth: { token: currentToken }
@@ -74,15 +67,17 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
 
             const s = socketRef.current;
 
-            s.on("connect", () => console.log("✅ Socket Connected"));
+            s.on("connect", () => {
+                console.log("✅ Socket Connected");
+                
+                if (activeContact) {
+                    s.emit("join_room", activeContact.id);
+                }
+            });
 
-            // ВАЖНО: Слушателят трябва да е ВЪТРЕ в useEffect
-            s.off("receive_message"); // Махаме стария, за да няма дублиране
             s.on("receive_message", (newMessage: Message) => {
                 setMessages((prev) => {
-                    // 1. Проверка по ID
                     if (prev.some(m => m.id === newMessage.id)) return prev;
-
                     return [...prev, newMessage];
                 });
                 scrollToBottom();
@@ -90,6 +85,7 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
 
             return () => {
                 console.log("🔌 Disconnecting Socket...");
+                s.off("receive_message");
                 s.disconnect();
                 socketRef.current = null;
             };
