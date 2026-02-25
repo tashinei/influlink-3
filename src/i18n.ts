@@ -633,7 +633,8 @@ export const translations = {
       redirectHome: "Ще бъдете пренасочени към началната страница.",
       logOut: "Изход",
       follow: "Последване",
-      following: "Последван"
+      following: "Последван",
+      connectInstagram:"Свържете Instagram"
     },
 
     form: {
@@ -1348,7 +1349,8 @@ export const translations = {
       redirectHome: "You will be redirected to the home page.",
       logOut: "Log out",
       follow: "Follow",
-      following: "Following"
+      following: "Following",
+      connectInstagram:"Connect Instagram"
     },
 
     about: {

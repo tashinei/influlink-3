@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "./dialog";
 import { } from "./dialog";
 import { useTranslation } from "@/hooks/useTranslation";
+import { BsInstagram } from "react-icons/bs";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -19,6 +20,8 @@ interface ProfileHeaderProps {
   onChangeProfilePic?: (file: File) => void;
   onEditProfile?: () => void;
   // --- NEW PROP ADDED ---
+  isInstagramLinked?: boolean;
+  onConnectInstagram: () => void;
   onLogout: () => void;
 }
 
@@ -59,6 +62,18 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
+  };
+
+  const onConnectInstagram = () => {
+    const clientID = "1829769444346525";
+    const redirectUri = encodeURIComponent("https://api.influ-link.com/auth/instagram/callback");
+    const scope = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
+
+    // Construct the Meta Login URL
+    const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+
+    // Redirect the user
+    window.location.href = authUrl;
   };
 
   const API_BASE = "https://api.influ-link.com";
@@ -143,14 +158,29 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                   </>
                 ) : (
                   // Case 2: Owner - Show Edit Profile button
-                  <Button
-                    variant="default"
-                    className="flex-1 md:flex-none rounded-full px-6 bg-gradient-to-br from-primary to-secondary hover:scale-105 transition duration-300 ease-in-out"
-                    onClick={onEditProfile}
-                  >
-                    <UserCog className="w-5 h-5 mr-1" />
-                    {t("profile.editProfile")}
-                  </Button>
+                  <>
+                    {/* NEW: Connect Instagram Button */}
+                    {isOwner && !profile.stats.instagramLinked && (
+                      <Button
+                        variant="outline"
+                        className="flex-1 md:flex-none rounded-full px-6 border-pink-500 text-pink-600 hover:bg-pink-50 transition-all"
+                        onClick={onConnectInstagram}
+                      >
+                        <BsInstagram className="w-4 h-4 mr-2" />
+                        {t("profile.connectInstagram")}
+                      </Button>
+                    )}
+
+                    {/* Existing Edit Profile button */}
+                    <Button
+                      variant="default"
+                      className="flex-1 md:flex-none rounded-full px-6 bg-gradient-to-br from-primary to-secondary hover:scale-105 transition duration-300 ease-in-out"
+                      onClick={onEditProfile}
+                    >
+                      <UserCog className="w-5 h-5 mr-1" />
+                      {t("profile.editProfile")}
+                    </Button>
+                  </>
                 )}
 
                 {/* --- DROPDOWN MENU IMPLEMENTATION --- */}

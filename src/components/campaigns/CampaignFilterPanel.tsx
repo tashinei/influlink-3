@@ -72,7 +72,7 @@ export const CampaignFilterPanel = ({
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 sticky top-0 bg-inherit z-10 pb-2 pt-2 border-b lg:border-none">
+        <div className="flex items-center justify-between mb-6 sticky top-0 bg-inherit z-10 pb-2 pt-12 border-b lg:border-none bg-white">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-primary" />
             <h2 className="font-semibold text-foreground tracking-tight">Filters</h2>

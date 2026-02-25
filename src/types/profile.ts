@@ -21,6 +21,7 @@ export interface ProfileData {
     following: string;
     engagementRate: string;
     totalReach: string;
+    instagramLinked?: boolean;
   };
 }
 

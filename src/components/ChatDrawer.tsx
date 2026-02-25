@@ -49,6 +49,7 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
     useEffect(() => {
         if (isOpen) {
             setMounted(true);
+            fetchContacts();
             scrollToBottom();
         } else {
             const timer = setTimeout(() => setMounted(false), 300);
