@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Plus,
   Rocket,
@@ -27,7 +27,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
-import { useParams, useMatch, useNavigate } from "react-router-dom";
+import { useParams, useMatch, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { PortfolioItem, ProfileData } from "@/types/profile";
 import NavigationDock from "@/components/NavigationDock";
@@ -35,29 +36,50 @@ import { useUserStore } from "@/store/useUserStore";
 import { CampaignDetailModal } from "@/components/campaigns/CampaignDetailModal";
 import { EditCampaignModal } from "@/components/campaigns/EditCampaignModal";
 import { useTranslation } from "@/hooks/useTranslation";
+import { InstagramInsights } from "@/components/InstagramInsights";
+import { useInstagramAnalytics } from "@/hooks/useInstagramAnalytics";
+import { InstagramInsightsSkeleton } from "@/components/InstagramInsigthsSkeleton";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const status = searchParams.get("status");
+
   const isMyProfileRoute = useMatch("/profile/me");
 
+  const { identifier } = useParams<{ identifier: string }>();
+  const { username } = useParams<{ username: string }>();
+  const { token, user } = useUserStore();
+
+  const rawIdentifier = username || identifier;
+
+  useEffect(() => {
+    console.log("Profile render");
+  }, [])
+
+  // Clean the identifier. 
+  // If it's empty, "me", or the literal string "profile" (from the route name), 
+  // we force it to the logged-in user's ID.
+  const cleanIdentifier = rawIdentifier?.split('?')[0];
+
+  const isFallbackNeeded =
+    isMyProfileRoute ||
+    !cleanIdentifier ||
+    cleanIdentifier === "me" ||
+    cleanIdentifier === "profile";
+
+  const identifierToFetch = isFallbackNeeded
+    ? user?.id?.toString()
+    : cleanIdentifier;
+
   const [isEditCampaignOpen, setIsEditCampaignOpen] = useState(false);
-
-  const { identifier: profileIdentifierFromLegacyRoute } = useParams<{
-    identifier: string;
-  }>();
-  const { username: profileIdentifierFromNewRoute } = useParams<{
-    username: string;
-  }>();
-
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
 
-  const identifierToFetch = isMyProfileRoute
-    ? undefined
-    : profileIdentifierFromNewRoute || profileIdentifierFromLegacyRoute;
+  // 4. Fetch the logged-in user's profile (for ownership checks)
+  const { profile: myProfile } = useProfile("me");
 
-  const { profile: myProfile } = useProfile(undefined);
-
+  // 5. Fetch the profile for the current page
   const {
     profile,
     isLoading: profileLoading,
@@ -66,11 +88,22 @@ const Profile = () => {
     refetch,
   } = useProfile(identifierToFetch);
 
+  // 6. Ownership logic
   const isOwner =
     isMyProfileRoute ||
-    (profile &&
-      myProfile &&
-      (profile.handle === myProfile.handle || profile.id === myProfile.id));
+    !cleanIdentifier ||
+    (profile && myProfile &&
+      (profile.handle === myProfile.handle ||
+        profile.id === myProfile.id));
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.connected) {
+      setShowSuccessModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location]);
 
   // Безопасно извличане на API_BASE_URL
   const getApiBaseUrl = () => {
@@ -88,14 +121,6 @@ const Profile = () => {
   };
 
   const API_BASE_URL = getApiBaseUrl();
-
-  useEffect(() => {
-    if (!isMyProfileRoute && profile && myProfile) {
-      if (profile.handle === myProfile.handle || profile.id === myProfile.id) {
-        navigate("/profile/me", { replace: true });
-      }
-    }
-  }, [profile, myProfile, isMyProfileRoute, navigate]);
 
   // Portfolio Hooks
   const ownerActions = usePortfolio(isOwner ? profile?.id : undefined);
@@ -115,8 +140,6 @@ const Profile = () => {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(false);
   const [isCreateCampaignOpen, setIsCreateCampaignOpen] = useState(false);
-
-  const { token } = useUserStore();
 
   // Fetch Campaigns
   const fetchCampaigns = async () => {
@@ -141,6 +164,8 @@ const Profile = () => {
       setCampaignsLoading(false);
     }
   };
+
+  const { data: igStats, loading: igLoading, refetch: refetchIG } = useInstagramAnalytics(user?.id);
 
   useEffect(() => {
     if (isOwner) fetchCampaigns();
@@ -168,6 +193,57 @@ const Profile = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   console.log("Current Analytics Data:", analytics);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const syncStarted = useRef(false);
+
+  useEffect(() => {
+    // 1. Exit immediately if not a success status or already processing
+    if (status !== "success" || syncStarted.current || !token) return;
+
+    // 2. Lock it immediately
+    syncStarted.current = true;
+
+    // 3. Show the modal
+    setShowSuccessModal(true);
+
+    navigate(window.location.pathname, { replace: true, state: {} });
+
+    const triggerSync = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/instagram/sync`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (res.ok) {
+          refetchIG();
+          refetchAnalytics();
+          refetch();
+        }
+      } catch (err) {
+        console.error("Sync error:", err);
+      }
+    };
+
+    triggerSync();
+  }, [status, token, navigate, API_BASE_URL, refetchIG, refetchAnalytics, refetch]);
+
+  useEffect(() => {
+    if (showSuccessModal) return;
+
+    if (status === "success") return;
+
+    if (!isMyProfileRoute && profile && myProfile) {
+      if (profile.handle === myProfile.handle || profile.id === myProfile.id) {
+        navigate("/profile/me", { replace: true });
+      }
+    }
+  }, [profile, myProfile, isMyProfileRoute, navigate, status, showSuccessModal]);
 
   const profileWithLiveStats: ProfileData = {
     ...profile,
@@ -250,6 +326,12 @@ const Profile = () => {
     }
   };
 
+  const handleConnectInstagram = () => {
+    // Replace with your actual backend auth URL
+    const authUrl = `${API_BASE_URL}/auth/instagram`;
+    window.location.href = authUrl;
+  };
+
   const handleLogout = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -316,10 +398,62 @@ const Profile = () => {
     }
   };
 
+  if (showSuccessModal) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {/* Instagram Gradient Background */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-[#833ab4] via-[#fd1d1d] to-[#fcb045] opacity-95 animate-in fade-in duration-500" />
+
+        <Card className="relative w-full max-w-sm border-none shadow-2xl bg-gradient-to-br from-secondary via-tertiary to-primary backdrop-blur-md text-white overflow-hidden animate-in zoom-in-95 duration-300">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-inner">
+              <div className="bg-white rounded-full p-1">
+                <svg className="w-12 h-12 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <CardTitle className="text-2xl font-bold tracking-tight">Account connected!</CardTitle>
+            <CardDescription className="text-white text-base px-2">
+              Your Instagram insights are successfully synced. Your profile is now professional and data-driven.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <Button
+              className="w-full bg-white text-secondary hover:bg-white/80 font-bold py-6 rounded-2xl shadow-lg transition-transform active:scale-95"
+              onClick={() => {
+                setShowSuccessModal(false);
+                refetch();
+                refetchIG(); 
+                navigate("/profile/me", { replace: true })
+              }}
+            >
+              Got it
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (profileLoading) {
     return (
+      <div className="min-h-dvh flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin h-12 w-12 border-b-2 border-primary rounded-full" />
+          {status === "success" && <p className="text-sm animate-pulse">Finalizing sync...</p>}
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile && !profileLoading && status !== "success") {
+    return (
       <div className="min-h-dvh flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-b-2 border-primary rounded-full" />
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Profile not found</p>
+          <Button onClick={() => navigate("/profile/me")}>Go to my profile</Button>
+        </div>
       </div>
     );
   }
@@ -327,7 +461,8 @@ const Profile = () => {
   if (!profile) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
-        <p className="text-muted-foreground">Profile not found</p>
+        <p>Profile not found.</p>
+        <Button onClick={() => navigate("/profile/me")}>Go to my profile</Button>
       </div>
     );
   }
@@ -356,6 +491,7 @@ const Profile = () => {
         onChangeProfilePic={isOwner ? handleProfilePicChange : undefined}
         onEditProfile={isOwner ? () => setIsEditProfileOpen(true) : undefined}
         onLogout={handleLogout}
+        onConnectInstagram={isOwner ? handleConnectInstagram : undefined}
       />
 
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
@@ -535,7 +671,13 @@ const Profile = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="analytics">
+              <TabsContent value="analytics" className="flex gap-[60px] flex-col">
+                {igLoading ? (
+                  <InstagramInsightsSkeleton />
+                ) : (
+                  <InstagramInsights data={igStats} />
+                )}
+
                 <AnalyticsTab
                   analytics={analytics}
                   isVIP={isVIP}

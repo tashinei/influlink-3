@@ -17,7 +17,8 @@ export const useProfile = (profileIdentifier?: string) => {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const identifierToFetch = profileIdentifier || currentUserId;
+  const isMe = !profileIdentifier || profileIdentifier === "me";
+  const identifierToFetch = isMe ? user?.id : profileIdentifier;
 
   const targetProfileId = profile?.id ?? null;
 
@@ -47,13 +48,14 @@ export const useProfile = (profileIdentifier?: string) => {
 
   const { token } = useUserStore();
 
-  const fetchProfile = useCallback(async (identifier: string) => {
-    if (!identifier) return;
+  const fetchProfile = useCallback(async (id: string) => {
+    // --- CHANGE 2: Better Guard ---
+    if (!id || id === "undefined" || id === "null") return;
 
     try {
       setIsLoading(true);
-
-      const res = await fetch(`${API_BASE_URL}/profiles/${identifier}`, {
+      // This will now call /profiles/me or /profiles/username
+      const res = await fetch(`${API_BASE_URL}/profiles/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -64,29 +66,27 @@ export const useProfile = (profileIdentifier?: string) => {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to fetch profile");
+        throw new Error(errorData.message || "Profile not found");
       }
 
       const data = await res.json();
       setProfile(data);
       setError(null);
       setIsFollowing(data.isFollowing ?? false);
-
     } catch (err) {
       console.error("Error fetching profile:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch profile");
+      setError(err instanceof Error ? err.message : "Failed to fetch");
       setProfile(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [token]); // Add token to deps
 
   useEffect(() => {
     if (identifierToFetch) {
       fetchProfile(identifierToFetch.toString());
     }
   }, [identifierToFetch, fetchProfile]);
-
 
   const toggleFollow = async () => {
     if (!targetProfileId || !currentUserId) {

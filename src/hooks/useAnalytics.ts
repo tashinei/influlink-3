@@ -11,32 +11,39 @@ if (!API_BASE_URL) {
 
 export const useAnalytics = () => {
   const { profile } = useProfile();
-  const profileId = profile?.id ?? null;
   const { token } = useUserStore();
 
+  const profileId = profile?.id ?? null;
+  const isVIP = profile?.isVIP ?? false;
+
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAnalytics = useCallback(async () => {
-    if (!profileId) return;
-
-    if (!profile?.isVIP) {
-      setAnalytics(null);
-      setIsLoading(false);
-      return;
-    }
+    if (!profileId || !isVIP || !token) return;
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/profiles/${profileId}/analytics`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+
+      const response = await fetch(
+        `${API_BASE_URL}/profiles/${profileId}/analytics`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Gracefully handle 404 (analytics not ready yet)
+      if (response.status === 404) {
+        setAnalytics(null);
+        setError(null);
+        return;
+      }
 
       if (!response.ok) {
         const data = await response.json();
@@ -44,34 +51,42 @@ export const useAnalytics = () => {
       }
 
       const data = await response.json();
-      const sanitizedData = {
+
+      const sanitizedData: AnalyticsData = {
         ...data,
         avgEngagement: Number(data.avgEngagement || 0),
-        totalViews: Number(data.totalViews || 0)
+        totalViews: Number(data.totalViews || 0),
       };
+
       setAnalytics(sanitizedData);
       setError(null);
     } catch (err) {
       console.error("Error fetching analytics:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch analytics");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch analytics"
+      );
       setAnalytics(null);
     } finally {
       setIsLoading(false);
     }
-  }, [profileId, profile?.isVIP]);
+  }, [profileId, isVIP, token]);
 
-  // --- Polling ---
+  // Fetch + Poll
   useEffect(() => {
+    if (!profileId || !isVIP || !token) return;
+
     fetchAnalytics(); // initial fetch
 
-    if (!profile?.isVIP) return;
-
-    const interval = setInterval(() => {
-      fetchAnalytics();
-    }, 60000); // every 10 seconds, adjust as needed
+    const interval = setInterval(fetchAnalytics, 60000); // 60s polling
 
     return () => clearInterval(interval);
-  }, [fetchAnalytics, profile?.isVIP, token]);
+  }, [profileId, isVIP, token, fetchAnalytics]);
 
-  return { analytics, isLoading, error, refetchAnalytics: fetchAnalytics, isVIP: profile?.isVIP ?? false };
+  return {
+    analytics,
+    isLoading,
+    error,
+    refetchAnalytics: fetchAnalytics,
+    isVIP,
+  };
 };

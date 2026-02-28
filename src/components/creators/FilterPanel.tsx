@@ -59,8 +59,8 @@ export const FilterPanel = ({
 
             <aside
                 className={`
-                    /* Positioning */
-                    fixed lg:sticky top-0 right-0 h-full lg:h-auto lg:top-6 z-[51]
+                    /* Positioning & Size */
+                    fixed lg:sticky top-0 right-0 h-full lg:h-[calc(100vh-4rem)] lg:top-8 z-[51]
                     w-[85%] sm:w-80 lg:w-72
                     
                     /* Style & Background */
@@ -68,15 +68,17 @@ export const FilterPanel = ({
                     border-l dark:border-zinc-800 lg:border-none
                     lg:glass-card rounded-none lg:rounded-2xl p-6
                     
-                    /* Animation & Scroll */
+                    /* THE KEY FIX: Flex container */
+                    flex flex-col
+                    
+                    /* Animation */
                     transform transition-transform duration-300 ease-out
                     ${isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
-                    overflow-y-auto max-h-screen lg:max-h-[calc(100vh-3rem)]
                     shadow-2xl lg:shadow-none
                 `}
             >
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6 sticky top-0 bg-inherit z-10 pb-2 pt-2 border-b lg:border-none">
+                {/* Header - Stays Pinned */}
+                <div className="flex items-center justify-between mb-6 pb-2 border-b lg:border-none shrink-0">
                     <div className="flex items-center gap-2">
                         <Filter className="w-5 h-5 text-primary" />
                         <h2 className="font-semibold text-foreground tracking-tight">Filters</h2>
@@ -110,13 +112,20 @@ export const FilterPanel = ({
                     </div>
                 </div>
 
-                {/* Collapsible content */}
+                {/* Actual Filters - This is the ONLY scrollable area */}
                 <div className={`
-                    space-y-6 transition-all duration-500 ease-in-out
-                    ${collapsed ? 'opacity-0 pointer-events-none max-h-0' : 'opacity-100 max-h-[2000px]'}
-                `}>
+                    /* SCROLL LOGIC */
+                    flex-1 overflow-y-auto pr-2 -mr-2
                     
-                    {/* Niches - Using the pill-style from your campaign panel */}
+                    /* Content Spacing */
+                    space-y-6 transition-all duration-500 ease-in-out
+                    ${collapsed ? 'opacity-0 pointer-events-none max-h-0' : 'opacity-100 max-h-full'}
+                    
+                    /* Optional: custom scrollbar */
+                    scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800
+                `}>
+
+                    {/* Niches */}
                     <div className="space-y-3">
                         <Label className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">Niches</Label>
                         <div className="flex flex-wrap gap-2">
@@ -196,7 +205,7 @@ export const FilterPanel = ({
                         />
                     </div>
 
-                    {/* Mobile Apply Button */}
+                    {/* Mobile Apply Button - Move inside scroll area for accessibility */}
                     <div className="lg:hidden pt-4 pb-10">
                         <Button className="w-full shadow-lg" onClick={onClose}>
                             Apply Filters
@@ -205,6 +214,7 @@ export const FilterPanel = ({
                 </div>
             </aside>
 
+            {/* CountryPicker remains outside */}
             <CountryPickerModal
                 open={countryModalOpen}
                 onClose={() => setCountryModalOpen(false)}

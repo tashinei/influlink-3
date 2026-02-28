@@ -66,7 +66,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
   const onConnectInstagram = () => {
     const clientID = "1829769444346525";
-    const redirectUri = encodeURIComponent("https://api.influ-link.com/auth/instagram/callback");
+    const redirectUri = encodeURIComponent("https://anitra-nonenigmatic-areally.ngrok-free.dev/instagram-callback");
     const scope = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
 
     // Construct the Meta Login URL
@@ -106,7 +106,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             )}
           </div>
 
-          <div className="flex-1 pt-2 md:pt-20 space-y-4">
+          <div className="flex-1 pt-2 md:pt-20 space-y-4 w-full">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1 md:mt-8">
@@ -136,87 +136,96 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                {/* Case 1: Viewer (Not Owner) - Show Follow & Contact buttons */}
-                {!isOwner ? (
-                  <>
-                    <Button
-                      className={`flex-1 md:flex-none rounded-full px-6 transition-all ${isFollowing
-                        ? "bg-muted text-foreground hover:bg-muted/80 border"
-                        : "bg-gradient-to-br from-secondary to-primary"
-                        }`}
-                      variant={isFollowing ? "ghost" : "default"}
-                      onClick={onToggleFollow}
-                      aria-pressed={isFollowing}
-                    >
-                      {isFollowing ? t("profile.following") : t("profile.follow")}
-                    </Button>
-                    <Button variant="outline" className="flex-1 md:flex-none rounded-full px-6">
-                      {t("profile.getInTouch")}
-                    </Button>
-                  </>
-                ) : (
-                  // Case 2: Owner - Show Edit Profile button
-                  <>
-                    {/* NEW: Connect Instagram Button */}
-                    {isOwner && !profile.stats.instagramLinked && (
+              {/* Action Buttons Container */}
+              <div className="flex flex-col gap-3 w-full self-center md:w-auto">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                  {!isOwner ? (
+                    <>
                       <Button
-                        variant="outline"
-                        className="flex-1 md:flex-none rounded-full px-6 border-pink-500 text-pink-600 hover:bg-pink-50 transition-all"
-                        onClick={onConnectInstagram}
+                        className={`flex-1 md:flex-none rounded-full px-6 ${isFollowing ? "bg-muted text-foreground" : "bg-gradient-to-br from-secondary to-primary text-white"
+                          }`}
+                        onClick={onToggleFollow}
                       >
-                        <BsInstagram className="w-4 h-4 mr-2" />
-                        {t("profile.connectInstagram")}
+                        {isFollowing ? t("profile.following") : t("profile.follow")}
                       </Button>
-                    )}
-
-                    {/* Existing Edit Profile button */}
-                    <Button
-                      variant="default"
-                      className="flex-1 md:flex-none rounded-full px-6 bg-gradient-to-br from-primary to-secondary hover:scale-105 transition duration-300 ease-in-out"
-                      onClick={onEditProfile}
-                    >
-                      <UserCog className="w-5 h-5 mr-1" />
-                      {t("profile.editProfile")}
-                    </Button>
-                  </>
-                )}
-
-                {/* --- DROPDOWN MENU IMPLEMENTATION --- */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full" aria-label="More options">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    {/* Menu items for all users (e.g., Share Profile) */}
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(`https://influ-link.com/${profile.handle}`)} className="cursor-pointer">
-                      <LinkIcon className="mr-2 h-4 w-4" />
-                      <span>{t("profile.shareProfile")}</span>
-                    </DropdownMenuItem>
-
-                    {/* Logout is only for the Profile Owner */}
-                    {isOwner && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={handleLogoutClick}
-                          className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700"
+                      <Button variant="outline" className="flex-1 md:flex-none rounded-full px-6">
+                        {t("profile.getInTouch")}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {!profile.stats.instagramLinked && (
+                        <Button
+                          variant="outline"
+                          className="flex-1 md:flex-none rounded-full px-4 border-pink-500 text-pink-600 hover:bg-pink-50 text-sm h-11 sm:w-[75%] sm:self-center lg:w-[50%]"
+                          onClick={onConnectInstagram}
                         >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>{t("profile.logout")}</span>
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                          <BsInstagram className="w-4 h-4 mr-2" />
+                          <span className="truncate">{t("profile.connectInstagram")}</span>
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="default"
+                        className="flex-1 md:flex-none rounded-full px-4 bg-gradient-to-br from-primary to-secondary text-white text-sm h-11 xs:w-[75%] sm:self-center lg:w-[40%]"
+                        onClick={onEditProfile}
+                      >
+                        <UserCog className="w-4 h-4 mr-2" />
+                        <span className="truncate">{t("profile.editProfile")}</span>
+                      </Button>
+
+                      {/* Desktop Only: Dropdown Menu */}
+                      <div className="hidden md:block">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="rounded-full h-11 w-11">
+                              <MoreHorizontal className="w-5 h-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.href)}>
+                              <LinkIcon className="mr-2 h-4 w-4" />
+                              <span>{t("profile.shareProfile")}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogoutClick} className="text-red-600">
+                              <LogOut className="mr-2 h-4 w-4" />
+                              <span>{t("profile.logout")}</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Mobile Only: Secondary Action Row (Share & Logout) */}
+                {isOwner && (
+                  <div className="flex md:hidden items-center gap-2 w-full">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-xl h-10 text-xs font-semibold border-slate-200"
+                      onClick={() => navigator.clipboard.writeText(window.location.href)}
+                    >
+                      <LinkIcon className="w-3.5 h-3.5 mr-2 text-slate-500" />
+                      {t("profile.shareProfile")}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-xl h-10 text-xs font-semibold border-red-100 text-red-600 bg-red-50/30"
+                      onClick={handleLogoutClick}
+                    >
+                      <LogOut className="w-3.5 h-3.5 mr-2" />
+                      {t("profile.logOut")}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Bio & Stats */}
-            <div className="flex flex-col md:flex-row gap-8 justify-between border-t border-border pt-6">
+            <div className="flex flex-col md:flex-row gap-8 justify-between border-t border-border pt-6 items-center lg:items-start">
               <div className="max-w-xl">
                 <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
                 <div className="flex gap-4 mt-4" role="list" aria-label="Social media links">

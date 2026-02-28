@@ -65,3 +65,24 @@ export interface AnalyticsData {
   reachTrend: Array<{ date: string; reach: number }>;
   topPerformingPosts: Array<{ id: string; title: string; engagement: number }>;
 }
+
+export interface InstagramAnalytics {
+  // Database IDs
+  ig_user_id: string;
+  
+  // High-level Stats (The Header Cards)
+  followers_count: number;
+  follows_count: number;
+  media_count: number;
+  
+  // Engagement (The "Pro" Metrics)
+  avg_likes: number;
+  avg_comments: number;
+  engagement_rate: number; // (Avg Likes + Avg Comments) / Followers
+  
+  // Visualization Data (The Radar & Activity)
+  interactionsByDay: Array<{ day: string; value: number }>; 
+  topHashtags: Array<{ tag: string; count: number }>;
+  
+  last_updated: string;
+}

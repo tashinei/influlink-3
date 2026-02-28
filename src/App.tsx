@@ -21,6 +21,7 @@ import { CookieConsent } from "./legal/CookieConsent";
 import Privacy from "./legal/PrivacyPolicy";
 import Terms from "./legal/TermsConditions";
 import Cookies from "./legal/Cookies";
+import { InstagramCallback } from "./components/InstagramCallback";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const MainContent = () => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/cookies" element={<Cookies />} />
+        <Route path="/instagram-callback" element={<InstagramCallback />} />
       </Routes>
 
       {!isRegisterPage && <Footer />}
