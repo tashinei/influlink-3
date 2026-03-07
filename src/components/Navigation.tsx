@@ -267,7 +267,7 @@ const Navigation = () => {
                   className={`block w-full text-left px-4 py-3 rounded-xl font-medium transition-all 
                   ${isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`}
                 >
-                  Регистрирай се
+                  {t("nav.register")}
                 </button>
               )}
 
@@ -290,7 +290,7 @@ const Navigation = () => {
                     : isSolidBackground ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"
                     }`}
                 >
-                  Профил
+                  {t("nav.profile")}
                 </Link>
               )}
 

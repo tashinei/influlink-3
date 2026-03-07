@@ -37,14 +37,17 @@ export const EditProfileModal = ({ profile, isOpen, onClose, onSave }: EditProfi
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(profile.socialLinks || {});
 
   useEffect(() => {
-    setForm({
-      name: profile.name,
-      bio: profile.bio,
-      niche: profile.niche || NICHE_PLACEHOLDER,
-      location: profile.location,
-    });
-    setSocialLinks(profile.socialLinks || {});
-  }, [profile, NICHE_PLACEHOLDER]);
+    if (isOpen) {
+      setForm({
+        name: profile.name,
+        bio: profile.bio,
+        niche: profile.niche || NICHE_PLACEHOLDER,
+        location: profile.location,
+      });
+      
+      setSocialLinks(profile.socialLinks || {});
+    }
+  }, [isOpen, profile, NICHE_PLACEHOLDER]);
 
   const nicheOptions = useMemo(
     () => NICHE_ARRAY_STRINGS.map(n => ({ code: n, name: n })),

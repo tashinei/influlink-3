@@ -47,6 +47,11 @@ const Footer = () => {
                   {t("legal.cookies")}
                 </Link>
               </li>
+              <li>
+                <Link to="/data-deletion" className="text-muted hover:text-white transition-colors">
+                  {t("legal.dataDeletion")}
+                </Link>
+              </li>
             </ul>
           </div>
 

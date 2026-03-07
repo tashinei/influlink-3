@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUserStore } from "@/store/useUserStore";
 import { MeshGradient } from "@paper-design/shaders-react";
 import { ArrowDown, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react"; 
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface HeroSectionProps {
     onExploreClick: () => void;
@@ -11,13 +13,13 @@ interface HeroSectionProps {
 
 const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
     const colors = ["#90d5f3ff", "#6EC5E9", "#1E88E5"];
-    const veilOpacity="bg-black/20"
-    const overlayColor = "rgba(0,0,0,0.4)";
-    const {t} = useTranslation();
+    const veilOpacity = "bg-black/5"
+    const overlayColor = "rgba(0,0,0,0.35)";
+    const { t } = useTranslation();
 
-    const [dimensions, setDimensions] = useState({ 
-        width: 0, 
-        height: 0 
+    const [dimensions, setDimensions] = useState({
+        width: 0,
+        height: 0
     });
     const [mounted, setMounted] = useState(false);
 
@@ -34,11 +36,11 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
     useEffect(() => {
         setMounted(true);
         const container = document.getElementById("hero-container");
-        
+
         if (!container) return;
 
         const observer = new ResizeObserver(updateDimensions);
-        
+
         // Start observing the container
         observer.observe(container);
 
@@ -52,10 +54,23 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
         };
     }, []);
 
+    const navigate = useNavigate();
+
+    // 3. Get user data from store
+    const { token, user, isRegistered } = useUserStore();
+
+    const handlePrimaryAction = () => {
+        if (token && user) {
+            navigate(`/profile/me`);
+        } else {
+            onJoinClick();
+        }
+    };
+
     return (
-        <section 
-            id="hero-container" 
-            className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden" 
+        <section
+            id="hero-container"
+            className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden"
         >
             <div className="absolute inset-0 w-full h-full"
                 style={{ willChange: "transform" }}>
@@ -89,7 +104,7 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
                 </div> */}
 
                 <h1 className="text-5xl md:text-7xl font-bold text-[white] mb-6 leading-tight mt-8">
-                    {t("mvpHero.titleFirst")} <span className="bg-gradient-to-r from-tertiary via-secondary/80 to-secondary bg-clip-text text-transparent">{t("mvpHero.titleSecond")}</span> {t("mvpHero.titleThird")} <span className="bg-gradient-to-r from-secondary via-secondary/60 to-tertiary bg-clip-text text-transparent">{t("mvpHero.titleFourth")}</span>
+                    {t("mvpHero.titleFirst")} <span className="bg-gradient-to-br from-tertiary via-secondary to-primary bg-clip-text text-transparent">{t("mvpHero.titleSecond")}</span> {t("mvpHero.titleThird")} <span className="bg-gradient-to-tr from-tertiary via-secondary to-primary bg-clip-text text-transparent">{t("mvpHero.titleFourth")}</span>
                 </h1>
 
                 <p className="text-xl md:text-2xl text-[white] max-w-3xl mx-auto mb-12">
@@ -108,10 +123,10 @@ const HeroSection = ({ onExploreClick, onJoinClick }: HeroSectionProps) => {
 
                     <Button
                         size="lg"
-                        onClick={onJoinClick}
+                        onClick={handlePrimaryAction}
                         className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-[white] px-8 py-6 text-lg shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 rounded-[50px]"
                     >
-                        {t("mvpHero.primaryButton")}
+                        {token ? t("mvpHero.profileButton") : t("mvpHero.primaryButton")}
                     </Button>
                 </div>
             </div>

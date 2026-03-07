@@ -121,7 +121,7 @@ export const CampaignDetailModal = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[100dvh] w-[95vw] max-w-4xl overflow-hidden p-8 pb-0">
+        <DialogContent className="h-[80dvh] lg-h-[90dvh] w-[95vw] max-w-4xl overflow-hidden p-8 pb-0">
           <DialogHeader className="border-b px-6 py-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-2">

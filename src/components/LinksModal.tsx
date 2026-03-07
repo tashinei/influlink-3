@@ -37,6 +37,7 @@ interface CollaboratorsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onChat?: (collaborator: Collaborator) => void;
+  accountType: "creator" | "brand";
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
@@ -49,7 +50,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const {token} = useUserStore();
+  const { token } = useUserStore();
   useEffect(() => {
     if (!open) return;
 
@@ -57,14 +58,14 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/links`, 
-        { 
-          credentials: "include" ,
-           headers: {
-          "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
-        },
-        });
+        const res = await fetch(`${API_BASE_URL}/links`,
+          {
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token && { "Authorization": `Bearer ${token}` })
+            },
+          });
         if (!res.ok) throw new Error("Failed to load collaborators");
         const data = await res.json();
         setCollaborators(data);
@@ -88,7 +89,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* sm:max-w-xl and h-[85vh] on mobile to ensure it feels like a native sheet */}
-      <DialogContent className="sm:max-w-xl p-6 overflow-hidden border-none bg-white shadow-2xl h-[90vh] sm:h-auto flex flex-col">
+      <DialogContent className="sm:max-w-xl p-6 overflow-hidden border-none bg-white shadow-2xl h-[80dvh] lg-h-[90dvh] sm:h-auto flex flex-col">
         <DialogHeader className="p-6 pb-2 shrink-0">
           <div className="flex justify-between items-center">
             <div>
@@ -177,7 +178,10 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
                     <Button
                       size="sm"
                       className="h-10 grow sm:grow-0 gap-2 bg-white text-primary hover:bg-zinc-100 rounded-full px-6 active:scale-95 transition-all shadow-md"
-                      onClick={() => onChat?.(person)}
+                      onClick={() => {
+                        onOpenChange(false);
+                        onChat?.(person);
+                      }}
                     >
                       <MessageSquare className="h-4 w-4" />
                       <span className="text-xs font-bold uppercase tracking-wider">{t("links.chat")}</span>

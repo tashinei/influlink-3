@@ -9,10 +9,7 @@ if (!API_BASE_URL) {
   throw new Error("API_BASE_URL environment variable is not set.");
 }
 
-
-// ✅ 1. Accept an optional targetProfileId parameter
 export const usePortfolio = (targetProfileId?: string) => {
-  // ID of the logged-in user (used for management actions: add/delete)
   const currentUserId = useUserStore(state => state.user?.id);
 
   // ID used for fetching portfolio data (TargetId or logged-in ID)
@@ -31,7 +28,6 @@ export const usePortfolio = (targetProfileId?: string) => {
     return num.toString();
   };
 
-  // 🔄 2. Use idToFetch for the API call
   const fetchPortfolio = useCallback(async () => {
     if (!idToFetch) {
       setPortfolio([]);
@@ -44,7 +40,6 @@ export const usePortfolio = (targetProfileId?: string) => {
       setIsLoading(true);
       setError(null);
 
-      // Use the ID determined from targetProfileId or currentUserId
       const response = await fetch(`${API_BASE_URL}/profiles/${idToFetch}/portfolio`, {
         headers: {
           "Content-Type": "application/json",
@@ -63,10 +58,11 @@ export const usePortfolio = (targetProfileId?: string) => {
       const formattedPortfolio = data.map((item: any) => ({
         ...item,
         stats: {
-          likes: formatStat(item.stats.likes, false),
-          views: formatStat(item.stats.views, true),
+          likes: item.stats.likes,
+          views: item.stats.views,
         }
       }));
+      setPortfolio(formattedPortfolio);
       setPortfolio(formattedPortfolio);
 
     } catch (err) {

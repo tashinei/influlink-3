@@ -93,7 +93,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
       platforms: selectedPlatforms,
       contentTypes: selectedContentTypes,
       paymentType,
-      budgetRange,
+      budgetRange: budgetRange === "any" ? null : budgetRange,
       country: country?.name,
       urgentOnly,
     });
@@ -188,7 +188,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
               {/* BUDGET */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-primary">{t("mvpCampaignSearchSection.maxBudget")}</Label>
-                <Select value={budgetRange} onValueChange={setBudgetRange}>
+                <Select value={budgetRange} onValueChange={(val) => setBudgetRange(val)}>
                   <SelectTrigger className="h-12 rounded-xl border-2">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>

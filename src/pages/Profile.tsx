@@ -54,7 +54,7 @@ const Profile = () => {
   const rawIdentifier = username || identifier;
 
   useEffect(() => {
-    console.log("Profile render");
+    window.scrollTo(0,0);
   }, [])
 
   // Clean the identifier. 
@@ -188,11 +188,16 @@ const Profile = () => {
 
   // Modals
   const [isAddPostOpen, setIsAddPostOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<PortfolioItem | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const selectedPost = portfolioToDisplay.find(
+    p => p.id === selectedPostId
+  ) || null;
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   console.log("Current Analytics Data:", analytics);
+
+  const [isIGLinked, setIsIGLinked] = useState(profile?.stats?.instagramLinked || false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const syncStarted = useRef(false);
@@ -222,6 +227,7 @@ const Profile = () => {
 
         if (res.ok) {
           refetchIG();
+          setIsIGLinked(true);
           refetchAnalytics();
           refetch();
         }
@@ -232,6 +238,12 @@ const Profile = () => {
 
     triggerSync();
   }, [status, token, navigate, API_BASE_URL, refetchIG, refetchAnalytics, refetch]);
+
+  useEffect(() => {
+    if (profile?.stats?.instagramLinked !== undefined) {
+      setIsIGLinked(profile.stats.instagramLinked);
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (showSuccessModal) return;
@@ -272,6 +284,7 @@ const Profile = () => {
           ? backendEngagement.toFixed(1) + "%"
           : (profile?.stats?.engagementRate || "0.0%");
       })(),
+      instagramLinked: profile?.stats?.instagramLinked
     },
   } as ProfileData;
 
@@ -299,7 +312,7 @@ const Profile = () => {
   };
 
   const handlePostClick = (post: PortfolioItem) => {
-    setSelectedPost(post);
+    setSelectedPostId(post.id);
     setIsPreviewOpen(true);
   };
 
@@ -424,7 +437,7 @@ const Profile = () => {
               onClick={() => {
                 setShowSuccessModal(false);
                 refetch();
-                refetchIG(); 
+                refetchIG();
                 navigate("/profile/me", { replace: true })
               }}
             >
@@ -492,6 +505,7 @@ const Profile = () => {
         onEditProfile={isOwner ? () => setIsEditProfileOpen(true) : undefined}
         onLogout={handleLogout}
         onConnectInstagram={isOwner ? handleConnectInstagram : undefined}
+        isInstagramLinked={isIGLinked}
       />
 
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
@@ -543,11 +557,11 @@ const Profile = () => {
             {isOwner && (
               <Button
                 size="sm"
-                onClick={() => setIsAddPostOpen(true)}
+                onClick={() => {profile.type == "creator" ? setIsAddPostOpen(true) : setIsCreateCampaignOpen(true)}}
                 className="gap-2 rounded-full bg-gradient-to-br from-primary to-secondary hover:scale-105 transition"
               >
                 <Plus className="w-5 h-5" />
-                <span className="hidden md:inline">{t("mvpProfileTabs.addWork")}</span>
+                <span className="hidden md:inline">{profile.type == "creator" ? t("mvpProfileTabs.addWork") : t("mvpProfileTabs.newCampaign")}</span>
               </Button>
             )}
           </div>
@@ -694,9 +708,16 @@ const Profile = () => {
         isOpen={isPreviewOpen}
         onClose={() => {
           setIsPreviewOpen(false);
-          setTimeout(() => setSelectedPost(null), 200);
+          setTimeout(() => setSelectedPostId(null), 200);
         }}
-        onLikeSuccess={refetchAnalytics}
+        onLikeSuccess={() => {
+          if (isOwner) {
+            ownerActions.refetch();
+          } else {
+            viewerData.refetch();
+          }
+          refetchAnalytics();
+        }}
       />
 
       {selectedCampaign && (

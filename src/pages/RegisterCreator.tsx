@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import staticBgImage from '../assets/registerBackLatest4.jpg';
 import { MeshGradient } from '@paper-design/shaders-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '@/store/useUserStore';
 import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
@@ -93,7 +93,11 @@ const RegisterCreator = () => {
         };
     }, []);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [isRegister, setIsRegister] = useState(true);
+
+    const [searchParams] = useSearchParams();
+    const [isRegister, setIsRegister] = useState(
+        searchParams.get('mode') !== 'login' // Initialize based on URL
+    );
     const [step, setStep] = useState(1);
 
     const [formData, setFormData] = useState({
@@ -195,7 +199,7 @@ const RegisterCreator = () => {
                         accountType="creator"
                         isMultiStep={true}
                         title={isRegister ? t("mvpLogin.becomeCreator") : t("mvpLogin.welcomeBack")}
-                        description={t("mvpLogin.letsSecureFirst")}
+                        description={isRegister ? t("mvpLogin.letsSecureFirst") : t("mvpLogin.descLoginCreators")}
                         initialData={{ name: formData.name, email: formData.email }}
                         onSuccess={(step1Data: any) => {
                             setFormData(prev => ({ ...prev, ...step1Data, accountType: 'creator' }));

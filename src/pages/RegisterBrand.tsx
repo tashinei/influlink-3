@@ -143,7 +143,7 @@ const RegisterBrand = () => {
                         accountType="brand"
                         isMultiStep={true}
                         title={isRegister ? t("mvpRegisterBrand.launchYourBrand") : t("mvpRegisterBrand.welcomeBack")}
-                        description={t("mvpRegisterBrand.setupBusinessAcc")}
+                        description={isRegister ? t("mvpLogin.letsSecureFirst") : t("mvpRegisterBrand.descLoginCreators")}
                         onSuccess={(step1Data: any) => {
                             setFormData(prev => ({ ...prev, ...step1Data }));
                             setStep(2);

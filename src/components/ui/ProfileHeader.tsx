@@ -1,4 +1,4 @@
-import { MapPin, LinkIcon, Instagram, Twitter, Youtube, CheckCircle2, MoreHorizontal, Camera, UserCog, LogOut } from "lucide-react";
+import { MapPin, LinkIcon, Instagram, Twitter, Youtube, CheckCircle2, MoreHorizontal, Camera, UserCog, LogOut, Trash2, Facebook, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "./dialog";
 import { } from "./dialog";
 import { useTranslation } from "@/hooks/useTranslation";
-import { BsInstagram } from "react-icons/bs";
+import { BsFacebook, BsInstagram, BsLinkedin, BsYoutube } from "react-icons/bs";
+import { useUserStore } from "@/store/useUserStore";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -20,12 +21,12 @@ interface ProfileHeaderProps {
   onChangeProfilePic?: (file: File) => void;
   onEditProfile?: () => void;
   // --- NEW PROP ADDED ---
-  isInstagramLinked?: boolean;
+  isInstagramLinked: boolean;
   onConnectInstagram: () => void;
   onLogout: () => void;
 }
 
-export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic, onEditProfile, onLogout }: ProfileHeaderProps) => {
+export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic, onEditProfile, onLogout, isInstagramLinked }: ProfileHeaderProps) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -33,6 +34,8 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
       .join("")
       .toUpperCase();
   };
+
+  const { token } = useUserStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
@@ -66,7 +69,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
   const onConnectInstagram = () => {
     const clientID = "1829769444346525";
-    const redirectUri = encodeURIComponent("https://anitra-nonenigmatic-areally.ngrok-free.dev/instagram-callback");
+    const redirectUri = encodeURIComponent("https://mvp.influ-link.com/instagram-callback");
     const scope = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
 
     // Construct the Meta Login URL
@@ -76,7 +79,40 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
     window.location.href = authUrl;
   };
 
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
+
+  const handleUnlinkClick = () => {
+    setIsUnlinkModalOpen(true);
+  };
+
+  const handleUnlink = async () => {
+    setIsUnlinking(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/instagram/unlink`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Refresh the page to clear the stats from the UI
+        window.location.reload();
+      } else {
+        const error = await response.json();
+        console.error("Unlink failed:", error);
+      }
+    } catch (err) {
+      console.error("Network error during unlink:", err);
+    } finally {
+      setIsUnlinking(false);
+    }
+  };
+
   const API_BASE = "https://api.influ-link.com";
+  console.log("Full Profile Data:", profile);
   return (
     <>
       {/* Header Background */}
@@ -154,10 +190,26 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                     </>
                   ) : (
                     <>
-                      {!profile.stats.instagramLinked && (
+                      {isInstagramLinked ? (
                         <Button
                           variant="outline"
-                          className="flex-1 md:flex-none rounded-full px-4 border-pink-500 text-pink-600 hover:bg-pink-50 text-sm h-11 sm:w-[75%] sm:self-center lg:w-[50%]"
+                          className="flex-1 md:flex-none rounded-full px-4 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-sm h-11"
+                          onClick={handleUnlinkClick}
+                          disabled={isUnlinking}
+                        >
+                          {isUnlinking ? (
+                            <span className="animate-pulse">...</span>
+                          ) : (
+                            <>
+                              <BsInstagram className="w-4 h-4 mr-2" />
+                              <span className="truncate">{t("profile.disconnectInstagram")}</span>
+                            </>
+                          )}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="flex-1 md:flex-none rounded-full px-4 border-pink-500 text-pink-600 hover:bg-pink-50 text-sm h-11"
                           onClick={onConnectInstagram}
                         >
                           <BsInstagram className="w-4 h-4 mr-2" />
@@ -229,39 +281,53 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
               <div className="max-w-xl">
                 <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
                 <div className="flex gap-4 mt-4" role="list" aria-label="Social media links">
-                  {profile.socialLinks.instagram && (
-                    <a
-                      href={profile.socialLinks.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform"
-                      aria-label="Instagram"
-                    >
-                      <Instagram className="w-5 h-5 text-pink-600" />
-                    </a>
-                  )}
-                  {profile.socialLinks.x && (
-                    <a
-                      href={profile.socialLinks.x}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform"
-                      aria-label="X"
-                    >
-                      <i className="fa-brands fa-x-twitter absolute left-3 top-1/2 -translate-y-1/2 text-xl text-gray-500"></i>
-                    </a>
-                  )}
-                  {profile.socialLinks.youtube && (
-                    <a
-                      href={profile.socialLinks.youtube}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform"
-                      aria-label="YouTube"
-                    >
-                      <Youtube className="w-5 h-5 text-red-600" />
-                    </a>
-                  )}
+                  {profile.socialLinks && Object.entries(profile.socialLinks).map(([platform, url]) => {
+                    // Only render if url exists and is not an empty string
+                    if (!url || typeof url !== 'string' || url.trim() === "") return null;
+
+                    const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
+
+                    // Define icon and color mapping
+                    const platformConfig: Record<string, { icon: JSX.Element; color: string }> = {
+                      instagram: {
+                        icon: <BsInstagram className="w-5 h-5" />,
+                        color: "text-pink-600"
+                      },
+                      x: {
+                        icon: <i className="fa-brands fa-x-twitter text-lg"></i>,
+                        color: "text-foreground"
+                      },
+                      youtube: {
+                        icon: <BsYoutube className="w-5 h-5" />,
+                        color: "text-red-600"
+                      },
+                      facebook: {
+                        icon: <BsFacebook className="w-5 h-5" />,
+                        color: "text-blue-600"
+                      },
+                      linkedin: {
+                        icon: <BsLinkedin className="w-5 h-5" />,
+                        color: "text-blue-700"
+                      },
+                    };
+
+                    const config = platformConfig[platform.toLowerCase()];
+                    console.log("Platform:", platform, "Config found:", !!config);
+                    if (!config) return null;
+                  
+                    return (
+                      <a
+                        key={platform}
+                        href={formattedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform flex items-center justify-center ${config.color}`}
+                        aria-label={platform}
+                      >
+                        {config.icon}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -287,7 +353,9 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
       </div>
 
       <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
-        <DialogContent className="sm:max-w-[30dvw] p-8 pt-6 rounded-xl shadow-xl max-h-[30dvh] pb-0 gap-0">
+        <DialogContent
+          className="sm:max-w-[30vw] lg:max-w-[30vw] 2xl:max-w-[20vw] !h-fit p-6 pl-8 pr-8 rounded-xl shadow-xl overflow-hidden flex flex-col gap-0"
+        >
 
           {/* HEADER */}
           <DialogHeader className="text-left space-y-4 p-0 min-h-0 mt-6">
@@ -302,7 +370,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             <DialogDescription className="text-sm text-muted-foreground max-w-sm">
               {t("profile.sureLogout")}
             </DialogDescription>
-            <div className="rounded-md bg-transparent px-2 py-1 text-sm text-[gray] flex items-startt justify-start gap-2 pl-0">
+            <div className="rounded-md bg-transparent px-2 py-1 text-sm text-[gray] flex items-start justify-start gap-2 pl-0 !mb-[20px]">
               <span><Info></Info></span>
               {t("profile.redirectHome")}
             </div>
@@ -336,6 +404,45 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             </Button>
           </DialogFooter>
 
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isUnlinkModalOpen} onOpenChange={setIsUnlinkModalOpen}>
+        <DialogContent className="sm:max-w-[30dvw] p-8 pt-10 pb-10 lg:pb-0 lg:pt-16 rounded-xl shadow-xl max-h-[30dvh] gap-0">
+          <DialogHeader className="text-left space-y-3">
+            <DialogTitle className="text-xl font-semibold">
+              {t("profile.disconnectInstagramTitle") || "Disconnect Instagram?"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+              {t("profile.confirmUnlink") || "Are you sure you want to disconnect your Instagram account? Your synced statistics and engagement data will be removed from your profile."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="mt-6 flex flex-row justify-end gap-3">
+            <Button
+              variant="ghost"
+              className="rounded-full"
+              onClick={() => setIsUnlinkModalOpen(false)}
+              disabled={isUnlinking}
+            >
+              {t("profile.cancel")}
+            </Button>
+
+            <Button
+              variant="destructive"
+              className="rounded-full bg-red-600 hover:bg-red-700"
+              onClick={handleUnlink}
+              disabled={isUnlinking}
+            >
+              {isUnlinking ? (
+                <span className="animate-pulse">...</span>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-1 text-white" />
+                  <span className="text-white">{t("profile.disconnect")}</span>
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BsGoogle } from 'react-icons/bs';
@@ -24,8 +24,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const setToken = useUserStore((state) => state.setToken);
   const setRegistered = useUserStore((state) => state.setRegistered);
   const setAccountType = useUserStore((state) => state.setAccountType);
+  const [searchParams] = useSearchParams();
 
-  const [mode, setMode] = useState<'register' | 'login'>('register');
+  const [mode, setMode] = useState<'register' | 'login'>(
+    searchParams.get('mode') === 'login' ? 'login' : 'register'
+  );
 
   const { t, language, setLanguage } = useTranslation();
 

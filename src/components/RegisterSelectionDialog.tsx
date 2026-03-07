@@ -56,7 +56,7 @@ export default function RegisterSelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col h-fit p-10 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white">
+      <DialogContent className="flex flex-col h-fit p-10 pb-16 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white">
 
         {/* Decorative background elements - hidden on extra small screens for performance */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-50 sm:opacity-100">
@@ -86,17 +86,17 @@ export default function RegisterSelectionDialog({
               />
             ))}
           </div>
-
+{/* 
           <p className="mt-8 text-center text-sm text-gray-100">
             {t("joinDialog.alreadyAccount")}{" "}
             <Link
-              to="/login"
+              to="/register/creator?mode=login"
               onClick={handleOptionClick}
               className="font-medium text-white underline underline-offset-4 transition-colors hover:text-primary-foreground hover:underline"
             >
               {t("joinDialog.signIn")}
             </Link>
-          </p>
+          </p> */}
         </div>
       </DialogContent>
     </Dialog>

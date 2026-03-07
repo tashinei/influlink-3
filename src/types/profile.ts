@@ -39,6 +39,7 @@ export interface PortfolioItem {
   };
   createdAt: string;
   isLiked: boolean;
+  hasLiked:boolean;
 }
 
 export interface NewPostData {

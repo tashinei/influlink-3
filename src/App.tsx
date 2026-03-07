@@ -22,6 +22,7 @@ import Privacy from "./legal/PrivacyPolicy";
 import Terms from "./legal/TermsConditions";
 import Cookies from "./legal/Cookies";
 import { InstagramCallback } from "./components/InstagramCallback";
+import DataDeletion from "./legal/DataDeletion";
 
 const queryClient = new QueryClient();
 
@@ -66,8 +67,6 @@ const MainContent = () => {
         <Route path="/profile/me" element={<Profile />} />
         <Route path="/profile/:identifier" element={<Profile />} />
 
-        <Route path="/:username" element={<Profile />} />
-
         <Route path="/register/creator" element={<RegisterCreator />} />
         <Route path="/register/brand" element={<RegisterBrand />} />
         <Route path="/creators/search" element={<SearchResults />} />
@@ -76,7 +75,10 @@ const MainContent = () => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/cookies" element={<Cookies />} />
+        <Route path="/data-deletion" element={<DataDeletion />} />
         <Route path="/instagram-callback" element={<InstagramCallback />} />
+
+        <Route path="/:username" element={<Profile />} />
       </Routes>
 
       {!isRegisterPage && <Footer />}

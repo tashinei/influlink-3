@@ -32,9 +32,10 @@ interface ChatContact {
 interface ChatDrawerProps {
     isOpen: boolean;
     onClose: () => void;
+    partner?: any;
 }
 
-export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
+export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps) {
     const { user, token: storeToken } = useUserStore();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
@@ -45,6 +46,24 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const socketRef = useRef<Socket | null>(null);
     const activeToken = storeToken || Cookies.get('token');
+
+    useEffect(() => {
+        if (isOpen && partner && contacts.length > 0) {
+            // Find the contact that matches the partner's handle or ID
+            // In your SQL, the contact has creator_id or brand_id
+            const existingContact = contacts.find(c =>
+                String(c.handle) === String(partner.handle) ||
+                String(c.creator_id) === String(partner.id) ||
+                String(c.brand_id) === String(partner.id)
+            );
+
+            if (existingContact) {
+                setActiveContact(existingContact);
+            } else {
+                console.log("No existing chat room found for this partner yet.");
+            }
+        }
+    }, [isOpen, partner, contacts]);
 
     useEffect(() => {
         if (isOpen) {
@@ -70,7 +89,7 @@ export default function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
 
             s.on("connect", () => {
                 console.log("✅ Socket Connected");
-                
+
                 if (activeContact) {
                     s.emit("join_room", activeContact.id);
                 }

@@ -26,7 +26,8 @@ export const translations = {
       title: "Правна информация",
       privacyPolicy: "Политика за поверителност",
       terms: "Условия за ползване",
-      cookies: "Бисквитки"
+      cookies: "Бисквитки",
+      dataDeletion:"Изтриване на данни"
     },
 
     cookies: {
@@ -131,9 +132,10 @@ export const translations = {
       titleSecond: "Брандове",
       titleThird: "Срещат",
       titleFourth: "Създатели",
-      subtext: "Най-добрата платформа за инфлуенсър маркетинг. Намерете идеалния партньор и растете заедно.",
+      subtext: "Открийте идеалните създатели, създавайте кампании, управлявайте плащанията си и създайте истински прогрес.",
       secondaryButton: "Разгледай функциите",
       primaryButton: "Присъедини се",
+      profileButton:"Започни сега"
     },
 
     mvpTerms: {
@@ -245,7 +247,10 @@ export const translations = {
       addWork: "Нов проект",
       yourCampaigns: "Вашите кампании",
       noPortfolioItems: "Все още няма прокети в това портфолио.",
-      manageCampaigns: "Управлявайте и следете прогреса на кампаниите си"
+      manageCampaigns: "Управлявайте и следете прогреса на кампаниите си",
+      noCampaignsYet:"Все още нямате създадени кампании",
+      startNow:"Започнете сега",
+      newCampaign:"Нова кампания"
     },
 
     mvpCampaignSearchSection: {
@@ -330,7 +335,9 @@ export const translations = {
       campaigns: "Кампании",
       newCampaign: "Нова кампания",
       chat: "Чат",
-      links: "Връзки"
+      links: "Връзки",
+      findCreators:"Търсене",
+      findCampaigns:"Търсене"
     },
 
     joinDialog: {
@@ -390,7 +397,8 @@ export const translations = {
       logIn: "Влизане",
       reviewSummary: "Преглед на данните",
       and: "и",
-      acknowledgeUse: "Потвърждавам използването на задължителни бисквитки (cookies) за сигурността на акаунта."
+      acknowledgeUse: "Потвърждавам използването на задължителни бисквитки (cookies) за сигурността на акаунта.",
+      descLoginCreators:"Започнете да печелите за съдържанието си"
     },
 
     mvpRegisterBrand: {
@@ -420,10 +428,11 @@ export const translations = {
       backDetails: "Обратно към детайлите",
       buildYour: "Изградете наследството",
       brandLegacy: "на бранда си",
-      brandAdvantage:"Предимство",
-      partnerWithPros:"Работете с професионалисти",
+      brandAdvantage: "Предимство",
+      partnerWithPros: "Работете с професионалисти",
       crossBridgeBetween: "Свържете своя бранд със световноизвестни създатели.",
-      benefit3: "Присъединявайки се, вие отключвате възможността да публикувате кампании и да използвате нашите автоматизирани инструменти за договори със създатели."
+      benefit3: "Присъединявайки се, вие отключвате възможността да публикувате кампании и да използвате нашите автоматизирани инструменти за договори със създатели.",
+      descLoginCreators:"Открийте идеалните създатели за Вашия бизнес",
     },
 
     mvpCookies: {
@@ -634,7 +643,25 @@ export const translations = {
       logOut: "Изход",
       follow: "Последване",
       following: "Последван",
-      connectInstagram:"Свържете Instagram"
+      connectInstagram: "Свържете Instagram",
+      instagramConnected: "Instagram свързан",
+      disconnectInstagram: "Разкачете Instagram",
+      disconnectInstagramTitle: "Разкачане на Instagram?",
+      confirmUnlink: "Сигурни ли сте, че искате да разкачите Вашия акаунт? Вашите синхронизирани статистики и данни ще бъдат премахнати от профила Ви.",
+      disconnect: "Разкачете",
+    },
+
+    instagram: {
+      connecting: "Свързване с Meta...",
+      syncing: "Синхронизиране на данни...",
+      success: "Акаунтът е свързан успешно!",
+      error_denied: "Връзката беше отказана или линкът е изтекъл.",
+      error_session: "Сесията не е намерена. Моля, влезте отново.",
+      error_generic: "Грешка при свързването. Моля, опитайте пак.",
+      back_to_profile: "Назад към профила",
+      please_wait: "Моля, изчакайте...",
+      done: "Готово!",
+      oops: "Опа!"
     },
 
     form: {
@@ -990,9 +1017,10 @@ export const translations = {
       titleSecond: "Brands",
       titleThird: "Meet",
       titleFourth: "Creators",
-      subtext: "The ultimate platform for influencer marketing. Find the perfect match, collaborate seamlessly, and grow together.",
+      subtext: "Find the right creators, launch campaigns or get paid for your content - create real progress.",
       secondaryButton: "Explore Features",
       primaryButton: "Join us",
+      profileButton:"Start now"
     },
 
     mvpAnalytics: {
@@ -1021,7 +1049,10 @@ export const translations = {
       yourCampaigns: "Your campaigns",
       noPortfolioItems: "There are no items in this portfolio yet.",
       manageCampaigns: "Manage and track the progress of your campaigns",
-      addFirstWork: "Add an item"
+      addFirstWork: "Add an item",
+      noCampaignsYet:"You have no campaigns yet",
+      startNow:"Start now",
+      newCampaign:"New campaign"
     },
 
     addPost: {
@@ -1148,26 +1179,26 @@ export const translations = {
     },
 
     mvpFeaturesSection: {
-      firstTitle: "Easy discovery & Matching",
-      firstSubtitle: "Find the perfect creators for your brand with our intelligent matching system.",
+      firstTitle: "Find the perfect creators for your brand",
+      firstSubtitle: "Easy discovery & Matching",
       firstBenefit1: "Advanced search filters to narrow down your ideal creators",
       firstBenefit2: "AI-powered matching based on audience demographics",
-      firstBenefit3: "Verified creator profiles with authentic engagement metrics",
+      firstBenefit3: "Verified creator profiles with real engagement metrics",
       firstBenefit4: "Save and analyze your favorite creators",
-      secondTitle: "Global Reach. Local impact.",
-      secondSubtitle: "Communicate and manage campaigns all in one place.",
+      secondTitle: "Manage campaigns all in one place",
+      secondSubtitle: "Global reach. Local impact.",
       secondBenefit1: "Built-in messaging with file sharing capabilities",
       secondBenefit2: "Campaign briefs and content approval workflows",
       secondBenefit3: "Real-time collaboration on content drafts",
       secondBenefit4: "Calendar integration for scheduling posts",
-      thirdTitle: "Transparent payments",
+      thirdTitle: "Send & Receive payments - transparently",
       thirdSubtitle: "Secure, hassle-free payments for both creators and brands.",
       thirdBenefit1: "Protection for secure transactions",
       thirdBenefit2: "Multiple payment methods supported",
       thirdBenefit3: "Automatic invoicing and tax documentation",
       thirdBenefit4: "Milestone-based payment releases",
-      fourthTitle: "Analytics & Growth",
-      fourthSubtitle: "Track performance and optimize your influencer marketing ROI.",
+      fourthTitle: "Track performance and optimize ROI.",
+      fourthSubtitle: "Analytics & Growth",
       fourthBenefit1: "Real-time campaign performance dashboards",
       fourthBenefit2: "Audience reach and engagement analytics",
       fourthBenefit3: "ROI tracking and attribution modeling",
@@ -1215,7 +1246,8 @@ export const translations = {
       logIn: "Log In",
       reviewSummary: "Review summary",
       and: "and",
-      acknowledgeUse: "I acknowledge the use of essential cookies for account security."
+      acknowledgeUse: "I acknowledge the use of essential cookies for account security.",
+      descLoginCreators:"Start earning for you content now"
     },
 
     mvpCampaignSearchSection: {
@@ -1350,7 +1382,12 @@ export const translations = {
       logOut: "Log out",
       follow: "Follow",
       following: "Following",
-      connectInstagram:"Connect Instagram"
+      connectInstagram: "Connect Instagram",
+      instagramConnected: "Instagram connected",
+      disconnectInstagram: "Disconnect Instagram",
+      disconnectInstagramTitle: "Disconnect Instagram?",
+      confirmUnlink: "Are you sure you want to disconnect your Instagram account? Your synced statistics and engagement data will be removed from your profile.",
+      disconnect: "Disconnect",
     },
 
     about: {
@@ -1373,7 +1410,8 @@ export const translations = {
       title: "Legal",
       privacyPolicy: "Privacy Policy",
       terms: "Terms & Conditions",
-      cookies: "Cookies"
+      cookies: "Cookies",
+      dataDeletion:"Data Deletion"
     },
 
     mvpCampaignHistory: {
@@ -1483,10 +1521,24 @@ export const translations = {
       backDetails: "Back to details",
       buildYour: "Build your",
       brandLegacy: "Brand's legacy",
-      brandAdvantage:"Advantage",
-      partnerWithPros:"Partner with Pros",
+      brandAdvantage: "Advantage",
+      partnerWithPros: "Partner with Pros",
       crossBridgeBetween: "Cross the bridge between professional brands and world-class creators.",
-      benefit3: "By joining, you unlock the ability to post campaigns and use our automated creator contracting tools."
+      benefit3: "By joining, you unlock the ability to post campaigns and use our automated creator contracting tools.",
+      descLoginCreators:"Find the perfect creators for you business"
+    },
+
+    instagram: {
+      connecting: "Connecting to Meta...",
+      syncing: "Fetching your Instagram insights...",
+      success: "Your account is now linked!",
+      error_denied: "Connection cancelled or link expired.",
+      error_session: "Session not found. Please log in again.",
+      error_generic: "Failed to link account. Please try again.",
+      back_to_profile: "Go back to profile",
+      please_wait: "Processing...",
+      done: "Success!",
+      oops: "Something went wrong"
     },
 
     cookies: {
@@ -1545,7 +1597,9 @@ export const translations = {
       campaigns: "Campaigns",
       newCampaign: "New campaign",
       chat: "Chat",
-      links: "Links"
+      links: "Links",
+      findCreators:"Explore",
+      findCampaigns:"Explore"
     },
 
     deleteCampaign: {

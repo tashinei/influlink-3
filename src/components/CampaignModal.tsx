@@ -35,6 +35,7 @@ import {
 import { useCreatorNiches } from "@/data/mockCreators";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useUserStore } from "@/store/useUserStore";
+import { cn } from "@/lib/utils";
 
 // --- 1. UPDATED FORM INTERFACE ---
 interface CampaignForm {
@@ -110,7 +111,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
   const [currentStep, setCurrentStep] = useState(1);
   const { t } = useTranslation();
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const {token} = useUserStore();
+  const { token } = useUserStore();
 
   const [form, setForm] = useState<CampaignForm>({
     name: "",
@@ -251,7 +252,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
         method: "POST",
         body: formData,
         credentials: "include", // if using cookies for auth
-         headers: {
+        headers: {
           ...(token && { "Authorization": `Bearer ${token}` })
         },
       });
@@ -597,68 +598,66 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="
-          h-[98vh] w-[60vw] max-w-[95vw] sm:max-w-[90vw] 
-          overflow-y-auto p-6
-        "
+        className={cn(
+          "flex flex-col p-7 lg-p-12 gap-0 overflow-hidden",
+          "w-full h-[80dvh] lg-h-[90dvh] sm:h-auto sm:max-h-[95vh] sm:w-[95vw] lg:max-w-[60vw]"
+        )}
       >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <DialogHeader className="px-8 pt-8 pb-6 border-b border-border">
-            <DialogTitle className="text-2xl font-semibold flex items-center gap-3">
-              {currentStepData?.title}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground mt-2">
-              {t("mvpCreateCampaign.step")} {currentStep} {t("mvpCreateCampaign.of")} {Steps.length}: {currentStepData?.description}
-            </DialogDescription>
-            {/* Simple Step Indicator */}
-            <div className="w-full bg-muted rounded-full h-1.5 mt-4">
-              <div
-                className="bg-primary h-1.5 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${(currentStep / Steps.length) * 100}%` }}
-              />
-            </div>
-          </DialogHeader>
+        {/* Header - Fixed at Top */}
+        <DialogHeader className="px-5 py-4 sm:px-8 sm:pt-8 sm:pb-6 border-b border-border bg-transparent dark:bg-card shrink-0">
+          <DialogTitle className="text-xl sm:text-2xl font-semibold flex items-center gap-3">
+            {currentStepData?.icon && <currentStepData.icon className="w-5 h-5 text-primary" />}
+            {currentStepData?.title}
+          </DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-1">
+            {t("mvpCreateCampaign.step")} {currentStep} {t("mvpCreateCampaign.of")} {Steps.length}: {currentStepData?.description}
+          </DialogDescription>
 
-          {/* Form Content */}
-          {/* Note: We no longer wrap the whole thing in <form> to manage submission manually by step */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex-1 px-8 py-8 space-y-8 overflow-y-auto">
-              {renderStepContent()}
-            </div>
+          {/* Progress Bar */}
+          <div className="w-full bg-muted rounded-full h-1 mt-4">
+            <div
+              className="bg-primary h-1 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${(currentStep / Steps.length) * 100}%` }}
+            />
           </div>
+        </DialogHeader>
 
-          {/* Footer - Navigation Buttons */}
-          <DialogFooter className="px-8 py-6 border-t border-border bg-muted/30 flex justify-between">
-
-            {/* Back Button */}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={currentStep > 1 ? handleBack : () => onOpenChange(false)}
-            >
-              {currentStep > 1 ? (
-                <><ArrowLeft className="mr-2 h-4 w-4" /> {t("mvpCreateCampaign.back")}</>
-              ) : (
-                "Cancel"
-              )}
-            </Button>
-
-            {/* Next/Submit Button */}
-            <Button
-              type="submit"
-              onClick={handleNext}
-            >
-              {currentStep === Steps.length ? (
-                t("mvpCreateCampaign.createButton")
-              ) : (
-                <span className="flex items-center">
-                  {t("mvpCreateCampaign.nextStep")} <ArrowRight className="ml-2 h-4 w-4" />
-                </span>
-              )}
-            </Button>
-          </DialogFooter>
+        {/* Form Content - Scrollable Middle */}
+        <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-8">
+          <div className="space-y-6 max-w-full">
+            {renderStepContent()}
+          </div>
         </div>
+
+        {/* Footer - Sticky at Bottom */}
+        <DialogFooter className="px-5 py-4 sm:px-8 sm:py-6 border-t border-border bg-muted/30 flex-row justify-between items-center gap-4 shrink-0">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1 sm:flex-none text-muted-foreground hover:text-foreground"
+            onClick={currentStep > 1 ? handleBack : () => onOpenChange(false)}
+          >
+            {currentStep > 1 ? (
+              <><ArrowLeft className="mr-2 h-4 w-4" /> {t("mvpCreateCampaign.back")}</>
+            ) : (
+              "Cancel"
+            )}
+          </Button>
+
+          <Button
+            type="submit"
+            className="flex-1 sm:flex-none shadow-lg shadow-primary/20"
+            onClick={handleNext}
+          >
+            {currentStep === Steps.length ? (
+              t("mvpCreateCampaign.createButton")
+            ) : (
+              <span className="flex items-center">
+                {t("mvpCreateCampaign.nextStep")} <ArrowRight className="ml-2 h-4 w-4" />
+              </span>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
