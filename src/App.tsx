@@ -23,12 +23,15 @@ import Terms from "./legal/TermsConditions";
 import Cookies from "./legal/Cookies";
 import { InstagramCallback } from "./components/InstagramCallback";
 import DataDeletion from "./legal/DataDeletion";
+import { NotificationFAB } from "./components/notifications/NotificationFAB";
 
 const queryClient = new QueryClient();
 
 const MainContent = () => {
   const location = useLocation();
   const isRegisterPage = location.pathname.startsWith("/register/");
+
+  const isSearchPage = location.pathname === "/creators/search" || location.pathname === "/campaigns/search";
 
   const saveConsentToDb = async (preferences: boolean[]) => {
     const userEmail = localStorage.getItem("user_email"); // Or from your Auth context
@@ -80,6 +83,12 @@ const MainContent = () => {
 
         <Route path="/:username" element={<Profile />} />
       </Routes>
+
+      {!isRegisterPage && (
+        <NotificationFAB 
+          className={isSearchPage ? "bottom-24" : "bottom-6"} 
+        />
+      )}
 
       {!isRegisterPage && <Footer />}
       <CookieConsent categories={[

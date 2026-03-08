@@ -300,7 +300,7 @@ const SearchResults = () => {
                         className="rounded-full h-14 w-14 shadow-2xl p-0"
                     >
                         <div className="relative">
-                            <Filter className="w-6 h-6" />
+                            <Filter className="!w-8 !h-8" />
                             {activeFilterCount > 0 && (
                                 <span className="absolute -top-2 -right-2 bg-destructive text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
                                     {activeFilterCount}
