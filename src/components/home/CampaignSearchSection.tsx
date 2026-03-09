@@ -93,7 +93,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
       platforms: selectedPlatforms,
       contentTypes: selectedContentTypes,
       paymentType,
-      budgetRange: budgetRange === "any" ? null : budgetRange,
+      budgetRange: budgetRange,
       country: country?.name,
       urgentOnly,
     });

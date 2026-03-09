@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dock } from "./ui/floating-dock";
-import { MessageCircle, Briefcase, Megaphone, Link, User2 } from "lucide-react";
+import { MessageCircle, Briefcase, Link, User2, Bell, CheckCheck, Loader2 } from "lucide-react";
 import ChatDrawer from "./ChatDrawer";
 import CreateCampaignModal from "./CampaignModal";
 import CampaignHistoryModal from "./CampaignHistoryModal";
@@ -8,109 +8,154 @@ import { useUserStore } from "@/store/useUserStore";
 import LinksModal from "./LinksModal";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
+import NotificationDropdown from "./notifications/NotificationDropdown";
+import { toast } from "sonner";
+import { useMediaQuery } from "@/hooks/use-media.query";
 
 interface NavigationDockProps {
   onCampaignCreated?: () => void;
 }
 
 export default function NavigationDock({ onCampaignCreated }: NavigationDockProps) {
+  // --- States for Modals/Drawers ---
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isNewCampaignModalOpen, setIsNewCampaignModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
-  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  
+  // --- Notification Logic ---
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
+  const { token, accountType } = useUserStore();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  const fetchCount = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setUnreadCount(data.count || 0);
+    } catch (err) {
+      console.error("Error fetching notification count:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCount();
+    const interval = setInterval(fetchCount, 60000);
+    return () => clearInterval(interval);
+  }, [token]);
+
+  const handleMarkAllRead = async () => {
+    setIsMarkingRead(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setUnreadCount(0);
+        toast.success("All notifications marked as read");
+      }
+    } catch (err) {
+      toast.error("Failed to update notifications");
+    } finally {
+      setIsMarkingRead(false);
+    }
+  };
+
+  // --- Navigation & Actions ---
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const navigate = useNavigate();
-
-  const handleChatWithCollaborator = (collaborator: any) => {
-    setSelectedPartner(collaborator); // Set the person
-    setIsLinksModalOpen(false);      // Close the list modal
-    setIsChatOpen(true);             // Open the chat drawer
-  };
-
-  const handleOpenGeneralChat = () => {
-    setSelectedPartner(null);
-    setIsChatOpen(true);
-  };
-  const FRONTEND_URL = import.meta.env.FRONTEND_URL;
-  const accountType = useUserStore((state) => state.accountType);
+  const { t } = useTranslation();
 
   const handleExplore = () => {
     const path = accountType === "creator" ? "/campaigns/search" : "/creators/search";
     navigate(path);
   };
 
-  const { t } = useTranslation();
+  const handleChatWithCollaborator = (collaborator: any) => {
+    setSelectedPartner(collaborator);
+    setIsLinksModalOpen(false);
+    setIsChatOpen(true);
+  };
 
+ const links = [
+  {
+    label: t("dock.chat"),
+    icon: <MessageCircle className="h-full w-full" />,
+    onClick: () => setIsChatOpen(true),
+    isActive: isChatOpen,
+  },
+  {
+    label: accountType === "brand" ? t("dock.findCreators") : t("dock.findCampaigns"),
+    icon: accountType === "brand" ? <User2 className="h-full w-full" /> : <Briefcase className="h-full w-full" />,
+    onClick: handleExplore,
+  },
+  {
+    label: t("dock.links"),
+    icon: <Link className="h-full w-full" />,
+    onClick: () => setIsLinksModalOpen(true),
+    isActive: isLinksModalOpen,
+  },
+  {
+    id: "notifications",
+    label: t("dock.notifications") || "Notifications",
+    icon: (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <Bell className="h-full w-full" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-destructive text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-background">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </div>
+    ),
+    onClick: () => setIsNotificationsOpen(true),
+    isActive: isNotificationsOpen,
+  },
+];
 
-
-  let actionItem = null;
-
-  if (accountType === "brand") {
-    actionItem = {
-      icon: User2,
-      label: t("dock.findCreators"),
-      onClick: handleExplore,
-    };
-  } else if (accountType === "creator") {
-    actionItem = {
-      icon: Briefcase,
-      label: t("dock.findCampaigns"),
-      onClick: handleExplore,
-    };
-  }
-
-  const links = [
-    {
-      icon: MessageCircle,
-      label: t("dock.chat"),
-      onClick: handleOpenGeneralChat,
-      isActive: isChatOpen,
-    },
-
-    ...(actionItem ? [actionItem] : []),
-
-    {
-      icon: Link,
-      label: t("dock.links"),
-      onClick: () => setIsLinksModalOpen(true),
-    },
-  ];
+const visibleLinks = isDesktop 
+  ? links.filter(link => link.id !== "notifications") 
+  : links;
 
   return (
     <>
-      <div className="flex items-center justify-center w-full">
-        <Dock items={links} />
+      <div className="fixed bottom-4 flex items-center justify-center w-full z-50">
+        <Dock items={visibleLinks} />
       </div>
 
-      <LinksModal
-        open={isLinksModalOpen}
-        onOpenChange={setIsLinksModalOpen}
-        accountType={accountType}
-        onChat={handleChatWithCollaborator}
-      />
+      {/* Modals & Drawers */}
+      <LinksModal open={isLinksModalOpen} onOpenChange={setIsLinksModalOpen} accountType={accountType} onChat={handleChatWithCollaborator} />
+      
+      <ChatDrawer isOpen={isChatOpen} onClose={() => { setIsChatOpen(false); setSelectedPartner(null); }} partner={selectedPartner} />
 
-      <ChatDrawer
-        isOpen={isChatOpen}
-        onClose={() => {
-          setIsChatOpen(false);
-          setSelectedPartner(null); // Clear on close
-        }}
-        partner={selectedPartner}
-      />
+      {/* Notifications Sheet (Merged from FAB) */}
+      <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+        <SheetContent side="bottom" className="p-0 h-fit rounded-t-[20px] border-t overflow-hidden flex flex-col [&>button]:hidden">
+          <SheetHeader className="flex flex-row items-center justify-between space-y-0">
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" className="text-xs flex gap-2" onClick={handleMarkAllRead} disabled={isMarkingRead}>
+                {isMarkingRead ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCheck className="w-4 h-4" />}
+                Mark all read
+              </Button>
+            )}
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto">
+            <NotificationDropdown setDropdownOpen={setIsNotificationsOpen} className="relative border-none shadow-none w-full" />
+          </div>
+        </SheetContent>
+      </Sheet>
 
-      <CreateCampaignModal
-        open={isNewCampaignModalOpen}
-        onOpenChange={setIsNewCampaignModalOpen}
-        onSuccess={() => {
-          if (onCampaignCreated) onCampaignCreated();
-        }}
-      />
-
-      <CampaignHistoryModal
-        open={isHistoryModalOpen}
-        onOpenChange={setIsHistoryModalOpen}
-      />
+      <CreateCampaignModal open={isNewCampaignModalOpen} onOpenChange={setIsNewCampaignModalOpen} onSuccess={() => onCampaignCreated?.()} />
+      <CampaignHistoryModal open={isHistoryModalOpen} onOpenChange={setIsHistoryModalOpen} />
     </>
   );
 }

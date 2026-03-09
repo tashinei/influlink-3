@@ -24,6 +24,7 @@ import Cookies from "./legal/Cookies";
 import { InstagramCallback } from "./components/InstagramCallback";
 import DataDeletion from "./legal/DataDeletion";
 import { NotificationFAB } from "./components/notifications/NotificationFAB";
+import GoogleCallback from "./pages/GoogleCallback";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const MainContent = () => {
   const isRegisterPage = location.pathname.startsWith("/register/");
 
   const isSearchPage = location.pathname === "/creators/search" || location.pathname === "/campaigns/search";
+  const isProfilePage = location.pathname === "/profile/me"
 
   const saveConsentToDb = async (preferences: boolean[]) => {
     const userEmail = localStorage.getItem("user_email"); // Or from your Auth context
@@ -80,11 +82,12 @@ const MainContent = () => {
         <Route path="/cookies" element={<Cookies />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
         <Route path="/instagram-callback" element={<InstagramCallback />} />
+        <Route path="/google-callback" element={<GoogleCallback />} />
 
         <Route path="/:username" element={<Profile />} />
       </Routes>
 
-      {!isRegisterPage && (
+      {!isRegisterPage && !isProfilePage && (
         <NotificationFAB 
           className={isSearchPage ? "bottom-24" : "bottom-6"} 
         />

@@ -102,7 +102,7 @@ export const EditProfileModal = ({ profile, isOpen, onClose, onSave }: EditProfi
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-background rounded-xl w-full max-w-lg p-0 flex flex-col max-h-[90vh]">
+      <DialogContent className="bg-background rounded-xl w-full max-w-lg p-0 flex flex-col max-h-[90vh] z-[5000]">
         {/* Fixed Header */}
         <DialogHeader className="px-10 pt-10 pb-4 border-b shrink-0">
           <DialogTitle className="text-2xl font-bold">{t('editProfile.title')}</DialogTitle>
@@ -131,7 +131,7 @@ export const EditProfileModal = ({ profile, isOpen, onClose, onSave }: EditProfi
                     <SelectTrigger id="niche" className="w-full">
                       <SelectValue placeholder={NICHE_PLACEHOLDER} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" !z-[10000]">
                       <SelectItem key="placeholder" value={NICHE_PLACEHOLDER} disabled>{NICHE_PLACEHOLDER}</SelectItem>
                       {nicheOptions.map(n => (
                         <SelectItem key={n.code} value={n.code}>{n.name}</SelectItem>

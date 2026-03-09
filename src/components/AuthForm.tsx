@@ -174,6 +174,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     }
   };
 
+  const handleGoogleSignIn = () => {
+    window.location.href = `${API_BASE_URL}/auth/google?role=${accountType}`;
+  };
+
   const isValidPassword = (password: string) => {
     // Allows English letters, numbers, and common symbols. 
     // Blocks Cyrillic, emojis, and other non-standard encodings.
@@ -301,6 +305,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
           <p className="font-bold text-white/80 mb-4">{t("mvpLogin.or")}</p>
           <Button
+            type="button"
+            onClick={handleGoogleSignIn}
             variant="outline"
             className="w-full max-w-sm h-11 bg-white/20 dark:text-white mx-auto flex items-center justify-center space-x-2"
           >

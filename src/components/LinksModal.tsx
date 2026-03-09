@@ -89,7 +89,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* sm:max-w-xl and h-[85vh] on mobile to ensure it feels like a native sheet */}
-      <DialogContent className="sm:max-w-xl p-6 overflow-hidden border-none bg-white shadow-2xl h-[80dvh] lg-h-[90dvh] sm:h-auto flex flex-col">
+      <DialogContent className="sm:max-w-xl p-6 overflow-hidden border-none bg-white shadow-2xl h-[80dvh] lg-h-[90dvh] sm:h-auto flex flex-col z-[50000]">
         <DialogHeader className="p-6 pb-2 shrink-0">
           <div className="flex justify-between items-center">
             <div>

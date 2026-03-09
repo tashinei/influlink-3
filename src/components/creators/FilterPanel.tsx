@@ -74,8 +74,12 @@ export const FilterPanel = ({
 
     return (
         <>
-            <aside className={`fixed lg:sticky top-0 right-0 h-full lg:h-[calc(100vh-4rem)] lg:top-8 z-[51] w-[85%] sm:w-80 lg:w-72 bg-white dark:bg-zinc-950 lg:bg-transparent border-l dark:border-zinc-800 lg:border-none lg:glass-card rounded-none lg:rounded-2xl p-6 flex flex-col transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"} shadow-2xl lg:shadow-none`}>
-                
+            <div
+                className={`fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-300 z-[5000] lg:z-[51]`}
+                onClick={onClose}
+            />
+            <aside className={`fixed lg:sticky top-0 right-0 h-full lg:h-[calc(100vh-4rem)] lg:top-8 z-[5000] lg:z-[51] w-[85%] sm:w-80 lg:w-72 bg-white dark:bg-zinc-950 lg:bg-transparent border-l dark:border-zinc-800 lg:border-none lg:glass-card rounded-none lg:rounded-2xl p-6 flex flex-col transform transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"} shadow-2xl lg:shadow-none`}>
+
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6 pb-2 border-b lg:border-none shrink-0">
                     <div className="flex items-center gap-2">
@@ -97,7 +101,7 @@ export const FilterPanel = ({
 
                 {/* Scrollable Area */}
                 <div className={`flex-1 overflow-y-auto pr-2 -mr-2 space-y-7 transition-all duration-500 ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                    
+
                     {/* Niches */}
                     <div className="space-y-3">
                         <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Niches</Label>
@@ -179,8 +183,8 @@ export const FilterPanel = ({
                                 const val = lang.toLowerCase();
                                 const isSel = filters.languages?.includes(val);
                                 return (
-                                    <button 
-                                        key={val} 
+                                    <button
+                                        key={val}
                                         onClick={() => toggleArrayFilter("languages", val)}
                                         className={`px-2 py-0.5 rounded text-[10px] border transition-colors ${isSel ? "bg-primary text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"}`}
                                     >
@@ -197,9 +201,9 @@ export const FilterPanel = ({
                             <Label className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-2"><Layers className="w-3 h-3" /> Content</Label>
                             <div className="flex flex-wrap gap-1">
                                 {contentTypes.map(c => (
-                                    <Badge 
-                                        key={c} 
-                                        variant={filters.contentTypes?.includes(c) ? "default" : "outline"} 
+                                    <Badge
+                                        key={c}
+                                        variant={filters.contentTypes?.includes(c) ? "default" : "outline"}
                                         className="text-[9px] px-1.5 py-0 cursor-pointer"
                                         onClick={() => toggleArrayFilter("contentTypes", c)}
                                     >
@@ -212,9 +216,9 @@ export const FilterPanel = ({
                             <Label className="text-[10px] font-bold text-zinc-400 uppercase flex items-center gap-2"><Handshake className="w-3 h-3" /> Collaboration</Label>
                             <div className="flex flex-wrap gap-1">
                                 {collaborationTypes.map(c => (
-                                    <Badge 
-                                        key={c} 
-                                        variant={filters.collabTypes?.includes(c) ? "default" : "outline"} 
+                                    <Badge
+                                        key={c}
+                                        variant={filters.collabTypes?.includes(c) ? "default" : "outline"}
                                         className="text-[9px] px-1.5 py-0 cursor-pointer"
                                         onClick={() => toggleArrayFilter("collabTypes", c)}
                                     >
@@ -243,7 +247,7 @@ export const FilterPanel = ({
             <CountryPickerModal
                 open={countryModalOpen}
                 onClose={() => setCountryModalOpen(false)}
-                selected={filters.country ? [{name: filters.country, code: ''}] : []}
+                selected={filters.country ? [{ name: filters.country, code: '' }] : []}
                 setSelected={(data) => {
                     const country = Array.isArray(data) ? data[0] : data;
                     if (country?.name) updateFilter("country", country.name);

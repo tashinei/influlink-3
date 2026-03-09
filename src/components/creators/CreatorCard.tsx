@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { BsFacebook, BsInstagram, BsLinkedin, BsTwitter, BsYoutube } from 'react-icons/bs';
 
 interface CreatorCardProps {
   creator: Creator;
@@ -25,13 +26,21 @@ interface CreatorCardProps {
 }
 
 const PlatformIcon = ({ platform }: { platform: string }) => {
-  switch (platform) {
+  // Normalize the string to match our cases
+  const p = platform.toLowerCase().trim();
+
+  switch (p) {
     case 'instagram':
-      return <Instagram className="w-4 h-4" />;
+      return <BsInstagram className="w-4 h-4" />;
     case 'youtube':
-      return <Youtube className="w-4 h-4" />;
+      return <BsYoutube className="w-4 h-4" />;
+    case 'facebook':
+      return <BsFacebook className="w-4 h-4" />;
+    case 'linkedin':
+      return <BsLinkedin className="w-4 h-4" />;
     case 'twitter':
-      return <Twitter className="w-4 h-4" />;
+    case 'x':
+      return <BsTwitter className="w-4 h-4" />;
     case 'tiktok':
       return (
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -39,6 +48,7 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
         </svg>
       );
     default:
+      // Return null instead of a red dot to keep the UI clean
       return null;
   }
 };
@@ -162,13 +172,12 @@ export const CreatorCard = ({ creator, index, onInvite }: CreatorCardProps) => {
 
         {/* Platforms */}
         <div className="flex items-center justify-center gap-4 mb-4">
-          {creator.platforms?.map((platform) => (
+          {creator.platforms?.map((platformName) => (
             <div
-              key={platform.name}
+              key={platformName}
               className="text-muted-foreground/60 hover:text-primary transition-colors"
-              title={`${formatFollowers(platform.followers)} on ${platform.name}`}
             >
-              <PlatformIcon platform={platform.name} />
+              <PlatformIcon platform={platformName} />
             </div>
           ))}
         </div>

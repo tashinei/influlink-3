@@ -279,7 +279,7 @@ export default function CampaignHistoryModal({ open, onOpenChange }: CampaignHis
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             {/* The h-[85vh] and overflow-hidden here are crucial to keep your buttons on screen */}
-            <DialogContent className="max-w-4xl gap-0 h-[85vh] overflow-hidden bg-white sm:rounded-[32px] border-none shadow-2xl flex flex-col p-6">
+            <DialogContent className="max-w-4xl gap-0 h-[85vh] overflow-hidden bg-white sm:rounded-[32px] border-none shadow-2xl flex flex-col p-6 z-[50000]">
                 {viewMode === "list" && renderListView()}
                 {viewMode === "details" && renderDetailsView()}
                 {viewMode === "report" && renderReportView()}

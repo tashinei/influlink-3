@@ -54,7 +54,7 @@ const Profile = () => {
   const rawIdentifier = username || identifier;
 
   useEffect(() => {
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   }, [])
 
   // Clean the identifier. 
@@ -287,6 +287,39 @@ const Profile = () => {
       instagramLinked: profile?.stats?.instagramLinked
     },
   } as ProfileData;
+
+  useEffect(() => {
+    const fromGoogle = searchParams.get("fromGoogle");
+
+    if (fromGoogle) {
+      const exchange = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/exchange-google-token`, {
+            credentials: 'include'
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+
+            const store = useUserStore.getState();
+            store.setToken(data.token);
+            store.setUser(data.user);
+
+            store.setRegistered(true);
+
+            if (data.user.account_type) {
+              store.setAccountType(data.user.account_type);
+            }
+
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (err) {
+          console.error("Token exchange failed:", err);
+        }
+      };
+      exchange();
+    }
+  }, [searchParams]);
 
   const handleSaveProfile = async (updated: Partial<ProfileData>) => {
     try {
@@ -557,7 +590,7 @@ const Profile = () => {
             {isOwner && (
               <Button
                 size="sm"
-                onClick={() => {profile.type == "creator" ? setIsAddPostOpen(true) : setIsCreateCampaignOpen(true)}}
+                onClick={() => { profile.type == "creator" ? setIsAddPostOpen(true) : setIsCreateCampaignOpen(true) }}
                 className="gap-2 rounded-full bg-gradient-to-br from-primary to-secondary hover:scale-105 transition"
               >
                 <Plus className="w-5 h-5" />

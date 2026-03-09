@@ -31,6 +31,7 @@ export const defaultFilters: FilterState = {
 import { useLocation } from "react-router-dom";
 import { InviteModal } from '@/components/campaigns/InviteModal';
 import { useUserStore } from '@/store/useUserStore';
+import { useMediaQuery } from '@/hooks/use-media.query';
 
 const SearchResults = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -43,6 +44,7 @@ const SearchResults = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const isDesktop = useMediaQuery("(min-width: 1024px)");
 
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
@@ -65,23 +67,47 @@ const SearchResults = () => {
     const [filters, setFilters] = useState<FilterState>(initialFilters);
     const [sortBy, setSortBy] = useState<SortOption>('followers');
     const [viewMode, setViewMode] = useState<ViewMode>('grid');
-    const [isFilterOpen, setIsFilterOpen] = useState(true);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-    const normalizeCreator = (c: any): Creator => ({
-        id: c.id.toString(),
-        handle: c.handle,
-        name: c.name || 'Unknown',
-        username: c.handle || '',
-        avatar: c.avatar || '/default-avatar.png',
-        bio: c.bio || '',
-        niche: c.niche || 'General',
-        location: c.location || '',
-        isVIP: c.isVip === 1,
-        followers: Number(c.followers || 0),
-        engagementRate: Number(c.engagementRate?.replace('%', '') || 0),
-        platforms: Array.isArray(c.platforms) ? c.platforms : [],
-        priceRange: c.priceRange || 'N/A',
-    });
+
+    useEffect(() => {
+        if (isDesktop) {
+            setIsFilterOpen(true);
+        }
+        else {
+            setIsFilterOpen(false);
+        }
+    }, [isDesktop])
+
+    const normalizeCreator = (c: any): Creator => {
+        let socialLinksObj: Record<string, string> = {};
+        try {
+            socialLinksObj = typeof c.social_links === 'string'
+                ? JSON.parse(c.social_links || '{}')
+                : (c.social_links || {});
+        } catch (e) {
+            socialLinksObj = {};
+        }
+
+        const activePlatforms = Object.entries(socialLinksObj)
+            .filter(([_, url]) => url && String(url).trim() !== "")
+            .map(([platform]) => platform.toLowerCase().trim());
+        return {
+            id: c.id.toString(),
+            handle: c.handle,
+            name: c.name || 'Unknown',
+            username: c.handle || '',
+            avatar: c.avatar || '/default-avatar.png',
+            bio: c.bio || '',
+            niche: c.niche || 'General',
+            location: c.location || '',
+            isVIP: c.isVip === 1,
+            followers: Number(c.followers || 0),
+            engagementRate: Number(c.engagement_rate || 0),
+            platforms: activePlatforms,
+            priceRange: c.budget_min ? `$${c.budget_min}+` : 'N/A',
+        };
+    };
 
     useEffect(() => {
         console.log("Applied filters:", filters);
@@ -297,12 +323,12 @@ const SearchResults = () => {
                 <div className="fixed bottom-6 right-6 lg:hidden z-40">
                     <Button
                         onClick={() => setIsFilterOpen(true)}
-                        className="rounded-full h-14 w-14 shadow-2xl p-0"
+                        className="rounded-full h-14 w-14 shadow-2xl p-0 bg-gradient-to-tl from-primary via-secondary to-tertiary"
                     >
                         <div className="relative">
-                            <Filter className="!w-8 !h-8" />
+                            <Filter className="!w-6 !h-6" />
                             {activeFilterCount > 0 && (
-                                <span className="absolute -top-2 -right-2 bg-destructive text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
+                                <span className="absolute -top-2 -right-2 to-tertiary text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
                                     {activeFilterCount}
                                 </span>
                             )}

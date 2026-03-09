@@ -56,7 +56,8 @@ export default function RegisterSelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col h-fit p-10 pb-16 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white">
+      <DialogContent className="flex flex-col h-fit p-10 pb-16 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white 
+      z-[5000]">
 
         {/* Decorative background elements - hidden on extra small screens for performance */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-50 sm:opacity-100">
@@ -64,7 +65,7 @@ export default function RegisterSelectionDialog({
           <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-primary-foreground/5 blur-3xl" />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-center flex-1 py-4 pt-10 pr-8 pl-8 pb-8 w-full">
+        <div className="relative flex flex-col justify-center flex-1 py-4 pt-10 pr-8 pl-8 pb-8 w-full z-[5000]">
           <DialogHeader className="space-y-2 sm:space-y-3 text-center">
             <DialogTitle className="text-2xl sm:text-4xl font-bold tracking-tight text-primary-foreground">
               {t("joinDialog.title")}

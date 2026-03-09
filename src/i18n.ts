@@ -337,7 +337,8 @@ export const translations = {
       chat: "Чат",
       links: "Връзки",
       findCreators:"Търсене",
-      findCampaigns:"Търсене"
+      findCampaigns:"Търсене",
+      notifications:"Известия"
     },
 
     joinDialog: {
@@ -1599,7 +1600,8 @@ export const translations = {
       chat: "Chat",
       links: "Links",
       findCreators:"Explore",
-      findCampaigns:"Explore"
+      findCampaigns:"Explore",
+      notifications:"Notifications"
     },
 
     deleteCampaign: {

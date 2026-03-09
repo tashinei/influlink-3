@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { X, Filter, RotateCcw, EyeIcon, EyeOff } from "lucide-react";
 import { useCreatorNiches } from "@/data/mockCreators";
+import { useMediaQuery } from "@/hooks/use-media.query";
 
 /* ------------------ SHARED DATA (Synced with Search Section) ------------------ */
 const platforms = ["Instagram", "TikTok", "YouTube", "X"];
@@ -67,27 +68,30 @@ export const CampaignFilterPanel = ({
     updateFilter(key, updated);
   };
 
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
   if (!isOpen) return null;
 
   return (
     <>
       {/* Mobile Overlay */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] lg:hidden animate-in fade-in duration-300"
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-300 z-[5000] lg:z-[51]`}
         onClick={onClose}
       />
 
       <aside
         className={`
-          fixed lg:sticky top-0 right-0 h-full lg:h-[calc(100vh-4rem)] lg:top-8 z-[51]
+          fixed lg:sticky top-0 right-0 h-full lg:h-[calc(100vh-4rem)] lg:top-8
           w-[85%] sm:w-80 lg:w-72
           bg-white dark:bg-zinc-950 lg:bg-transparent
           border-l dark:border-zinc-800 lg:border-none
           lg:glass-card rounded-none lg:rounded-2xl p-6
-          flex flex-col
+          flex flex-col 
           transform transition-transform duration-300 ease-out
           ${isOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}
           shadow-2xl lg:shadow-none
+          !z-[5000] lg:z-[51]
         `}
       >
         {/* Header */}

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import staticBgImage from '../assets/registerBackLatest4.jpg';
 import { MeshGradient } from '@paper-design/shaders-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '@/store/useUserStore';
 import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
@@ -106,33 +106,112 @@ const RegisterBrand = () => {
     const handleFinalSubmit = async () => {
         setIsSubmitting(true);
         setError(null);
+
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+            const token = useUserStore.getState().token;
+            const isGoogleAuth = !!token;
+
+            const payload = {
+                ...formData,
+                accountType: 'brand'
+            };
+
+            // 3. API Request
             const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(isGoogleAuth && { 'Authorization': `Bearer ${token}` })
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload),
             });
+
             const data = await response.json();
-            if (!response.ok) throw new Error(data.message || "Registration failed.");
+
+            if (!response.ok) {
+                if (response.status === 409) {
+                    setStep(2);
+                    throw new Error(data.message || "This brand handle is already taken.");
+                }
+                throw new Error(data.message || "Registration failed.");
+            }
 
             setUser({
                 id: data.user.id,
                 email: data.user.email,
-                username: data.user.handle,
-                accountType: 'brand',
-                isVIP: false
+                username: data.user.username || data.user.handle,
+                profileImage: data.user.profileImage || '',
+                isVIP: data.user.isVIP || false,
+                accountType: 'brand'
             });
-            setToken(data.token || null);
+
+            if (data.token) setToken(data.token);
+
             setRegistered(true);
             setAccountType("brand");
+
+            // 6. Cleanup
+            sessionStorage.removeItem('registration_draft');
             navigate('/profile/me');
+
         } catch (err: any) {
-            setError(err.message);
+            console.error("Brand Final Submission Error:", err);
+            setError(err.message || "An unexpected error occurred.");
         } finally {
             setIsSubmitting(false);
         }
     };
+
+    
+    const [searchParams] = useSearchParams();
+
+    useEffect(() => {
+        const fromGoogle = searchParams.get("fromGoogle");
+        const token = searchParams.get('token');
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+        if (fromGoogle) {
+            const handleGoogleExchange = async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/auth/exchange-google-token`, {
+                        credentials: 'include'
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        setToken(data.token);
+                        setUser(data.user);
+                        setAccountType('brand');
+                        setFormData(prev => ({
+                            ...prev,
+                            email: data.user.email,
+                            name: data.user.name || ''
+                        }));
+                        setStep(2);
+                        window.history.replaceState({}, document.title, window.location.pathname + "?isGoogleAuth=true");
+                    } else {
+                        navigate('/register/creator?error=session_expired');
+                    }
+                } catch (err) {
+                    setError("Google sync failed. Please try again.");
+                }
+            };
+            handleGoogleExchange();
+        } else if (token && searchParams.get('isGoogleAuth') === 'true') {
+            setToken(token);
+            setAccountType('brand');
+            setFormData(prev => ({
+                ...prev,
+                email: searchParams.get('email') || prev.email,
+                name: searchParams.get('name') || prev.name,
+            }));
+            setStep(2);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, [searchParams]);
 
     const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
     const renderStepContent = () => {
@@ -200,7 +279,7 @@ const RegisterBrand = () => {
                                     >
                                         <option value="" className="bg-gray-900 text-white/50">{t("mvpRegisterBrand.selectYourIndustry")}...</option>
                                         {BRAND_INDUSTRIES.map((niche) => (
-                                            <option key={niche} value={niche.toLowerCase()} className="bg-gray-900">
+                                            <option key={niche} value={niche} className="bg-gray-900">
                                                 {niche}
                                             </option>
                                         ))}
@@ -248,6 +327,29 @@ const RegisterBrand = () => {
                 );
         }
     };
+
+    useEffect(() => {
+        const token = searchParams.get('token');
+        const email = searchParams.get('email');
+        const name = searchParams.get('name');
+        const isGoogleAuth = searchParams.get('isGoogleAuth');
+
+        if (token && isGoogleAuth === 'true') {
+            setToken(token);
+            setAccountType('brand');
+
+            setFormData(prev => ({
+                ...prev,
+                email: email || prev.email,
+                name: name || prev.name,
+            }));
+
+            setStep(2);
+
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }, [searchParams, setToken, setAccountType]);
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center lg:justify-end overflow-hidden bg-black font-sans">

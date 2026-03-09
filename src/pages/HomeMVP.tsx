@@ -14,6 +14,8 @@ import { CampaignData, CampaignFilterState } from "@/types/campaigns";
 import CampaignSearchSection from "@/components/home/CampaignSearchSection";
 import RegisterSelectionDialog from "@/components/RegisterSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
+import CTASection from "@/components/CTASection";
+import { useMediaQuery } from "@/hooks/use-media.query";
 
 const HomeMVP = () => {
   const searchSectionRef = useRef<HTMLDivElement>(null);
@@ -23,7 +25,7 @@ const HomeMVP = () => {
   const isBrand = useUserStore((state) => state.accountType) === "brand";
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const isRegistered = useUserStore((state) => state.isRegistered);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -82,6 +84,8 @@ const HomeMVP = () => {
     console.log("Brand account: ", isBrand);
   }, [isBrand])
 
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
   return (
     <main className="min-h-screen">
       <HeroSection
@@ -115,13 +119,13 @@ const HomeMVP = () => {
       <div className="bg-muted/30">
         <FeatureSection
           title={t("mvpFeaturesSection.secondTitle")}
-        description={t("mvpFeaturesSection.secondSubtitle")}
-        features={[
-          t("mvpFeaturesSection.secondBenefit1"),
-          t("mvpFeaturesSection.secondBenefit2"),
-          t("mvpFeaturesSection.secondBenefit3"),
-          t("mvpFeaturesSection.secondBenefit4"),
-        ]}
+          description={t("mvpFeaturesSection.secondSubtitle")}
+          features={[
+            t("mvpFeaturesSection.secondBenefit1"),
+            t("mvpFeaturesSection.secondBenefit2"),
+            t("mvpFeaturesSection.secondBenefit3"),
+            t("mvpFeaturesSection.secondBenefit4"),
+          ]}
           icon={MessageSquare}
           imagePosition="left"
           gradient="from-primary to-secondary/60"
@@ -147,24 +151,30 @@ const HomeMVP = () => {
       <div className="bg-muted/30">
         <FeatureSection
           title={t("mvpFeaturesSection.fourthTitle")}
-        description={t("mvpFeaturesSection.fourthSubtitle")}
-        features={[
-          t("mvpFeaturesSection.fourthBenefit1"),
-          t("mvpFeaturesSection.fourthBenefit2"),
-          t("mvpFeaturesSection.fourthBenefit3"),
-          t("mvpFeaturesSection.fourthBenefit4"),
-        ]}
+          description={t("mvpFeaturesSection.fourthSubtitle")}
+          features={[
+            t("mvpFeaturesSection.fourthBenefit1"),
+            t("mvpFeaturesSection.fourthBenefit2"),
+            t("mvpFeaturesSection.fourthBenefit3"),
+            t("mvpFeaturesSection.fourthBenefit4"),
+          ]}
           icon={BarChart3}
           imagePosition="left"
           gradient="from-primary to-secondary/60"
           imageSrc={lastSection}
         />
       </div>
+      <div className="h-20" />
+
+      <CTASection handleClickCta={handleJoinClick} />
 
       <RegisterSelectionDialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
 
       {/* Footer spacing */}
-      <div className="h-20" />
+      {isDesktop && (
+        <div className="h-20" />
+      )}
+
     </main>
   );
 };

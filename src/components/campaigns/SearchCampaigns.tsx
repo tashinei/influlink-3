@@ -200,12 +200,12 @@ const SearchCampaigns = () => {
           <div className="fixed bottom-6 right-6 lg:hidden z-40">
             <Button
               onClick={() => setIsFilterOpen(true)}
-              className="rounded-full h-14 w-14 shadow-2xl p-0"
+              className="rounded-full h-14 w-14 shadow-2xl p-0 bg-gradient-to-tl from-primary via-secondary to-tertiary"
             >
               <div className="relative">
-                <Filter className="w-6 h-6" />
+                <Filter className="!w-6 !h-6" />
                 {activeFilterCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-destructive text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
+                  <span className="absolute -top-2 -right-2 to-tertiary text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
                     {activeFilterCount}
                   </span>
                 )}

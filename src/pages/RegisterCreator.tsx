@@ -150,29 +150,45 @@ const RegisterCreator = () => {
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+            const token = useUserStore.getState().token;
+            const isGoogleAuth = !!token;
+
+            const payload = {
+                ...formData,
+                accountType: 'creator'
+            };
+
             const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // Important for cookies/sessions
-                body: JSON.stringify(formData),
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(isGoogleAuth && { 'Authorization': `Bearer ${token}` })
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Registration failed at the final step.");
+                if (response.status === 409) {
+                    setStep(2);
+                    throw new Error(data.message || "This handle is already taken.");
+                }
+                throw new Error(data.message || "Registration failed.");
             }
 
             setUser({
                 id: data.user.id,
                 email: data.user.email,
-                username: data.user.handle || data.user.username, // Using handle as username
+                username: data.user.username || data.user.handle,
                 profileImage: data.user.profileImage || '',
                 isVIP: data.user.isVIP || false,
                 accountType: data.user.accountType
             });
 
-            setToken(data.token || null);
+            if (data.token) setToken(data.token);
+
             setRegistered(true);
             setAccountType(data.user.accountType as "creator" | "brand");
 
@@ -186,6 +202,69 @@ const RegisterCreator = () => {
             setIsSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        const fromGoogle = searchParams.get("fromGoogle");
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+        if (fromGoogle) {
+            const handleGoogleExchange = async () => {
+                try {
+                    const res = await fetch(`${API_BASE_URL}/auth/exchange-google-token`, {
+                        credentials: 'include'
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+
+                        setToken(data.token);
+                        setUser(data.user);
+                        setAccountType('creator');
+
+                        setFormData(prev => ({
+                            ...prev,
+                            email: data.user.email,
+                            name: data.user.name
+                        }));
+
+                        setStep(2);
+
+                        const cleanUrl = window.location.pathname + "?isGoogleAuth=true";
+                        window.history.replaceState({}, document.title, cleanUrl);
+                    } else {
+                        navigate('/register/creator?error=session_expired');
+                    }
+                } catch (err) {
+                    console.error("Exchange error:", err);
+                    setError("Google sync failed. Please try again.");
+                }
+            };
+            handleGoogleExchange();
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        const token = searchParams.get('token');
+        const email = searchParams.get('email');
+        const name = searchParams.get('name');
+        const isGoogleAuth = searchParams.get('isGoogleAuth');
+
+        if (token && isGoogleAuth === 'true') {
+            setToken(token);
+            setAccountType('creator');
+
+            setFormData(prev => ({
+                ...prev,
+                email: email || prev.email,
+                name: name || prev.name,
+            }));
+
+            setStep(2);
+
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }, [searchParams, setToken, setAccountType]);
 
     const [agreed, setAgreed] = useState(false);
 
@@ -298,7 +377,7 @@ const RegisterCreator = () => {
                                     >
                                         <option value="" className="bg-gray-900 text-white/50">Select your specialty...</option>
                                         {creatorNiches.map((niche) => (
-                                            <option key={niche} value={niche.toLowerCase()} className="bg-gray-900">
+                                            <option key={niche} value={niche} className="bg-gray-900">
                                                 {niche}
                                             </option>
                                         ))}

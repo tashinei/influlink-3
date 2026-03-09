@@ -600,7 +600,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
       <DialogContent
         className={cn(
           "flex flex-col p-7 lg-p-12 gap-0 overflow-hidden",
-          "w-full h-[80dvh] lg-h-[90dvh] sm:h-auto sm:max-h-[95vh] sm:w-[95vw] lg:max-w-[60vw]"
+          "w-full h-[80dvh] lg-h-[90dvh] sm:h-auto sm:max-h-[95vh] sm:w-[95vw] lg:max-w-[60vw] z-[50000]"
         )}
       >
         {/* Header - Fixed at Top */}

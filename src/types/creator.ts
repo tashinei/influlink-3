@@ -7,7 +7,7 @@ export interface Creator {
   bio: string;
 
   niche: string[];              // ⬅ multiple niches
-  platforms: Platform[];
+  platforms: string[];
 
   followers: number;
   engagementRate: number;

@@ -157,7 +157,7 @@ export const PostPreviewModal = ({
           className={cn(
             "p-6 border-none gap-0 overflow-hidden flex flex-col",
             "w-full h-[80dvh] lg:h-[90dvh] sm:max-w-3xl sm:rounded-[32px] z-[50]",
-            "[&>button]:hidden"
+            "[&>button]:hidden !z-[50000]"
           )}
         >
           {/* Header */}
@@ -242,7 +242,7 @@ export const PostPreviewModal = ({
 
       {/* DELETE CONFIRMATION (Rendered as Sibling to avoid focus traps) */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="z-[100] sm:max-w-[400px] p-0 overflow-hidden rounded-[24px]">
+        <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden rounded-[24px] ">
           <div className="p-8 text-center">
             <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-red-600" />

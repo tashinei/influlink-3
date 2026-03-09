@@ -73,7 +73,7 @@ export function NotificationFAB({ className }: NotificationFABProps) {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="h-14 w-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90 flex items-center justify-center p-0"
+            className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-br from-primary via-secondary to-tertiary hover:bg-primary/90 flex items-center justify-center p-0"
           >
             <div className="relative">
               <Bell className="!w-6 !h-6 text-primary-foreground" />

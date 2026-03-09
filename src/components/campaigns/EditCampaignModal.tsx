@@ -128,7 +128,7 @@ export const EditCampaignModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[95vh] w-[95vw] max-w-4xl overflow-hidden p-16">
+      <DialogContent className="max-h-[95vh] w-[95vw] max-w-4xl overflow-hidden p-16 z-[50000]">
         <DialogHeader>
           <DialogTitle>Edit Campaign</DialogTitle>
         </DialogHeader>
