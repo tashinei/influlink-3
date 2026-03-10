@@ -6,6 +6,7 @@ import { BsGoogle } from 'react-icons/bs';
 import { Mail, Lock, User, Briefcase, CheckCircle2, Earth } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useMediaQuery } from '@/hooks/use-media.query';
 
 interface AuthFormProps {
   accountType: 'creator' | 'brand';
@@ -180,12 +181,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
 
   const isValidPassword = (password: string) => {
     // Allows English letters, numbers, and common symbols. 
-    // Blocks Cyrillic, emojis, and other non-standard encodings.
     const asciiRegex = /^[\x20-\x7E]*$/;
     return asciiRegex.test(password);
   };
 
   const [langOpen, setLangOpen] = useState(false);
+
+  const isLarge = useMediaQuery("(min-width: 1024px)");
 
   type LanguageCode = 'en' | 'bg';
 
@@ -233,16 +235,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           )}
         </div>
       </div>
-      <div className="w-full max-w-[36rem] lg:p-6 bg-transparent dark:bg-background flex flex-col justify-center h-full">
-        <div className="flex items-center mb-6">
+      <div className="w-full max-w-[36rem] p-6 lg:p-6 lg:pb-0 lg:pt-0 2xl:pt-6 bg-transparent dark:bg-background flex flex-col justify-center h-full lg:h-fit 2xl:h-full">
+        <div className="flex items-center mb-6 lg:mb-4 2xl:mb-6">
           <Link to="/" className="flex items-center space-x-2 text-[22px] font-bold text-white dark:text-white">
             <span>InfluLink</span>
           </Link>
         </div>
 
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-white dark:text-white">{title}</h2>
-          <p className="text-lg text-white/80 dark:text-gray-400 mt-2">{description}</p>
+        <div className={`mb-8 lg:mb-6 2xl:mb-8 ${mode === "login" && isLarge ? "pt-8" : null}`}>
+          <h2 className="text-4xl lg:text-3xl 2xl:text-4xl font-bold text-white dark:text-white">{title}</h2>
+          <p className="text-lg lg:text-md 2xl:text-lg text-white/80 dark:text-gray-400 mt-2">{description}</p>
         </div>
 
         {error && <p className="text-red-400 mb-3 text-center">{error}</p>}
@@ -302,7 +304,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+        <div className="mt-8 lg:mt-6 2xl:mt-8 pt-6 lg:pt-2 2xl:pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
           <p className="font-bold text-white/80 mb-4">{t("mvpLogin.or")}</p>
           <Button
             type="button"
@@ -315,7 +317,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           </Button>
         </div>
 
-        <div className="mt-8 text-center text-sm text-white/80 dark:text-gray-400">
+        <div className="mt-8 lg:mt-4 2xl:mt-8 text-center text-sm text-white/80 dark:text-gray-400">
           {mode === 'register' ? t("mvpLogin.alreadyAccount") : t("mvpLogin.noAccount")}
           <button
             onClick={() => {

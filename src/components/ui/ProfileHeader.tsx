@@ -1,4 +1,18 @@
-import { MapPin, LinkIcon, Instagram, Twitter, Youtube, CheckCircle2, MoreHorizontal, Camera, UserCog, LogOut, Trash2, Facebook, Linkedin } from "lucide-react";
+import {
+  MapPin,
+  LinkIcon,
+  Instagram,
+  Twitter,
+  Youtube,
+  CheckCircle2,
+  MoreHorizontal,
+  Camera,
+  UserCog,
+  LogOut,
+  Trash2,
+  Facebook,
+  Linkedin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,9 +21,22 @@ import { useState } from "react";
 import { Info } from "lucide-react";
 
 // --- NEW IMPORTS for Dropdown Menu ---
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter, DialogHeader } from "./dialog";
-import { } from "./dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+} from "./dialog";
+import {} from "./dialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { BsFacebook, BsInstagram, BsLinkedin, BsYoutube } from "react-icons/bs";
 import { useUserStore } from "@/store/useUserStore";
@@ -26,11 +53,19 @@ interface ProfileHeaderProps {
   onLogout: () => void;
 }
 
-export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangeProfilePic, onEditProfile, onLogout, isInstagramLinked }: ProfileHeaderProps) => {
+export const ProfileHeader = ({
+  profile,
+  isFollowing,
+  onToggleFollow,
+  onChangeProfilePic,
+  onEditProfile,
+  onLogout,
+  isInstagramLinked,
+}: ProfileHeaderProps) => {
   const getInitials = (name: string) => {
     return name
       .split(" ")
-      .map(n => n[0])
+      .map((n) => n[0])
       .join("")
       .toUpperCase();
   };
@@ -69,8 +104,11 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
 
   const onConnectInstagram = () => {
     const clientID = "1829769444346525";
-    const redirectUri = encodeURIComponent("https://mvp.influ-link.com/instagram-callback");
-    const scope = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
+    const redirectUri = encodeURIComponent(
+      "https://mvp.influ-link.com/instagram-callback",
+    );
+    const scope =
+      "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
 
     // Construct the Meta Login URL
     const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
@@ -93,7 +131,7 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -128,16 +166,30 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
           <div className="relative group">
             <div className="h-44 w-44 md:h-52 md:w-52 rounded-[2rem] p-1.5 bg-background shadow-xl transition-transform group-hover:rotate-3">
               <Avatar className="h-full w-full rounded-[1.7rem]">
-                <AvatarImage src={`${API_BASE}${profile.avatar}`} alt={profile.name} style={{ objectFit: "cover" }} />
-                <AvatarFallback className="rounded-[1.7rem] text-2xl">{getInitials(profile.name)}</AvatarFallback>
+                <AvatarImage
+                  src={`${API_BASE}${profile.avatar}`}
+                  alt={profile.name}
+                  style={{ objectFit: "cover" }}
+                />
+                <AvatarFallback className="rounded-[1.7rem] text-2xl">
+                  {getInitials(profile.name)}
+                </AvatarFallback>
               </Avatar>
             </div>
-            <span className="absolute bottom-4 right-2 w-4 h-4 bg-green-500 border-2 border-background rounded-full" aria-label="Online" />
+            <span
+              className="absolute bottom-4 right-2 w-4 h-4 bg-green-500 border-2 border-background rounded-full"
+              aria-label="Online"
+            />
 
             {isOwner && (
               <label className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-background/80 p-1 rounded-full cursor-pointer hover:bg-background/90 transition-colors">
                 <Camera className="w-5 h-5 text-primary" />
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
               </label>
             )}
           </div>
@@ -146,28 +198,40 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1 md:mt-8">
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">{profile.name}</h1>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                    {profile.name}
+                  </h1>
                   {profile.verified && (
-                    <CheckCircle2 className="w-6 h-6 text-primary fill-[white]" aria-label="Approved" />
+                    <CheckCircle2
+                      className="w-6 h-6 text-primary fill-[white]"
+                      aria-label="Approved"
+                    />
                   )}
-                  <Badge variant="secondary" className="bg-gradient-to-br from-primary to-secondary text-primary-foreground ml-2 py-1 md:py-2">
-                    {profile.type === "creator" ? t("mvpNotifications.creator") : t("mvpNotifications.brand")}
+                  <Badge
+                    variant="secondary"
+                    className="bg-gradient-to-br from-primary to-secondary text-primary-foreground ml-2 py-1 md:py-2"
+                  >
+                    {profile.type === "creator"
+                      ? t("mvpNotifications.creator")
+                      : t("mvpNotifications.brand")}
                   </Badge>
                 </div>
-                <p className="text-muted-foreground font-medium mb-2">{profile.niche}</p>
+                <p className="text-muted-foreground font-medium mb-2">
+                  {profile.niche}
+                </p>
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" aria-hidden="true" />
                     {profile.location}
                   </div>
                   <a
-                    href={`/${profile.handle.replace('@', '')}`}
+                    href={`/${profile.handle.replace("@", "")}`}
                     className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     <LinkIcon className="w-4 h-4" aria-hidden="true" />
-                    influ-link.com/{profile.handle.replace('@', '')}
+                    influ-link.com/{profile.handle.replace("@", "")}
                   </a>
                 </div>
               </div>
@@ -178,13 +242,21 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                   {!isOwner ? (
                     <>
                       <Button
-                        className={`flex-1 md:flex-none rounded-full px-6 ${isFollowing ? "bg-muted text-foreground" : "bg-gradient-to-br from-secondary to-primary text-white"
-                          }`}
+                        className={`flex-1 md:flex-none rounded-full px-6 ${
+                          isFollowing
+                            ? "bg-muted text-foreground"
+                            : "bg-gradient-to-br from-secondary to-primary text-white"
+                        }`}
                         onClick={onToggleFollow}
                       >
-                        {isFollowing ? t("profile.following") : t("profile.follow")}
+                        {isFollowing
+                          ? t("profile.following")
+                          : t("profile.follow")}
                       </Button>
-                      <Button variant="outline" className="flex-1 md:flex-none rounded-full px-6">
+                      <Button
+                        variant="outline"
+                        className="flex-1 md:flex-none rounded-full px-6"
+                      >
                         {t("profile.getInTouch")}
                       </Button>
                     </>
@@ -202,7 +274,9 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                           ) : (
                             <>
                               <BsInstagram className="w-4 h-4 mr-2" />
-                              <span className="truncate">{t("profile.disconnectInstagram")}</span>
+                              <span className="truncate">
+                                {t("profile.disconnectInstagram")}
+                              </span>
                             </>
                           )}
                         </Button>
@@ -213,7 +287,9 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                           onClick={onConnectInstagram}
                         >
                           <BsInstagram className="w-4 h-4 mr-2" />
-                          <span className="truncate">{t("profile.connectInstagram")}</span>
+                          <span className="truncate">
+                            {t("profile.connectInstagram")}
+                          </span>
                         </Button>
                       )}
 
@@ -223,24 +299,46 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                         onClick={onEditProfile}
                       >
                         <UserCog className="w-4 h-4 mr-2" />
-                        <span className="truncate">{t("profile.editProfile")}</span>
+                        <span className="truncate">
+                          {t("profile.editProfile")}
+                        </span>
                       </Button>
 
                       {/* Desktop Only: Dropdown Menu */}
                       <div className="hidden md:block">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full h-11 w-11">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="rounded-full h-11 w-11"
+                            >
                               <MoreHorizontal className="w-5 h-5" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.href)}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigator.clipboard.writeText(
+                                  window.location.href,
+                                )
+                              }
+                            >
                               <LinkIcon className="mr-2 h-4 w-4" />
                               <span>{t("profile.shareProfile")}</span>
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={null}
+                              className="bg-gradient-to-tr from-[#FFD600] via-[#FF0069] to-[#7638FA] bg-clip-text text-transparent flex items-center"
+                            >
+                              <BsInstagram className="mr-2 h-4 w-4 text-[#FF0069]" />
+                              <span>{t("profile.howConnectInstagram")}</span>
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleLogoutClick} className="text-red-600">
+                            <DropdownMenuItem
+                              onClick={handleLogoutClick}
+                              className="text-red-600"
+                            >
                               <LogOut className="mr-2 h-4 w-4" />
                               <span>{t("profile.logout")}</span>
                             </DropdownMenuItem>
@@ -257,7 +355,9 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                     <Button
                       variant="outline"
                       className="flex-1 rounded-xl h-10 text-xs font-semibold border-slate-200"
-                      onClick={() => navigator.clipboard.writeText(window.location.href)}
+                      onClick={() =>
+                        navigator.clipboard.writeText(window.location.href)
+                      }
                     >
                       <LinkIcon className="w-3.5 h-3.5 mr-2 text-slate-500" />
                       {t("profile.shareProfile")}
@@ -279,55 +379,81 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             {/* Bio & Stats */}
             <div className="flex flex-col md:flex-row gap-8 justify-between border-t border-border pt-6 items-center lg:items-start">
               <div className="max-w-xl">
-                <p className="text-muted-foreground leading-relaxed">{profile.bio}</p>
-                <div className="flex gap-4 mt-4" role="list" aria-label="Social media links">
-                  {profile.socialLinks && Object.entries(profile.socialLinks).map(([platform, url]) => {
-                    // Only render if url exists and is not an empty string
-                    if (!url || typeof url !== 'string' || url.trim() === "") return null;
+                <p className="text-muted-foreground leading-relaxed">
+                  {profile.bio}
+                </p>
+                <div
+                  className="flex gap-4 mt-4"
+                  role="list"
+                  aria-label="Social media links"
+                >
+                  {profile.socialLinks &&
+                    Object.entries(profile.socialLinks).map(
+                      ([platform, url]) => {
+                        // Only render if url exists and is not an empty string
+                        if (
+                          !url ||
+                          typeof url !== "string" ||
+                          url.trim() === ""
+                        )
+                          return null;
 
-                    const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
+                        const formattedUrl = url.startsWith("http")
+                          ? url
+                          : `https://${url}`;
 
-                    // Define icon and color mapping
-                    const platformConfig: Record<string, { icon: JSX.Element; color: string }> = {
-                      instagram: {
-                        icon: <BsInstagram className="w-5 h-5" />,
-                        color: "text-pink-600"
-                      },
-                      x: {
-                        icon: <i className="fa-brands fa-x-twitter text-lg"></i>,
-                        color: "text-foreground"
-                      },
-                      youtube: {
-                        icon: <BsYoutube className="w-5 h-5" />,
-                        color: "text-red-600"
-                      },
-                      facebook: {
-                        icon: <BsFacebook className="w-5 h-5" />,
-                        color: "text-blue-600"
-                      },
-                      linkedin: {
-                        icon: <BsLinkedin className="w-5 h-5" />,
-                        color: "text-blue-700"
-                      },
-                    };
+                        // Define icon and color mapping
+                        const platformConfig: Record<
+                          string,
+                          { icon: JSX.Element; color: string }
+                        > = {
+                          instagram: {
+                            icon: <BsInstagram className="w-5 h-5" />,
+                            color: "text-pink-600",
+                          },
+                          x: {
+                            icon: (
+                              <i className="fa-brands fa-x-twitter text-lg"></i>
+                            ),
+                            color: "text-foreground",
+                          },
+                          youtube: {
+                            icon: <BsYoutube className="w-5 h-5" />,
+                            color: "text-red-600",
+                          },
+                          facebook: {
+                            icon: <BsFacebook className="w-5 h-5" />,
+                            color: "text-blue-600",
+                          },
+                          linkedin: {
+                            icon: <BsLinkedin className="w-5 h-5" />,
+                            color: "text-blue-700",
+                          },
+                        };
 
-                    const config = platformConfig[platform.toLowerCase()];
-                    console.log("Platform:", platform, "Config found:", !!config);
-                    if (!config) return null;
-                  
-                    return (
-                      <a
-                        key={platform}
-                        href={formattedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform flex items-center justify-center ${config.color}`}
-                        aria-label={platform}
-                      >
-                        {config.icon}
-                      </a>
-                    );
-                  })}
+                        const config = platformConfig[platform.toLowerCase()];
+                        console.log(
+                          "Platform:",
+                          platform,
+                          "Config found:",
+                          !!config,
+                        );
+                        if (!config) return null;
+
+                        return (
+                          <a
+                            key={platform}
+                            href={formattedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`p-2 bg-background rounded-full shadow-sm border hover:scale-110 transition-transform flex items-center justify-center ${config.color}`}
+                            aria-label={platform}
+                          >
+                            {config.icon}
+                          </a>
+                        );
+                      },
+                    )}
                 </div>
               </div>
 
@@ -336,15 +462,25 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
                   <p className="text-2xl font-bold text-foreground">
                     {Number(profile.stats.followers).toLocaleString()}
                   </p>
-                  <p className="text-sm text-muted-foreground">{t("profile.followers")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("profile.followers")}
+                  </p>
                 </div>
                 <div className="text-center md:text-left">
-                  <p className="text-2xl font-bold text-foreground">{profile.stats.engagementRate}</p>
-                  <p className="text-sm text-muted-foreground">{t("profile.engRate")}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {profile.stats.engagementRate}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("profile.engRate")}
+                  </p>
                 </div>
                 <div className="text-center md:text-left">
-                  <p className="text-2xl font-bold text-foreground">{profile.stats.totalReach}</p>
-                  <p className="text-sm text-muted-foreground">{t("profile.reach")}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {profile.stats.totalReach}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("profile.reach")}
+                  </p>
                 </div>
               </div>
             </div>
@@ -353,30 +489,31 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
       </div>
 
       <Dialog open={isLogoutModalOpen} onOpenChange={setIsLogoutModalOpen}>
-        <DialogContent
-          className="sm:max-w-[30vw] lg:max-w-[30vw] 2xl:max-w-[20vw] !h-fit p-6 pl-8 pr-8 rounded-xl shadow-xl overflow-hidden flex flex-col gap-0"
-        >
-
+        <DialogContent className="sm:max-w-[30vw] lg:max-w-[30vw] 2xl:max-w-[20vw] !h-fit p-6 pl-8 pr-8 rounded-xl shadow-xl overflow-hidden flex flex-col gap-0">
           {/* HEADER */}
           <DialogHeader className="text-left space-y-4 p-0 min-h-0 mt-6">
-
-            <div className="flex flex-row gap-8 align-middle justify-start" style={{ alignItems: "center" }}>
+            <div
+              className="flex flex-row gap-8 align-middle justify-start"
+              style={{ alignItems: "center" }}
+            >
               <DialogTitle className="text-xl font-semibold w-[90%]">
                 {t("profile.confirmLogout")}
               </DialogTitle>
             </div>
 
-
             <DialogDescription className="text-sm text-muted-foreground max-w-sm">
               {t("profile.sureLogout")}
             </DialogDescription>
             <div className="rounded-md bg-transparent px-2 py-1 text-sm text-[gray] flex items-start justify-start gap-2 pl-0 !mb-[20px]">
-              <span><Info></Info></span>
+              <span>
+                <Info></Info>
+              </span>
               {t("profile.redirectHome")}
             </div>
           </DialogHeader>
 
-          <DialogFooter className="mt-2
+          <DialogFooter
+            className="mt-2
             p-0
             flex
             flex-row
@@ -385,7 +522,8 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
             gap-2
             min-h-0
             m-0
-            pb-4">
+            pb-4"
+          >
             <Button
               variant="outline"
               className="w-full sm:w-auto bg-gradient-to-br from-primary to-secondary text-[white]"
@@ -403,7 +541,6 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
               {t("profile.logOut")}
             </Button>
           </DialogFooter>
-
         </DialogContent>
       </Dialog>
       <Dialog open={isUnlinkModalOpen} onOpenChange={setIsUnlinkModalOpen}>
@@ -413,7 +550,8 @@ export const ProfileHeader = ({ profile, isFollowing, onToggleFollow, onChangePr
               {t("profile.disconnectInstagramTitle") || "Disconnect Instagram?"}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-              {t("profile.confirmUnlink") || "Are you sure you want to disconnect your Instagram account? Your synced statistics and engagement data will be removed from your profile."}
+              {t("profile.confirmUnlink") ||
+                "Are you sure you want to disconnect your Instagram account? Your synced statistics and engagement data will be removed from your profile."}
             </DialogDescription>
           </DialogHeader>
 

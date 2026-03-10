@@ -2,6 +2,7 @@
 
 body {
   font-family: 'Rubik', sans-serif;
+  max-height: 100dvh
 }
 
 @tailwind base;

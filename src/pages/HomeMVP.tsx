@@ -87,7 +87,7 @@ const HomeMVP = () => {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-[100dvh]">
       <HeroSection
         onExploreClick={scrollToSearch}
         onJoinClick={handleJoinClick}

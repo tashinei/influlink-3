@@ -375,7 +375,7 @@ const RegisterBrand = () => {
 
             <div className={`relative z-20 w-full lg:w-[40vw] flex justify-center lg:justify-end lg:pr-32 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
                 <div id="form-card-container" className="w-full
-                        h-screen lg:h-[80vh]
+                        h-screen lg:h-[90vh] 2xl:h-[80vh]
                         relative
                         overflow-hidden
                         rounded-none lg:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">

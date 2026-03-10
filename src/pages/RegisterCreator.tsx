@@ -537,7 +537,7 @@ const RegisterCreator = () => {
                 <div
                     id="form-card-container"
                     className=" w-full
-                        h-screen lg:h-[80vh]
+                        h-screen lg:h-[90vh] 2xl:h-[80vh]
                         relative
                         overflow-hidden
                         rounded-none lg:rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]"

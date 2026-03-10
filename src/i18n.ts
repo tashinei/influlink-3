@@ -650,6 +650,7 @@ export const translations = {
       disconnectInstagramTitle: "Разкачане на Instagram?",
       confirmUnlink: "Сигурни ли сте, че искате да разкачите Вашия акаунт? Вашите синхронизирани статистики и данни ще бъдат премахнати от профила Ви.",
       disconnect: "Разкачете",
+      howConnectInstagram:"Как да свържа?"
     },
 
     instagram: {
@@ -1389,6 +1390,7 @@ export const translations = {
       disconnectInstagramTitle: "Disconnect Instagram?",
       confirmUnlink: "Are you sure you want to disconnect your Instagram account? Your synced statistics and engagement data will be removed from your profile.",
       disconnect: "Disconnect",
+      howConnectInstagram:"How to connect?"
     },
 
     about: {

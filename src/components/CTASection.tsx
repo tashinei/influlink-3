@@ -63,9 +63,9 @@ export default function CTASection({handleClickCta}) {
 
                 <button
                     className={cn(
-                        "group relative flex items-center gap-6 rounded-full px-10 py-5 xl:px-16 xl:py-10 shrink-0",
-                        "backdrop-blur-md bg-gradient-to-r from-tertiary/80 via-secondary to-primary",
-                        "border border-white/20 text-white text-2xl font-bold transition-all duration-300",
+                        "group relative flex items-center gap-6 rounded-full px-10 py-5 xl:px-12 xl:py-8 shrink-0",
+                        "backdrop-blur-md bg-gradient-to-r from-tertiary/80 via-secondary/30 to-primary/40",
+                        "border border-white/20 text-white text-2xl lg:text-xl font-bold transition-all duration-300",
                         "hover:scale-[1.03] hover:bg-white/10 active:scale-[0.98]",
                         "hover:shadow-[0_0_40px_rgba(0,242,254,0.5)]",
                         "shadow-inner shadow-white/10"
