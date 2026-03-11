@@ -9,7 +9,7 @@ import { useCreatorNiches } from "@/data/mockCreators";
 import { useMediaQuery } from "@/hooks/use-media.query";
 
 /* ------------------ SHARED DATA (Synced with Search Section) ------------------ */
-const platforms = ["Instagram", "TikTok", "YouTube", "X"];
+const platforms = ["Instagram", "TikTok", "YouTube", "X", "Facebook"];
 
 const contentTypes = [
   "Reels / Shorts",

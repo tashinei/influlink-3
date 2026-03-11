@@ -19,7 +19,6 @@ interface NavigationDockProps {
 }
 
 export default function NavigationDock({ onCampaignCreated }: NavigationDockProps) {
-  // --- States for Modals/Drawers ---
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -27,7 +26,6 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   
-  // --- Notification Logic ---
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const { token, accountType } = useUserStore();
@@ -70,7 +68,6 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
     }
   };
 
-  // --- Navigation & Actions ---
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -111,7 +108,7 @@ export default function NavigationDock({ onCampaignCreated }: NavigationDockProp
       <div className="relative h-full w-full flex items-center justify-center">
         <Bell className="h-full w-full" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-destructive text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-background">
+          <span className="absolute -top-1 -right-1 bg-white text-secondary text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-background">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -132,12 +129,10 @@ const visibleLinks = isDesktop
         <Dock items={visibleLinks} />
       </div>
 
-      {/* Modals & Drawers */}
       <LinksModal open={isLinksModalOpen} onOpenChange={setIsLinksModalOpen} accountType={accountType} onChat={handleChatWithCollaborator} />
       
       <ChatDrawer isOpen={isChatOpen} onClose={() => { setIsChatOpen(false); setSelectedPartner(null); }} partner={selectedPartner} />
 
-      {/* Notifications Sheet (Merged from FAB) */}
       <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
         <SheetContent side="bottom" className="p-0 h-fit rounded-t-[20px] border-t overflow-hidden flex flex-col [&>button]:hidden">
           <SheetHeader className="flex flex-row items-center justify-between space-y-0">

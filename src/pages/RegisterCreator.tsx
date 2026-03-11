@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import RegistrationForm from '@/components/AuthForm'; // Step 1
 import {
     ArrowRight,
@@ -15,6 +15,7 @@ import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Helmet } from 'react-helmet-async';
 
 const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
     <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -509,8 +510,14 @@ const RegisterCreator = () => {
         }
     };
 
+    const seoTitle = useMemo(() => `${t("mvpLogin.startGrowing")} | InfluLink`, [t]);
+
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center lg:justify-end overflow-hidden bg-black font-sans">
+            <Helmet>
+                <title>{seoTitle}</title>
+                <meta name="description" content={t("mvpRegisterBrand.crossBridgeBetween")} />
+            </Helmet>
             {!isMobile && (
                 <>
 

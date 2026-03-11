@@ -16,6 +16,7 @@ import RegisterSelectionDialog from "@/components/RegisterSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import CTASection from "@/components/CTASection";
 import { useMediaQuery } from "@/hooks/use-media.query";
+import { Helmet } from "react-helmet-async";
 
 const HomeMVP = () => {
   const searchSectionRef = useRef<HTMLDivElement>(null);
@@ -86,8 +87,30 @@ const HomeMVP = () => {
 
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
+  const seoTitle = `InfluLink | ${ t("mvpHero.titleFirst")} ${t("mvpHero.titleSecond")} ${t("mvpHero.titleThird")} ${t("mvpHero.titleFourth")}`;
+  const seoDescription = t("mvpHero.subtext");
+
   return (
     <main className="min-h-[100dvh]">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:image" content="https://mvp.influ-link.com/og-image.png" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+
+        {/* Canonical Link */}
+        <link rel="canonical" href={window.location.href} />
+      </Helmet>
+
       <HeroSection
         onExploreClick={scrollToSearch}
         onJoinClick={handleJoinClick}

@@ -17,7 +17,7 @@ export default function CountryPickerModal({
   const inputRef = useRef(null);
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-
+  
   const ALL_EUROPEAN_COUNTRY_CODES = [
     "AL", "AD", "AT", "BY", "BE", "BA", "BG", "HR", "CY", "CZ", "DK",
     "EE", "FI", "FR", "DE", "GR", "HU", "IS", "IE", "IT", "XK", "LV",
@@ -73,7 +73,7 @@ export default function CountryPickerModal({
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all rounded-[30px]"
       onClick={onClose}
-      style={!shouldHaveOverlay ? {marginTop: "0", background:"transparent"} : { marginTop: "0" }}
+      style={!shouldHaveOverlay ? { marginTop: "0", background: "transparent" } : { marginTop: "0" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}

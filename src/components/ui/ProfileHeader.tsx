@@ -36,10 +36,11 @@ import {
   DialogFooter,
   DialogHeader,
 } from "./dialog";
-import {} from "./dialog";
+import { } from "./dialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import { BsFacebook, BsInstagram, BsLinkedin, BsYoutube } from "react-icons/bs";
 import { useUserStore } from "@/store/useUserStore";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -149,6 +150,12 @@ export const ProfileHeader = ({
     }
   };
 
+  const navigate = useNavigate();
+
+  const handleClickHowTo = () => {
+    navigate("/connect-instagram");
+  }
+
   const API_BASE = "https://api.influ-link.com";
   console.log("Full Profile Data:", profile);
   return (
@@ -242,11 +249,10 @@ export const ProfileHeader = ({
                   {!isOwner ? (
                     <>
                       <Button
-                        className={`flex-1 md:flex-none rounded-full px-6 ${
-                          isFollowing
-                            ? "bg-muted text-foreground"
-                            : "bg-gradient-to-br from-secondary to-primary text-white"
-                        }`}
+                        className={`flex-1 md:flex-none rounded-full px-6 ${isFollowing
+                          ? "bg-muted text-foreground"
+                          : "bg-gradient-to-br from-secondary to-primary text-white"
+                          }`}
                         onClick={onToggleFollow}
                       >
                         {isFollowing
@@ -328,7 +334,7 @@ export const ProfileHeader = ({
                               <span>{t("profile.shareProfile")}</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={null}
+                              onClick={handleClickHowTo}
                               className="bg-gradient-to-tr from-[#FFD600] via-[#FF0069] to-[#7638FA] bg-clip-text text-transparent flex items-center"
                             >
                               <BsInstagram className="mr-2 h-4 w-4 text-[#FF0069]" />
@@ -349,28 +355,45 @@ export const ProfileHeader = ({
                   )}
                 </div>
 
-                {/* Mobile Only: Secondary Action Row (Share & Logout) */}
+                {/* Mobile Only: Secondary Action Row (Share, Logout, How to) */}
                 {isOwner && (
-                  <div className="flex md:hidden items-center gap-2 w-full">
-                    <Button
-                      variant="outline"
-                      className="flex-1 rounded-xl h-10 text-xs font-semibold border-slate-200"
-                      onClick={() =>
-                        navigator.clipboard.writeText(window.location.href)
-                      }
-                    >
-                      <LinkIcon className="w-3.5 h-3.5 mr-2 text-slate-500" />
-                      {t("profile.shareProfile")}
-                    </Button>
+                  <div className="flex md:hidden flex-col gap-2 w-full">
+                    {/* First Row: Share & Logout */}
+                    <div className="flex items-center gap-2 w-full">
+                      <Button
+                        variant="outline"
+                        className="flex-1 rounded-xl h-10 text-xs font-semibold border-slate-200"
+                        onClick={() =>
+                          navigator.clipboard.writeText(window.location.href)
+                        }
+                      >
+                        <LinkIcon className="w-3.5 h-3.5 mr-2 text-slate-500" />
+                        {t("profile.shareProfile")}
+                      </Button>
 
-                    <Button
-                      variant="outline"
-                      className="flex-1 rounded-xl h-10 text-xs font-semibold border-red-100 text-red-600 bg-red-50/30"
-                      onClick={handleLogoutClick}
-                    >
-                      <LogOut className="w-3.5 h-3.5 mr-2" />
-                      {t("profile.logOut")}
-                    </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 rounded-xl h-10 text-xs font-semibold border-red-100 text-red-600 bg-red-50/30"
+                        onClick={handleLogoutClick}
+                      >
+                        <LogOut className="w-3.5 h-3.5 mr-2" />
+                        {t("profile.logOut")}
+                      </Button>
+                    </div>
+
+                    {/* Second Row: How to Connect (Placed Below) */}
+                    {!isInstagramLinked && (
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-xl h-10 text-xs font-semibold border-slate-200 bg-white/50"
+                        onClick={handleClickHowTo}
+                      >
+                        <BsInstagram className="w-3.5 h-3.5 mr-2 text-[#FF0069]" />
+                        <span className="bg-gradient-to-tr from-[#FFD600] via-[#FF0069] to-[#7638FA] bg-clip-text text-transparent">
+                          {t("profile.howConnectInstagram")}
+                        </span>
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -383,7 +406,7 @@ export const ProfileHeader = ({
                   {profile.bio}
                 </p>
                 <div
-                  className="flex gap-4 mt-4"
+                  className="flex gap-4 mt-4 justify-center"
                   role="list"
                   aria-label="Social media links"
                 >

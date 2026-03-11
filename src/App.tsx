@@ -25,6 +25,8 @@ import { InstagramCallback } from "./components/InstagramCallback";
 import DataDeletion from "./legal/DataDeletion";
 import { NotificationFAB } from "./components/notifications/NotificationFAB";
 import GoogleCallback from "./pages/GoogleCallback";
+import { HelmetProvider } from "react-helmet-async";
+import HowToConnect from "./pages/HowToConnect";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +85,7 @@ const MainContent = () => {
         <Route path="/data-deletion" element={<DataDeletion />} />
         <Route path="/instagram-callback" element={<InstagramCallback />} />
         <Route path="/google-callback" element={<GoogleCallback />} />
+        <Route path="/connect-instagram" element={<HowToConnect />} />
 
         <Route path="/:username" element={<Profile />} />
       </Routes>
@@ -104,16 +107,16 @@ const MainContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-
-      <BrowserRouter>
-        <MainContent />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <MainContent />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
-
 export default App;

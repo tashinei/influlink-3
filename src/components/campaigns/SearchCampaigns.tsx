@@ -14,6 +14,8 @@ import { CampaignFilterPanel } from "./CampaignFilterPanel";
 import { useLocation } from "react-router-dom";
 import { CampaignApplyDialog } from "./CampaignApplyModal";
 import { useUserStore } from "@/store/useUserStore";
+import { useTranslation } from "@/hooks/useTranslation";
+import { Helmet } from "react-helmet-async";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -119,8 +121,42 @@ const SearchCampaigns = () => {
     }
   };
 
+  const { t } = useTranslation();
+
+  const seoTitle = useMemo(() => {
+    if (searchQuery) {
+      return `${t("campaigns.resultsFor")} "${searchQuery}" | InfluLink`;
+    }
+    return `${t("campaigns.discoverTitle")} | InfluLink`;
+  }, [searchQuery, t]);
+
+  const seoDescription = useMemo(() => {
+    const count = totalCount > 0 ? totalCount : "...";
+    const niche = filters.niches[0] || t("campaigns.allNiches");
+    const baseTemplate = t("campaigns.metaDescription");
+
+    return baseTemplate
+      .replace("{{count}}", String(count))
+      .replace("{{niche}}", niche);
+  }, [totalCount, filters.niches, t]);
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:type" content="website" />
+
+        {/* Prevent indexing if no campaigns are found */}
+        {campaigns.length === 0 && !isLoading && (
+          <meta name="robots" content="noindex" />
+        )}
+
+        <link rel="canonical" href={window.location.origin + location.pathname} />
+      </Helmet>
       <div className="container mx-auto px-4 py-6">
         <SearchHeader
           searchQuery={searchQuery}

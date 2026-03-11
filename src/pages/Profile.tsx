@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Plus,
   Rocket,
@@ -39,6 +39,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { InstagramInsights } from "@/components/InstagramInsights";
 import { useInstagramAnalytics } from "@/hooks/useInstagramAnalytics";
 import { InstagramInsightsSkeleton } from "@/components/InstagramInsigthsSkeleton";
+import { Helmet } from "react-helmet-async";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -444,6 +445,30 @@ const Profile = () => {
     }
   };
 
+  const seoTitle = useMemo(() => {
+    const name = profile?.name || profile?.handle || "Profile";
+    const type = profile?.type === "creator" ? t("profile.creator") : t("profile.brand");
+    return `${name} | ${type} on InfluLink`;
+  }, [profile, t]);
+
+  const seoDescription = useMemo(() => {
+    const name = profile?.name || profile?.handle || "This user";
+    const niche = profile?.niche || "";
+    const bio = profile?.bio ? profile.bio.substring(0, 100) + "..." : "";
+
+    const defaultDesc = t("profile.defaultMetaDescription")
+      .replace("{{name}}", name);
+
+    if (niche) {
+      return t("profile.nicheMetaDescription")
+        .replace("{{name}}", name)
+        .replace("{{niche}}", niche)
+        .replace("{{bio}}", bio);
+    }
+
+    return defaultDesc;
+  }, [profile, t]);
+
   if (showSuccessModal) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -515,6 +540,21 @@ const Profile = () => {
 
   return (
     <div className="min-h-dvh bg-background pb-20">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+
+        {/* Open Graph / Social Media */}
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:image" content={profile?.avatar || "/og-default.png"} />
+        <meta property="og:type" content="profile" />
+        <meta property="profile:username" content={profile?.handle} />
+
+        {/* Canonical URL to prevent duplicate content issues with /profile/me vs /profile/username */}
+        <link rel="canonical" href={`${window.location.origin}/profile/${profile?.handle}`} />
+      </Helmet>
+
       <EditProfileModal
         profile={profile}
         isOpen={isEditProfileOpen}

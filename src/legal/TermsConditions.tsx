@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Scale, UserCheck, CreditCard, Handshake } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 
 const Terms = () => {
     const { t } = useTranslation();
@@ -30,6 +31,10 @@ const Terms = () => {
 
     return (
         <div className="min-h-screen pt-20" style={{ position: "relative", top: "-80px" }}>
+            <Helmet>
+                <title>{t('mvpTerms.heroTitle')} | InfluLink</title>
+                <meta name="robots" content="index, follow" />
+            </Helmet>
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4 text-center text-white">
                     <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">

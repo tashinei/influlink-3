@@ -32,6 +32,8 @@ import { useLocation } from "react-router-dom";
 import { InviteModal } from '@/components/campaigns/InviteModal';
 import { useUserStore } from '@/store/useUserStore';
 import { useMediaQuery } from '@/hooks/use-media.query';
+import { useTranslation } from '@/hooks/useTranslation';
+import { Helmet } from 'react-helmet-async';
 
 const SearchResults = () => {
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -202,6 +204,7 @@ const SearchResults = () => {
                     /* pagination */
                     page: reset ? 1 : page,
                     limit: ITEMS_PER_PAGE,
+                    sortBy: sortBy,
                 }),
             });
 
@@ -223,7 +226,7 @@ const SearchResults = () => {
     // Refetch when filters/search change
     useEffect(() => {
         fetchCreators(true);
-    }, [searchQuery, filters]);
+    }, [searchQuery, filters, sortBy]);
 
     const handleLoadMore = () => {
         setPage(prev => prev + 1);
@@ -249,8 +252,42 @@ const SearchResults = () => {
         return count;
     }, [filters]);
 
+    const { t } = useTranslation();
+
+    const seoTitle = useMemo(() => {
+        if (searchQuery) {
+            return `${t('search.resultsFor')} "${searchQuery}" | InfluLink`;
+        }
+        return `${t('search.discoverCreators')} | InfluLink`;
+    }, [searchQuery, t]);
+
+    const seoDescription = useMemo(() => {
+        const count = totalCount > 0 ? totalCount : '...';
+        const niche = filters.niche[0] || t('search.allNiches');
+
+        const baseTemplate = t('search.metaDescription');
+
+        return baseTemplate
+            .replace('{{count}}', String(count))
+            .replace('{{niche}}', niche);
+    }, [totalCount, filters.niche, t]);
+
     return (
         <div className="min-h-screen bg-background relative">
+            <Helmet>
+                <title>{seoTitle}</title>
+                <meta name="description" content={seoDescription} />
+
+                {creators.length === 0 && !isLoading && (
+                    <meta name="robots" content="noindex" />
+                )}
+
+                <meta property="og:title" content={seoTitle} />
+                <meta property="og:description" content={seoDescription} />
+                <meta property="og:type" content="website" />
+
+                <link rel="canonical" href={`${window.location.origin}/creators/search`} />
+            </Helmet>
             <div className="fixed inset-0 gradient-subtle pointer-events-none" />
 
             <div className="relative container mx-auto px-4 py-6">

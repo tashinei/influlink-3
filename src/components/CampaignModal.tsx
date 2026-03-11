@@ -31,11 +31,14 @@ import {
   Layers,
   ArrowRight,
   ArrowLeft,
+  Search,
+  Globe,
 } from "lucide-react";
 import { useCreatorNiches } from "@/data/mockCreators";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useUserStore } from "@/store/useUserStore";
 import { cn } from "@/lib/utils";
+import CountryPickerModal from "./CountryPickerModal";
 
 // --- 1. UPDATED FORM INTERFACE ---
 interface CampaignForm {
@@ -112,6 +115,10 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
   const { t } = useTranslation();
   const [errors, setErrors] = useState<ValidationErrors>({});
   const { token } = useUserStore();
+
+  const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
+  const [selectedCountries, setSelectedCountries] = useState<{ code: string, name: string, flag: string }[]>([]);
+
 
   const [form, setForm] = useState<CampaignForm>({
     name: "",
@@ -342,7 +349,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                   <SelectTrigger id="type" className="h-11">
                     <SelectValue placeholder={t("mvpCreateCampaign.selectType")} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[50001]">
                     <SelectItem value="email">{t("mvpCreateCampaign.emailCampaign")}</SelectItem>
                     <SelectItem value="social">{t("mvpCreateCampaign.socialMedia")}</SelectItem>
                     <SelectItem value="ads">{t("mvpCreateCampaign.paidAds")}</SelectItem>
@@ -386,7 +393,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                 <SelectTrigger id="goal" className="h-11">
                   <SelectValue placeholder="Select goal" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[50001]">
                   <SelectItem value="reach">{t("mvpCreateCampaign.reach")}</SelectItem>
                   <SelectItem value="conversions">{t("mvpCreateCampaign.conversions")}</SelectItem>
                   <SelectItem value="engagement">{t("mvpCreateCampaign.engagement")}</SelectItem>
@@ -430,7 +437,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               <div className="space-y-2">
                 <Label>{t("mvpCreateCampaign.platforms")}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {["Instagram", "TikTok", "YouTube", "X"].map(p => (
+                  {["Instagram", "TikTok", "YouTube", "X", "Facebook"].map(p => (
                     <Button
                       key={p}
                       size="sm"
@@ -502,30 +509,60 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
 
               {/* Country */}
               <div className="space-y-2 max-w-sm">
-                <Label>{t("mvpCreateCampaign.targetCountry")}</Label>
-                <Select
-                  value={form.country ?? ""}
-                  onValueChange={(v) => {
-                    setForm(prev => ({ ...prev, country: v }));
-                    setErrors(prev => ({ ...prev, country: undefined }));
-                  }}
+                <Label className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary/70" />
+                  {t("mvpCreateCampaign.targetCountry")}
+                </Label>
+
+                {/* Trigger Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full h-11 justify-between font-normal border-dashed border-2 hover:border-primary/50 hover:bg-primary/5 transition-all",
+                    selectedCountries.length > 0 && "border-solid border-primary/30"
+                  )}
+                  onClick={() => setIsCountryModalOpen(true)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("mvpCreateCampaign.selectCountry")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="US">United States</SelectItem>
-                    <SelectItem value="UK">United Kingdom</SelectItem>
-                    <SelectItem value="DE">Germany</SelectItem>
-                    <SelectItem value="FR">France</SelectItem>
-                    <SelectItem value="BG">Bulgaria</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {selectedCountries.length > 0 ? (
+                    <div className="flex -space-x-2 overflow-hidden">
+                      {selectedCountries.map((c) => (
+                        <img
+                          key={c.code}
+                          src={c.flag}
+                          className="inline-block h-5 w-7 rounded-sm border-2 border-white object-cover"
+                          alt={c.name}
+                        />
+                      ))}
+                      <span className="pl-4 text-sm font-medium text-foreground">
+                        {selectedCountries.length} {t("mvpCreateCampaign.countriesSelected")}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">{t("mvpCreateCampaign.selectCountry")}</span>
+                  )}
+                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+
                 {errors.country && (
-                  <p className="text-sm text-red-500 mt-2">
-                    {errors.country}
-                  </p>
+                  <p className="text-sm text-red-500 mt-2">{errors.country}</p>
                 )}
+
+                {/* The Country Picker Modal */}
+                <CountryPickerModal
+                  open={isCountryModalOpen}
+                  onClose={() => setIsCountryModalOpen(false)}
+                  selected={selectedCountries}
+                  setSelected={setSelectedCountries}
+                  maxCapacity={5} // Adjust as needed
+                  onSave={() => {
+                    // Sync with your main form state
+                    const countryCodes = selectedCountries.map(c => c.code).join(",");
+                    handleSelectChange("country", countryCodes);
+                    setIsCountryModalOpen(false);
+                  }}
+                  shouldHaveOverlay={true}
+                />
               </div>
 
               {/* Languages */}

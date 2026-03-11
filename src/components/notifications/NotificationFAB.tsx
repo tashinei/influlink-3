@@ -78,7 +78,7 @@ export function NotificationFAB({ className }: NotificationFABProps) {
             <div className="relative">
               <Bell className="!w-6 !h-6 text-primary-foreground" />
               {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
+                <span className="absolute -top-2 -right-2 !bg-white !text-secondary text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-background">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}

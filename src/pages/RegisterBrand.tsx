@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import RegistrationForm from '@/components/AuthForm';
 import { ArrowRight, Globe, Building2, Briefcase, ChevronLeft, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { BsQuestionCircleFill } from 'react-icons/bs';
 import { useCreatorNiches } from '@/data/mockCreators';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Helmet } from 'react-helmet-async';
 
 // Brand-specific industries instead of creator niches
 
@@ -165,7 +166,7 @@ const RegisterBrand = () => {
         }
     };
 
-    
+
     const [searchParams] = useSearchParams();
 
     useEffect(() => {
@@ -328,6 +329,8 @@ const RegisterBrand = () => {
         }
     };
 
+    const seoTitle = useMemo(() => `${t("mvpRegisterBrand.launchYourBrand")} | InfluLink`, [t]);
+
     useEffect(() => {
         const token = searchParams.get('token');
         const email = searchParams.get('email');
@@ -353,6 +356,10 @@ const RegisterBrand = () => {
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center lg:justify-end overflow-hidden bg-black font-sans">
+            <Helmet>
+                <title>{seoTitle}</title>
+                <meta name="description" content={t("mvpRegisterBrand.crossBridgeBetween")} />
+            </Helmet>
             {!isMobile && (
                 <>
                     <div

@@ -31,12 +31,7 @@ interface CookieConsentProps {
   className?: string;
 }
 
-export function CookieConsent({
-  categories,
-  onAccept,
-  onDecline,
-  className,
-}: CookieConsentProps) {
+export function CookieConsent({ categories, onAccept, onDecline, className }: CookieConsentProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -45,82 +40,96 @@ export function CookieConsent({
   useEffect(() => {
     const saved = localStorage.getItem("cookie_consent_given");
     if (!saved) setIsOpen(true);
-    
-    const initialPrefs: Record<string, boolean> = {};
-    categories.forEach((cat) => {
-      initialPrefs[cat.id] = cat.isEssential || false;
-    });
-    setPreferences(initialPrefs);
-  }, [categories]);
+
+    const handleOpenSettings = () => {
+      setShowSettings(true);
+    };
+
+    window.addEventListener("open-cookie-settings", handleOpenSettings);
+    return () => window.removeEventListener("open-cookie-settings", handleOpenSettings);
+  }, []);
 
   const saveConsent = (prefsArray: boolean[]) => {
     localStorage.setItem("cookie_consent_given", "true");
     localStorage.setItem("cookie_preferences", JSON.stringify(prefsArray));
     onAccept(prefsArray);
     setIsOpen(false);
+    setShowSettings(false); // Close modal on save
   };
-
-  if (!isOpen) return null;
 
   return (
     <>
-      {/* Floating Mini Banner */}
-      <div className={cn("fixed bottom-4 left-4 right-4 z-[100] md:left-auto md:max-w-md", className)}>
-        <div className="bg-white border shadow-2xl rounded-xl p-6 border-slate-200">
-          <div className="flex items-start gap-4">
-            <div className="bg-primary/10 p-2 rounded-lg">
-              <Cookie className="h-6 w-6 text-primary" />
+      {/* 1. Floating Banner: Only renders if isOpen is true */}
+      {isOpen && (
+        <div className={cn(
+          "fixed bottom-4 left-4 right-4 z-[50] md:left-auto md:max-w-md animate-in fade-in slide-in-from-bottom-5 duration-300 p-6",
+          className
+        )}>
+          <div className="bg-white border shadow-2xl rounded-2xl p-5 border-slate-200">
+            <div className="flex items-start gap-4">
+              <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+                <Cookie className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-base">{t("cookies.banner.title")}</h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  {t("cookies.banner.description")}
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">{t("cookies.banner.title")}</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {t("cookies.banner.description")}
-              </p>
+
+            <div className="flex gap-2 mt-5">
+              <Button
+                variant="outline"
+                className="flex-1 text-xs h-9 rounded-xl"
+                onClick={() => setShowSettings(true)}
+              >
+                <Settings2 className="mr-2 h-3.5 w-3.5" />
+                {t("cookies.buttons.settings")}
+              </Button>
+              <Button
+                className="flex-1 text-xs h-9 rounded-xl"
+                onClick={() => saveConsent(categories.map(() => true))}
+              >
+                {t("cookies.buttons.acceptAll")}
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-2 mt-6">
-            <Button variant="outline" className="flex-1" onClick={() => setShowSettings(true)}>
-              <Settings2 className="mr-2 h-4 w-4" />
-              {t("cookies.buttons.settings")}
-            </Button>
-            <Button className="flex-1" onClick={() => saveConsent(categories.map(() => true))}>
-              {t("cookies.buttons.acceptAll")}
-            </Button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Advanced Settings Modal */}
+      {/* 2. Modal: Controlled by showSettings, independent of isOpen */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-md !p-10">
-          <DialogHeader>
-            <DialogTitle>{t("cookies.banner.title")}</DialogTitle>
-            <DialogDescription>{t("cookies.banner.description")}</DialogDescription>
+        <DialogContent className="max-w-[90vw] md:max-w-md rounded-3xl p-6 md:p-10 z-[50]">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-xl">{t("cookies.banner.title")}</DialogTitle>
+            <DialogDescription className="text-sm">
+              {t("cookies.banner.description")}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-5 py-4 max-h-[50vh] overflow-y-auto px-1">
             {categories.map((cat) => (
-              <div key={cat.id} className="flex items-start gap-4">
-                <Checkbox 
+              <div key={cat.id} className="flex items-start gap-4 p-3 rounded-xl border border-transparent hover:bg-slate-50 transition-colors">
+                <Checkbox
                   id={cat.id}
                   disabled={cat.isEssential}
                   checked={preferences[cat.id]}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setPreferences(prev => ({ ...prev, [cat.id]: !!checked }))
                   }
+                  className="mt-1"
                 />
-                <div className="grid gap-1.5 leading-none">
-                  <label htmlFor={cat.id} className="flex items-center gap-2 font-medium cursor-pointer">
-                    {cat.icon}
+                <div className="grid gap-1 leading-tight">
+                  <label htmlFor={cat.id} className="flex items-center gap-2 font-semibold text-sm cursor-pointer">
                     {t(`cookies.categories.${cat.id}.name`)}
                     {cat.isEssential && (
-                      <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded uppercase font-bold text-slate-500">
+                      <span className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-bold uppercase">
                         {t("cookies.misc.essentialTag")}
                       </span>
                     )}
                   </label>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground leading-normal">
                     {t(`cookies.categories.${cat.id}.description`)}
                   </p>
                 </div>
@@ -128,14 +137,21 @@ export function CookieConsent({
             ))}
           </div>
 
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button variant="ghost" className="sm:mr-auto border-2" onClick={() => {
-              onDecline();
-              saveConsent(categories.map(c => !!c.isEssential));
-            }}>
+          <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant="ghost"
+              className="w-full sm:w-auto text-xs order-2 sm:order-1"
+              onClick={() => {
+                onDecline();
+                saveConsent(categories.map(c => !!c.isEssential));
+              }}
+            >
               {t("cookies.buttons.declineAll")}
             </Button>
-            <Button onClick={() => saveConsent(categories.map(cat => preferences[cat.id]))}>
+            <Button
+              className="w-full sm:w-auto text-xs order-1 sm:order-2 px-8"
+              onClick={() => saveConsent(categories.map(cat => preferences[cat.id]))}
+            >
               {t("cookies.buttons.saveChoice")}
             </Button>
           </DialogFooter>

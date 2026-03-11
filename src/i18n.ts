@@ -27,7 +27,7 @@ export const translations = {
       privacyPolicy: "Политика за поверителност",
       terms: "Условия за ползване",
       cookies: "Бисквитки",
-      dataDeletion:"Изтриване на данни"
+      dataDeletion: "Изтриване на данни"
     },
 
     cookies: {
@@ -109,6 +109,8 @@ export const translations = {
       next: "Напред",
       submit: "Изпрати",
       loading: "Изпращане...",
+      cancel: "Отказ",
+      nextStep: "Напред"
     },
 
     about: {
@@ -135,7 +137,7 @@ export const translations = {
       subtext: "Открийте идеалните създатели, създавайте кампании, управлявайте плащанията си и създайте истински прогрес.",
       secondaryButton: "Разгледай функциите",
       primaryButton: "Присъедини се",
-      profileButton:"Започни сега"
+      profileButton: "Започни сега"
     },
 
     mvpTerms: {
@@ -241,6 +243,20 @@ export const translations = {
       advancedSearch: "Разширени филтри",
     },
 
+    search: {
+      resultsFor: "Резултати за",
+      discoverCreators: "Открий създатели",
+      metaDescription: "Разгледайте {{count}} {{niche}} създатели и инфлуенсъри в InfluLink. Намерете идеалния партньор за вашия бранд.",
+      allNiches: "талантливи"
+    },
+
+    campaigns: {
+      resultsFor: "Кампании за",
+      discoverTitle: "Разгледай инфлуенсър кампании",
+      metaDescription: "Открийте {{count}} активни {{niche}} кампании. Кандидатствайте сега за колаборации с топ брандове в InfluLink.",
+      allNiches: "интересни"
+    },
+
     mvpProfileTabs: {
       portfolio: "Портфолио",
       campaigns: "Кампании",
@@ -248,9 +264,9 @@ export const translations = {
       yourCampaigns: "Вашите кампании",
       noPortfolioItems: "Все още няма прокети в това портфолио.",
       manageCampaigns: "Управлявайте и следете прогреса на кампаниите си",
-      noCampaignsYet:"Все още нямате създадени кампании",
-      startNow:"Започнете сега",
-      newCampaign:"Нова кампания"
+      noCampaignsYet: "Все още нямате създадени кампании",
+      startNow: "Започнете сега",
+      newCampaign: "Нова кампания"
     },
 
     mvpCampaignSearchSection: {
@@ -309,6 +325,8 @@ export const translations = {
       }
     },
 
+
+
     links: {
       title: "Активни връзки",
       subtitle: "Създатели, с които сте в активни кампании",
@@ -336,9 +354,9 @@ export const translations = {
       newCampaign: "Нова кампания",
       chat: "Чат",
       links: "Връзки",
-      findCreators:"Търсене",
-      findCampaigns:"Търсене",
-      notifications:"Известия"
+      findCreators: "Търсене",
+      findCampaigns: "Търсене",
+      notifications: "Известия"
     },
 
     joinDialog: {
@@ -399,7 +417,7 @@ export const translations = {
       reviewSummary: "Преглед на данните",
       and: "и",
       acknowledgeUse: "Потвърждавам използването на задължителни бисквитки (cookies) за сигурността на акаунта.",
-      descLoginCreators:"Започнете да печелите за съдържанието си"
+      descLoginCreators: "Започнете да печелите за съдържанието си"
     },
 
     mvpRegisterBrand: {
@@ -433,7 +451,7 @@ export const translations = {
       partnerWithPros: "Работете с професионалисти",
       crossBridgeBetween: "Свържете своя бранд със световноизвестни създатели.",
       benefit3: "Присъединявайки се, вие отключвате възможността да публикувате кампании и да използвате нашите автоматизирани инструменти за договори със създатели.",
-      descLoginCreators:"Открийте идеалните създатели за Вашия бизнес",
+      descLoginCreators: "Открийте идеалните създатели за Вашия бизнес",
     },
 
     mvpCookies: {
@@ -629,6 +647,84 @@ export const translations = {
       fourthBenefit4: "Доклади с възможност за експортиране",
     },
 
+    mvpDataDeletion: {
+      heroBadge: "Meta Compliance Policy 4.f",
+      heroTitle: "Изтриване на потребителски данни",
+      heroSubtitle: "Контролирайте своя дигитален отпечатък. Предоставяме ясни и проверими начини за премахване на вашите свързани социални данни в пълно съответствие с политиките на платформата Meta.",
+
+      step1Title: "Отказване на достъп",
+      step1Content: "Премахнете достъпа на InfluLink директно чрез настройките на Instagram/Facebook в секция „Приложения и уебсайтове“.",
+
+      step2Titl: "Автоматично изчистване",
+      step2Content: "След оттегляне на достъпа, нашата система автоматично изтрива всички кеширани медии и данни в рамките на 24 часа.",
+
+      step3Title: "Ръчна заявка",
+      step3Content: "Поискайте пълен експорт на данни или незабавно постоянно изтриване, като се свържете с нашия екип по поверителност.",
+
+      cardHeaderTitle: "Facebook & Instagram Callback",
+      cardHeaderSubtitle: "Инструкции за автоматично изтриване на данни",
+      verifiedBadge: "Проверена политика",
+
+      instructionIntro: "InfluLink използва Instagram Graph API. За да поискате изтриване на вашите данни чрез автоматизираните инструменти на платформата, моля, следвайте тези стъпки:",
+      instructionTitle: "Процес на премахване",
+      instructionStep1: "Отидете в „Настройки и поверителност“ на вашия Facebook профил.",
+      instructionStep2: "Изберете „Настройки“ и отидете на „Приложения и уебсайтове“.",
+      instructionStep3: "Потърсете „InfluLink“ и кликнете върху бутона „Премахване“.",
+      instructionStep4: "Потвърдете премахването, за да задействате заявката за изтриване на данни (Data Deletion Callback).",
+
+      manualTitle: "Съдействие при изтриване",
+      manualContent: "Ако предпочитате да се свържете с нашето длъжностно лице по защита на данните, ние предлагаме пълна подкрепа за ръчни заявки.",
+      copySuccess: "Имейлът е копиран в клипборда",
+
+      retentionTitle: "Политика за съхранение",
+      retentionContent: "Изтритите данни се премахват от активните бази данни в рамките на 24 часа. Минимални регистрационни файлове могат да бъдат съхранявани до 30 дни в криптирани архиви преди окончателно презаписване.",
+
+      complianceFooter: "Официална референция за съответствие: Meta Platform Terms 4.f"
+    },
+
+    howToConnect: {
+      stepper: {
+        instagram: "Instagram",
+        accountType: "Тип акаунт",
+        facebook: "Facebook",
+        connection: "Свързване",
+        influLink: "InfluLink",
+        auth: "Оторизация"
+      },
+      step1: {
+        title: "Професионален режим",
+        description: "Първата стъпка е да превърнете личния си профил в бизнес такъв.",
+        instructionTitle: "Къде да кликнете?",
+        tip1: "Отворете <strong>Settings</strong> във вашия Instagram.",
+        tip2: "Изберете <strong>Edit Profile</strong> или <strong>Account Type</strong>.",
+        tip3: "Натиснете <strong>Switch to Professional Account</strong>.",
+        button: "Отвори Instagram настройки",
+        helpLink: "Виж официалната помощна статия на Instagram →"
+      },
+      step2: {
+        title: "Facebook страница",
+        description: "Instagram Professional изисква връзка с Facebook бизнес страница.",
+        mainTip: "Това е най-важната стъпка. Можете да свържете акаунта си директно от <strong>Meta Accounts Center</strong>.",
+        noPageTitle: "Нямате страница?",
+        createPageLink: "Създайте една тук за 1 минута",
+        button: "Как се свързва страница?"
+      },
+      step3: {
+        title: "Всичко е готово!",
+        description: "Преминахте през най-трудното. Вашият профил вече е напълно подготвен за работа с InfluLink.",
+        check1: "Професионален профил: Активен",
+        check2: "Facebook страница: Свързана",
+        warningTitle: "Важно при следващата стъпка:",
+        warningDesc: "Когато натиснете бутона, Meta ще поиска достъп. Моля, изберете <strong>'Select All'</strong> за всички ваши страници.",
+        finalButton: "ФИНАЛИЗИРАЙТЕ ВРЪЗКАТА",
+        loadingText: "Безопасно прехвърляне към Meta Login..."
+      },
+      footer: {
+        help: "Помощ в реално време",
+        security: "Сигурна връзка през Meta"
+      }
+    },
+
     profile: {
       editProfile: "Редактиране",
       getInTouch: "Свържете се",
@@ -650,7 +746,11 @@ export const translations = {
       disconnectInstagramTitle: "Разкачане на Instagram?",
       confirmUnlink: "Сигурни ли сте, че искате да разкачите Вашия акаунт? Вашите синхронизирани статистики и данни ще бъдат премахнати от профила Ви.",
       disconnect: "Разкачете",
-      howConnectInstagram:"Как да свържа?"
+      howConnectInstagram: "Как да свържа?",
+      defaultMetaDescription: "Вижте професионалния профил на {{name}} в InfluLink. Свържете се за колаборации и кампании.",
+      nicheMetaDescription: "Вижте {{name}}, специалист в сфера {{niche}} в InfluLink. {{bio}}",
+      creator: "Създател",
+      brand: "Бранд"
     },
 
     instagram: {
@@ -1012,6 +1112,8 @@ export const translations = {
       next: "Next",
       submit: "Submit",
       loading: "Submitting...",
+      cancel: "Cancel",
+      nextStep: "Next step"
     },
 
     mvpHero: {
@@ -1022,7 +1124,7 @@ export const translations = {
       subtext: "Find the right creators, launch campaigns or get paid for your content - create real progress.",
       secondaryButton: "Explore Features",
       primaryButton: "Join us",
-      profileButton:"Start now"
+      profileButton: "Start now"
     },
 
     mvpAnalytics: {
@@ -1052,9 +1154,44 @@ export const translations = {
       noPortfolioItems: "There are no items in this portfolio yet.",
       manageCampaigns: "Manage and track the progress of your campaigns",
       addFirstWork: "Add an item",
-      noCampaignsYet:"You have no campaigns yet",
-      startNow:"Start now",
-      newCampaign:"New campaign"
+      noCampaignsYet: "You have no campaigns yet",
+      startNow: "Start now",
+      newCampaign: "New campaign"
+    },
+
+    mvpDataDeletion: {
+      heroBadge: "Meta Compliance Policy 4.f",
+      heroTitle: "User Data Deletion",
+      heroSubtitle: "Control your digital footprint. We provide clear, verifiable paths to remove your connected social data in full compliance with Meta Platform Policies.",
+
+      step1Title: "Platform Revocation",
+      step1Content: "Remove InfluLink's access directly via Instagram/Facebook settings under 'Apps and Websites'.",
+
+      step2Title: "Automated Data Purge",
+      step2Content: "Once access is revoked, our system automatically purges all cached media and insights within 24 hours.",
+
+      step3Title: "Manual Request",
+      step3Content: "Request a full data export or immediate permanent deletion by contacting our privacy team.",
+
+      cardHeaderTitle: "Facebook & Instagram Callback",
+      cardHeaderSubtitle: "Instructions for automated data deletion",
+      verifiedBadge: "Verified Policy",
+
+      instructionIntro: "InfluLink utilizes the Instagram Graph API. To request deletion of your data through the automated platform tools, please follow these steps:",
+      instructionTitle: "Removal Process",
+      instructionStep1: "Access your Facebook Account's 'Settings & Privacy'.",
+      instructionStep2: "Select 'Settings' and navigate to 'Apps and Websites'.",
+      instructionStep3: "Search for 'InfluLink' and click 'Remove'.",
+      instructionStep4: "Confirm removal to trigger the Data Deletion Callback.",
+
+      manualTitle: "Manual Assistance",
+      manualContent: "If you prefer to speak with our Data Protection Officer, we provide full support for manual deletion requests.",
+      copySuccess: "Email copied to clipboard",
+
+      retentionTitle: "Retention Policy",
+      retentionContent: "Deleted data is scrubbed from active databases within 24 hours. Minimal transactional logs may be retained for 30 days in encrypted backups before permanent overwrite.",
+
+      complianceFooter: "Official Compliance Reference: Meta Platform Terms 4.f"
     },
 
     addPost: {
@@ -1180,6 +1317,13 @@ export const translations = {
       advancedSearch: "Advanced filters",
     },
 
+    search: {
+      resultsFor: "Search results for",
+      discoverCreators: "Discover Creators",
+      metaDescription: "Explore {{count}} {{niche}} creators and influencers on InfluLink. Find the perfect match for your brand.",
+      allNiches: "talented"
+    },
+
     mvpFeaturesSection: {
       firstTitle: "Find the perfect creators for your brand",
       firstSubtitle: "Easy discovery & Matching",
@@ -1205,6 +1349,49 @@ export const translations = {
       fourthBenefit2: "Audience reach and engagement analytics",
       fourthBenefit3: "ROI tracking and attribution modeling",
       fourthBenefit4: "Exportable reports",
+    },
+
+    howToConnect: {
+      stepper: {
+        instagram: "Instagram",
+        accountType: "Account Type",
+        facebook: "Facebook",
+        connection: "Connection",
+        influLink: "InfluLink",
+        auth: "Authorization"
+      },
+      step1: {
+        title: "Professional Mode",
+        description: "The first step is to convert your personal profile into a professional business account.",
+        instructionTitle: "Where to click?",
+        tip1: "Open <strong>Settings</strong> in your Instagram app.",
+        tip2: "Select <strong>Edit Profile</strong> or <strong>Account Type</strong>.",
+        tip3: "Tap <strong>Switch to Professional Account</strong>.",
+        button: "Open Instagram Settings",
+        helpLink: "See official Instagram help article →"
+      },
+      step2: {
+        title: "Facebook Page",
+        description: "Instagram Professional requires a connection to a Facebook Business Page.",
+        mainTip: "This is the most critical step. You can link your account directly via the <strong>Meta Accounts Center</strong>.",
+        noPageTitle: "Don't have a page?",
+        createPageLink: "Create one here in 1 minute",
+        button: "How to connect a page?"
+      },
+      step3: {
+        title: "You're all set!",
+        description: "You've made it through the hardest part. Your profile is now fully prepared for InfluLink.",
+        check1: "Professional Profile: Active",
+        check2: "Facebook Page: Linked",
+        warningTitle: "Important for the next step:",
+        warningDesc: "When you click the button, Meta will request access. Please select <strong>'Select All'</strong> for all your pages to ensure your stats load correctly.",
+        finalButton: "FINALIZE CONNECTION",
+        loadingText: "Securely redirecting to Meta Login..."
+      },
+      footer: {
+        help: "Real-time support",
+        security: "Secure connection via Meta"
+      }
     },
 
     mvpLogin: {
@@ -1249,7 +1436,7 @@ export const translations = {
       reviewSummary: "Review summary",
       and: "and",
       acknowledgeUse: "I acknowledge the use of essential cookies for account security.",
-      descLoginCreators:"Start earning for you content now"
+      descLoginCreators: "Start earning for you content now"
     },
 
     mvpCampaignSearchSection: {
@@ -1390,7 +1577,11 @@ export const translations = {
       disconnectInstagramTitle: "Disconnect Instagram?",
       confirmUnlink: "Are you sure you want to disconnect your Instagram account? Your synced statistics and engagement data will be removed from your profile.",
       disconnect: "Disconnect",
-      howConnectInstagram:"How to connect?"
+      howConnectInstagram: "How to connect?",
+      defaultMetaDescription: "View {{name}}'s professional profile on InfluLink. Connect for collaborations and campaigns.",
+      nicheMetaDescription: "Check out {{name}}, a {{niche}} specialist on InfluLink. {{bio}}",
+      creator: "Creator",
+      brand: "Brand"
     },
 
     about: {
@@ -1414,7 +1605,14 @@ export const translations = {
       privacyPolicy: "Privacy Policy",
       terms: "Terms & Conditions",
       cookies: "Cookies",
-      dataDeletion:"Data Deletion"
+      dataDeletion: "Data Deletion"
+    },
+
+    campaigns: {
+      resultsFor: "Campaigns for",
+      discoverTitle: "Browse Influencer Campaigns",
+      metaDescription: "Discover {{count}} active {{niche}} campaigns. Apply now to collaborate with top brands on InfluLink.",
+      allNiches: "exciting"
     },
 
     mvpCampaignHistory: {
@@ -1528,7 +1726,7 @@ export const translations = {
       partnerWithPros: "Partner with Pros",
       crossBridgeBetween: "Cross the bridge between professional brands and world-class creators.",
       benefit3: "By joining, you unlock the ability to post campaigns and use our automated creator contracting tools.",
-      descLoginCreators:"Find the perfect creators for you business"
+      descLoginCreators: "Find the perfect creators for you business"
     },
 
     instagram: {
@@ -1601,9 +1799,9 @@ export const translations = {
       newCampaign: "New campaign",
       chat: "Chat",
       links: "Links",
-      findCreators:"Explore",
-      findCampaigns:"Explore",
-      notifications:"Notifications"
+      findCreators: "Explore",
+      findCampaigns: "Explore",
+      notifications: "Notifications"
     },
 
     deleteCampaign: {

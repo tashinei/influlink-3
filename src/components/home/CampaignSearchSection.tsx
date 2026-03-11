@@ -19,7 +19,7 @@ import { useCreatorNiches } from "@/data/mockCreators";
 
 /* ------------------ FILTER DATA ------------------ */
 
-const platforms = ["Instagram", "TikTok", "YouTube", "X"];
+const platforms = ["Instagram", "TikTok", "YouTube", "X", "Facebook"];
 
 const contentTypes = [
   "Reels / Shorts",

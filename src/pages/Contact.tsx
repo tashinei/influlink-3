@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MapPin, Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Helmet } from "react-helmet-async";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -16,9 +17,9 @@ const Contact = () => {
     message: "",
   });
 
-  useEffect(()=>{
-    window.scrollTo(0,0);
-  },[])
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [])
 
   const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
 
@@ -55,8 +56,23 @@ const Contact = () => {
     },
   ];
 
+  const seoTitle = useMemo(() => `${t("contacts.title")} | InfluLink`, [t]);
+  const seoDescription = useMemo(() => t("contacts.subtitle"), [t]);
+
   return (
     <div className="min-h-screen pt-20" style={{ position: "relative", top: "-80px" }}>
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:type" content="website" />
+
+        {/* Contact pages should usually be indexable */}
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={window.location.origin + "/contact"} />
+      </Helmet>
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
         <div className="container mx-auto px-4 text-center">

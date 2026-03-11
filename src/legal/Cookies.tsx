@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Cookie, ShieldCheck, Settings, Info, Clock, ExternalLink } from "lucide-react";
 import { useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { Helmet } from "react-helmet-async";
 
 const Cookies = () => {
   const { t } = useTranslation();
@@ -34,8 +35,16 @@ const Cookies = () => {
     }
   ];
 
+  const handleOpenCookiePanel = () => {
+    window.dispatchEvent(new Event("open-cookie-settings"));
+  };
+
   return (
     <div className="min-h-screen pt-20" style={{ position: "relative", top: "-80px" }}>
+      <Helmet>
+        <title>{t('mvpCookies.heroTitle')} | InfluLink</title>
+        <meta name="description" content={t('mvpCookies.heroSubtitle')} />
+      </Helmet>
       <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
         <div className="container mx-auto px-4 text-center text-white">
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
@@ -51,7 +60,7 @@ const Cookies = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           <Card className="rounded-3xl border-border overflow-hidden">
             <CardContent className="p-8 md:p-12 space-y-10 text-gray-700">
-              
+
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold text-gray-900">{t('mvpCookies.sec1Title')}</h2>
                 <p>{t('mvpCookies.sec1Content')}</p>
@@ -114,8 +123,8 @@ const Cookies = () => {
                 <p className="text-sm text-amber-800 leading-relaxed mb-4">
                   {t('mvpCookies.sec3Content')}
                 </p>
-                <button 
-                  onClick={() => alert("Cookie settings panel would open here.")}
+                <button
+                  onClick={handleOpenCookiePanel}
                   className="text-sm font-bold text-amber-900 underline underline-offset-4 hover:text-amber-700"
                 >
                   {t('mvpCookies.openSettings')}

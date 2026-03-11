@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Lock, Eye } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 
 const Privacy = () => {
     const { t } = useTranslation();
@@ -31,6 +32,12 @@ const Privacy = () => {
 
     return (
         <div className="min-h-screen pt-20" style={{ position: "relative", top: "-80px" }}>
+            <Helmet>
+                <title>{t('privacy.heroTitle')} | InfluLink</title>
+                <meta name="description" content={t('privacy.heroSubtitle')} />
+                {/* Optional: Tell Google this is a legal doc */}
+                <meta name="robots" content="index, follow" />
+            </Helmet>
             {/* Hero Section */}
             <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
                 <div className="container mx-auto px-4 text-center text-white">
