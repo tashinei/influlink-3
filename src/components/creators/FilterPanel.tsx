@@ -177,16 +177,35 @@ export const FilterPanel = ({
 
                     {/* Languages */}
                     <div className="space-y-3">
-                        <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2"><Globe className="w-3 h-3" /> Languages</Label>
-                        <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                                <Globe className="w-3 h-3 text-primary" /> Languages
+                            </Label>
+                            {filters.languages?.length > 0 && (
+                                <button
+                                    onClick={() => updateFilter("languages", [])}
+                                    className="text-[9px] text-primary hover:underline font-medium"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 scrollbar-hide">
                             {languagesList.map((lang) => {
-                                const val = lang.toLowerCase();
-                                const isSel = filters.languages?.includes(val);
+                                const isSel = filters.languages?.includes(lang);
                                 return (
                                     <button
-                                        key={val}
-                                        onClick={() => toggleArrayFilter("languages", val)}
-                                        className={`px-2 py-0.5 rounded text-[10px] border transition-colors ${isSel ? "bg-primary text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"}`}
+                                        key={lang}
+                                        type="button"
+                                        onClick={() => toggleArrayFilter("languages", lang)}
+                                        className={`
+                        px-2.5 py-1 rounded-md text-[10px] font-medium border transition-all duration-200
+                        ${isSel
+                                                ? "bg-primary border-primary text-white shadow-sm shadow-primary/20 scale-95"
+                                                : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-primary/50"
+                                            }
+                    `}
                                     >
                                         {lang}
                                     </button>

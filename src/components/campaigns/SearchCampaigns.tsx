@@ -123,6 +123,13 @@ const SearchCampaigns = () => {
 
   const { t } = useTranslation();
 
+  const sortOptions = [
+    { value: "recent", label: t("sort.recent") }, // "Recently Added"
+    { value: "budget_high", label: t("sort.budgetHigh") }, // "Highest Budget"
+    { value: "budget_low", label: t("sort.budgetLow") }, // "Lowest Budget"
+    { value: "deadline", label: t("sort.deadline") }, // "Closing Soon"
+  ];
+
   const seoTitle = useMemo(() => {
     if (searchQuery) {
       return `${t("campaigns.resultsFor")} "${searchQuery}" | InfluLink`;
@@ -163,6 +170,7 @@ const SearchCampaigns = () => {
           onSearchChange={setSearchQuery}
           resultCount={totalCount}
           sortBy={sortBy}
+          type="campaign"
           onSortChange={setSortBy}
           viewMode={viewMode}
           onViewModeChange={setViewMode}

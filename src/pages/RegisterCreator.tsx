@@ -17,30 +17,35 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Helmet } from 'react-helmet-async';
 
-const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
-    <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="flex items-center gap-2">
-            <Badge className="bg-white/20 text-white hover:bg-white/20 backdrop-blur-md border-white/10">
-                Step {step} of 4
-            </Badge>
-            <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
-                <div
-                    className="h-full bg-white transition-all duration-500"
-                    style={{ width: `${(step / 4) * 100}%` }}
-                />
+const RegisterCreator = () => {
+    const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
+        <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center gap-2">
+                <Badge className="bg-white/20 text-white hover:bg-white/20 backdrop-blur-md border-white/10">
+                    Step {step} of 4
+                </Badge>
+                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-white transition-all duration-500"
+                        style={{ width: `${(step / 4) * 100}%` }}
+                    />
+                </div>
+            </div>
+            <h2 className="text-4xl font-extrabold tracking-tight text-white">{title}</h2>
+            <div className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+                <BsQuestionCircleFill className="h-5 w-5 text-white shrink-0" />
+                <p className="text-sm text-blue-100/80 leading-relaxed">
+                    <span className="font-semibold text-white">{t("mvpLogin.whyThisMatters")}:</span> {benefit}
+                </p>
             </div>
         </div>
-        <h2 className="text-4xl font-extrabold tracking-tight text-white">{title}</h2>
-        <div className="flex gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
-            <BsQuestionCircleFill className="h-5 w-5 text-white shrink-0" />
-            <p className="text-sm text-blue-100/80 leading-relaxed">
-                <span className="font-semibold text-white">Why this matters:</span> {benefit}
-            </p>
-        </div>
-    </div>
-);
+    );
 
-const RegisterCreator = () => {
+    const LANGUAGE_OPTIONS = [
+        "English", "Spanish", "French", "German", "Chinese",
+        "Arabic", "Hindi", "Portuguese", "Japanese", "Russian",
+        "Italian", "Turkish", "Korean", "Dutch"
+    ];
     const colors = ["#90d5f3ff", "#6EC5E9", "#1E88E5"];
     const [dimensions, setDimensions] = useState({
         width: 0,
@@ -295,7 +300,7 @@ const RegisterCreator = () => {
                         <StepHeader
                             step={2}
                             title={t("mvpLogin.yourIdentity")}
-                            benefit="A professional handle and location help brands find you in local search results and verify your audience reach."
+                            benefit={t("mvpLogin.step2Benefit")}
                         />
 
                         {/* Middle Section: Inputs (This fills the space) */}
@@ -325,7 +330,7 @@ const RegisterCreator = () => {
                                 </InputWrapper>
                             </div>
 
-                            <InputWrapper label={`Location (${t("mvpLogin.countryCity")})`}>
+                            <InputWrapper label={`${t("mvpLogin.location")} (${t("mvpLogin.countryCity")})`}>
                                 <div className="relative">
                                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                                     <input
@@ -336,9 +341,53 @@ const RegisterCreator = () => {
                                     />
                                 </div>
                             </InputWrapper>
+                            <InputWrapper label={t("mvpLogin.languages")}>
+                                <div className="relative group">
+                                    <select
+                                        className="step-input appearance-none w-full h-14 px-4 bg-white/40 border border-white/20 rounded-xl text-white/40 focus:outline-none cursor-pointer"
+                                        value=""
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val && !formData.languages.includes(val)) {
+                                                setFormData({
+                                                    ...formData,
+                                                    languages: [...formData.languages, val]
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        <option value="" className="bg-gray-900 !text-white/10">{t("mvpLogin.anyLanguages")}...</option>
+                                        {LANGUAGE_OPTIONS.map((lang) => (
+                                            <option key={lang} value={lang} className="bg-gray-900">{lang}</option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/40">
+                                        <ChevronLeft className="-rotate-90 h-4 w-4" />
+                                    </div>
+                                </div>
+
+                                {/* Selected Language Badges */}
+                                <div className="flex flex-wrap gap-2 mt-3 min-h-[32px]">
+                                    {formData.languages.length === 0 ? (
+                                        <span className="text-[12px] text-white ml-1">{t("mvpLogin.pleaseSelectOneLanguage")}</span>
+                                    ) : (
+                                        formData.languages.map((lang) => (
+                                            <Badge
+                                                key={lang}
+                                                className="bg-white/20 hover:bg-red-500/40 text-white cursor-pointer transition-colors border-white/10 py-1.5 px-3 animate-in zoom-in-95 duration-200"
+                                                onClick={() => setFormData({
+                                                    ...formData,
+                                                    languages: formData.languages.filter(l => l !== lang)
+                                                })}
+                                            >
+                                                {lang} <span className="ml-2 opacity-50 text-[10px]">✕</span>
+                                            </Badge>
+                                        ))
+                                    )}
+                                </div>
+                            </InputWrapper>
                         </div>
 
-                        {/* Bottom Section: Buttons (Anchored) */}
                         <div className="flex gap-3 pt-8 mt-auto">
                             <Button
                                 variant="ghost"
@@ -349,7 +398,7 @@ const RegisterCreator = () => {
                             </Button>
                             <Button
                                 onClick={nextStep}
-                                disabled={!formData.name || !formData.handle}
+                                disabled={!formData.name || !formData.handle || formData.languages.length === 0}
                                 className={`flex-1 bg-white text-black hover:bg-white/90 font-bold h-12 rounded-xl disabled:opacity-50 ${primaryButtonClass}`}
                             >
                                 {t("mvpLogin.nextStep")} <ArrowRight className="ml-2 h-4 w-4" />
@@ -364,7 +413,7 @@ const RegisterCreator = () => {
                         <StepHeader
                             step={3}
                             title={t("mvpLogin.yourNiche")}
-                            benefit="Defining your category and bio lets our AI match you with campaigns that fit your actual content style, increasing your acceptance rate."
+                            benefit={t("mvpLogin.step3Benefit")}
                         />
 
                         {/* Middle Section (Elastic) */}
@@ -441,7 +490,7 @@ const RegisterCreator = () => {
                         <StepHeader
                             step={4}
                             title="Ready to Join"
-                            benefit="By joining, you gain access to our campaign marketplace and creator analytics suite."
+                            benefit={t("mvpLogin.step4Benefit")}
                         />
 
                         {/* Middle Section (Content) */}

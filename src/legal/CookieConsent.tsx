@@ -54,12 +54,11 @@ export function CookieConsent({ categories, onAccept, onDecline, className }: Co
     localStorage.setItem("cookie_preferences", JSON.stringify(prefsArray));
     onAccept(prefsArray);
     setIsOpen(false);
-    setShowSettings(false); // Close modal on save
+    setShowSettings(false);
   };
 
   return (
     <>
-      {/* 1. Floating Banner: Only renders if isOpen is true */}
       {isOpen && (
         <div className={cn(
           "fixed bottom-4 left-4 right-4 z-[50] md:left-auto md:max-w-md animate-in fade-in slide-in-from-bottom-5 duration-300 p-6",
@@ -114,7 +113,7 @@ export function CookieConsent({ categories, onAccept, onDecline, className }: Co
                 <Checkbox
                   id={cat.id}
                   disabled={cat.isEssential}
-                  checked={preferences[cat.id]}
+                  checked={cat.isEssential ? true : !!preferences[cat.id]}
                   onCheckedChange={(checked) =>
                     setPreferences(prev => ({ ...prev, [cat.id]: !!checked }))
                   }

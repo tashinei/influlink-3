@@ -56,6 +56,7 @@ export type EngagementRate =
 export interface FilterState {
   niche: string[];
   platforms: string[];
+  languages: string[];
 
   contentTypes: string[];
   collabTypes: string[];
@@ -64,7 +65,6 @@ export interface FilterState {
   engagementRate: "low" | "medium" | "high" | "any";
 
   country: string | null;
-  language: string[];
 
   budgetRange: string | null;
 

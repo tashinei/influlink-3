@@ -4,9 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { X, Filter, RotateCcw, EyeIcon, EyeOff } from "lucide-react";
+import { X, Filter, RotateCcw, EyeIcon, EyeOff, Globe } from "lucide-react";
 import { useCreatorNiches } from "@/data/mockCreators";
 import { useMediaQuery } from "@/hooks/use-media.query";
+import CountryPickerModal from "../CountryPickerModal";
+import { cn } from "@/lib/utils";
 
 /* ------------------ SHARED DATA (Synced with Search Section) ------------------ */
 const platforms = ["Instagram", "TikTok", "YouTube", "X", "Facebook"];
@@ -40,8 +42,28 @@ export const CampaignFilterPanel = ({
   isOpen,
   onClose,
 }: CampaignFilterPanelProps) => {
+
   const [collapsed, setCollapsed] = useState(false);
+  const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
   const niches = useCreatorNiches();
+
+  // Local state to manage the rich country objects for the UI
+  // Initialize from existing filters.country if needed
+  const [selectedCountries, setSelectedCountries] = useState<{ code: string, name: string, flag: string }[]>([]);
+
+  const handleCountrySave = () => {
+    const countryValue = selectedCountries.length > 0
+      ? selectedCountries.map(c => c.code).join(",")
+      : null;
+
+    updateFilter("country", countryValue);
+    setIsCountryModalOpen(false);
+  };
+
+  const handleClearAll = () => {
+    setSelectedCountries([]);
+    onClearFilters();
+  };
 
   const hasActiveFilters = useMemo(() => {
     return (
@@ -231,12 +253,46 @@ export const CampaignFilterPanel = ({
           {/* Country */}
           <div className="space-y-3">
             <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Country</Label>
-            <input
-              type="text"
-              placeholder="Filter by country..."
-              value={filters.country ?? ""}
-              onChange={(e) => updateFilter("country", e.target.value || null)}
-              className="w-full border rounded-md px-3 py-2 text-sm bg-background/50 focus:ring-1 focus:ring-primary outline-none"
+
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "w-full h-10 justify-between font-normal border bg-background/50 hover:bg-background transition-all px-3",
+                selectedCountries.length > 0 && "border-primary/30 ring-1 ring-primary/10"
+              )}
+              onClick={() => setIsCountryModalOpen(true)}
+            >
+              {selectedCountries.length > 0 ? (
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="flex -space-x-1.5 shrink-0">
+                    {selectedCountries.slice(0, 2).map((c) => (
+                      <img
+                        key={c.code}
+                        src={c.flag}
+                        className="h-4 w-5 rounded-sm border border-background object-cover"
+                        alt={c.name}
+                      />
+                    ))}
+                  </div>
+                  <span className="truncate text-xs font-medium">
+                    {selectedCountries.length} {selectedCountries.length === 1 ? 'Country' : 'Countries'}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-muted-foreground text-xs">Select target countries</span>
+              )}
+              <Globe className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
+            </Button>
+
+            <CountryPickerModal
+              open={isCountryModalOpen}
+              onClose={() => setIsCountryModalOpen(false)}
+              selected={selectedCountries}
+              setSelected={setSelectedCountries}
+              maxCapacity={5}
+              onSave={handleCountrySave}
+              shouldHaveOverlay={true}
             />
           </div>
 
@@ -246,9 +302,9 @@ export const CampaignFilterPanel = ({
               <Label className="text-xs font-bold">Urgent Only</Label>
               <p className="text-[10px] text-muted-foreground">Show immediate needs</p>
             </div>
-            <Switch 
-              checked={filters.urgentOnly} 
-              onCheckedChange={(checked) => updateFilter("urgentOnly", checked)} 
+            <Switch
+              checked={filters.urgentOnly}
+              onCheckedChange={(checked) => updateFilter("urgentOnly", checked)}
             />
           </div>
 

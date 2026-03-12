@@ -12,6 +12,7 @@ const ITEMS_PER_PAGE = 12;
 export const defaultFilters: FilterState = {
     niche: [],
     platforms: [],
+    languages: [],
 
     contentTypes: [],
     collabTypes: [],
@@ -20,7 +21,6 @@ export const defaultFilters: FilterState = {
     engagementRate: "any",
 
     country: null,
-    language: [],
 
     budgetRange: null,
 
@@ -60,10 +60,25 @@ const SearchResults = () => {
 
     const initialQuery = location.state?.query ?? '';
 
-    const initialFilters = useMemo<FilterState>(() => ({
-        ...defaultFilters,
-        ...(location.state?.filters ?? {}),
-    }), [location.state]);
+    const initialFilters = useMemo<FilterState>(() => {
+        const incomingFilters = location.state?.filters ?? {};
+
+        // Create a clean object starting with defaults
+        const cleaned: FilterState = {
+            ...defaultFilters,
+            ...incomingFilters,
+        };
+
+        if ('language' in cleaned) {
+            const legacyVal = (cleaned as any).language;
+            if (Array.isArray(legacyVal) && legacyVal.length > 0) {
+                cleaned.languages = legacyVal;
+            }
+            delete (cleaned as any).language;
+        }
+
+        return cleaned;
+    }, [location.state]);
 
     const [searchQuery, setSearchQuery] = useState(initialQuery);
     const [filters, setFilters] = useState<FilterState>(initialFilters);
@@ -179,7 +194,7 @@ const SearchResults = () => {
                     query: searchQuery,
 
                     /* taxonomy */
-                    niche: filters.niche,
+                    niches: filters.niche,
                     platforms: filters.platforms,
                     contentTypes: filters.contentTypes,
                     collabTypes: filters.collabTypes,
@@ -192,7 +207,7 @@ const SearchResults = () => {
 
                     /* geo */
                     country: filters.country,
-                    language: filters.language,
+                    languages: filters.languages,
 
                     /* business */
                     budgetRange: filters.budgetRange,
@@ -246,6 +261,7 @@ const SearchResults = () => {
         if (filters.platforms.length > 0) count++;
         if (filters.followerRange) count++;
         if (filters.engagementRate !== 'any') count++;
+        if (filters.languages.length > 0) count++;
         if (filters.country) count++;
         if (filters.isVIP) count++;
         if (filters.availableNow) count++;
@@ -297,6 +313,7 @@ const SearchResults = () => {
                     resultCount={totalCount}
                     sortBy={sortBy}
                     onSortChange={setSortBy}
+                    type='creator'
                     viewMode={viewMode}
                     onViewModeChange={setViewMode}
                     onOpenFilters={() => setIsFilterOpen(true)}

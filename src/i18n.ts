@@ -390,6 +390,8 @@ export const translations = {
       name: "Име",
       handle: "Таг",
       niche: "Ниша",
+      location:"Местоположение",
+      languages:"Езици",
       iAgreeToThe: "Съгласявам се с",
       termsOfService: "Условия за ползване",
       privacy: "Политика за личните данни",
@@ -417,7 +419,13 @@ export const translations = {
       reviewSummary: "Преглед на данните",
       and: "и",
       acknowledgeUse: "Потвърждавам използването на задължителни бисквитки (cookies) за сигурността на акаунта.",
-      descLoginCreators: "Започнете да печелите за съдържанието си"
+      descLoginCreators: "Започнете да печелите за съдържанието си",
+      pleaseSelectOneLanguage:"Моля изберете поне един език",
+      anyLanguages:"Добавете езици",
+      whyThisMatters:"Защо е важно?",
+      step2Benefit:"Професионалното потребителско име и местоположение помагат на брандовете да ви откриват при локални търсения и да потвърдят обхвата на вашата аудитория.",
+      step3Benefit:"Определянето на вашата категория и био позволява на нашия изкуствен интелект да ви свързва с кампании, които отговарят на реалния ви стил на съдържание, увеличавайки шанса ви за одобрение.",
+      step4Benefit:"Присъединявайки се, вие получавате достъп до нашия пазар за кампании и пакета от инструменти за анализ за създатели."
     },
 
     mvpRegisterBrand: {
@@ -1409,6 +1417,8 @@ export const translations = {
       name: "Name",
       handle: "Handle",
       niche: "Niche",
+      location:"Location",
+      languages:"Languages",
       iAgreeToThe: "I agree to the",
       termsOfService: "Terms of Service",
       privacy: "Privacy policy",
@@ -1436,7 +1446,13 @@ export const translations = {
       reviewSummary: "Review summary",
       and: "and",
       acknowledgeUse: "I acknowledge the use of essential cookies for account security.",
-      descLoginCreators: "Start earning for you content now"
+      descLoginCreators: "Start earning for you content now",
+      pleaseSelectOneLanguage:"Please select atleast one language",
+      anyLanguages:"Add any languages",
+      whyThisMatters:"Why this matters?",
+      step2Benefit:"A professional handle and location help brands find you in local search results and verify your audience reach.",
+      step3Benefit:"Defining your category and bio lets our AI match you with campaigns that fit your actual content style, increasing your acceptance rate.",
+      step4Benefit:"By joining, you gain access to our campaign marketplace and creator analytics suite."
     },
 
     mvpCampaignSearchSection: {
