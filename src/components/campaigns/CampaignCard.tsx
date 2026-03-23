@@ -14,6 +14,7 @@ import {
 import { useUserStore } from "@/store/useUserStore";
 import { useImpressionTracker } from "@/hooks/useImpressionTracker";
 import { toast } from "sonner";
+import { BsFacebook, BsInstagram, BsX, BsYoutube } from "react-icons/bs";
 
 interface Props {
   campaign: any;
@@ -23,11 +24,13 @@ interface Props {
 const PlatformIcon = ({ platform }: { platform: string }) => {
   switch (platform.toLowerCase()) {
     case 'instagram':
-      return <Instagram className="h-4 w-4" />;
+      return <BsInstagram className="h-4 w-4" />;
     case 'youtube':
-      return <Youtube className="h-4 w-4" />;
+      return <BsYoutube className="h-4 w-4" />;
     case 'twitter':
-      return <Twitter className="h-4 w-4" />;
+      return <BsX className="h-4 w-4" />;
+    case 'facebook':
+      return <BsFacebook className="h-4 w-4" />;
     case 'tiktok':
       return (
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">

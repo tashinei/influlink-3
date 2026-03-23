@@ -29,7 +29,7 @@ const followerRanges = [
 
 const languagesList = [
   "English", "Spanish", "French", "German", "Portuguese",
-  "Italian", "Japanese", "Bulgarian", "Hindi", "Chinese"
+  "Italian", "Japanese", "Bulgarian", "Hindi", "Chinese", "Native"
 ];
 
 const engagementRates = [
@@ -98,7 +98,8 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
       niche: selectedNiches,
       platforms: selectedPlatforms,
       followerRange: followerRange,
-      country: country?.name,
+      country: country?.name ? [country.name] : [],
+      countryCode: country?.code ? [country.code] : [],
       language: languages,
       engagementRate: engagementRate,
       contentTypes: selectedContentTypes,

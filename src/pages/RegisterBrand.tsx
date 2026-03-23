@@ -90,7 +90,7 @@ const RegisterBrand = () => {
     });
 
     const navigate = useNavigate();
-    const { setUser, setRegistered, setAccountType, setToken } = useUserStore();
+    const { setUser, setRegistered, setAccountType } = useUserStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [agreed, setAgreed] = useState(false);
@@ -111,21 +111,14 @@ const RegisterBrand = () => {
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-            const token = useUserStore.getState().token;
-            const isGoogleAuth = !!token;
-
             const payload = {
                 ...formData,
                 accountType: 'brand'
             };
 
-            // 3. API Request
             const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(isGoogleAuth && { 'Authorization': `Bearer ${token}` })
-                },
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify(payload),
             });
@@ -149,12 +142,9 @@ const RegisterBrand = () => {
                 accountType: 'brand'
             });
 
-            if (data.token) setToken(data.token);
-
             setRegistered(true);
             setAccountType("brand");
 
-            // 6. Cleanup
             sessionStorage.removeItem('registration_draft');
             navigate('/profile/me');
 
@@ -171,7 +161,6 @@ const RegisterBrand = () => {
 
     useEffect(() => {
         const fromGoogle = searchParams.get("fromGoogle");
-        const token = searchParams.get('token');
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
         if (fromGoogle) {
@@ -183,7 +172,6 @@ const RegisterBrand = () => {
 
                     if (res.ok) {
                         const data = await res.json();
-                        setToken(data.token);
                         setUser(data.user);
                         setAccountType('brand');
                         setFormData(prev => ({
@@ -201,16 +189,6 @@ const RegisterBrand = () => {
                 }
             };
             handleGoogleExchange();
-        } else if (token && searchParams.get('isGoogleAuth') === 'true') {
-            setToken(token);
-            setAccountType('brand');
-            setFormData(prev => ({
-                ...prev,
-                email: searchParams.get('email') || prev.email,
-                name: searchParams.get('name') || prev.name,
-            }));
-            setStep(2);
-            window.history.replaceState({}, document.title, window.location.pathname);
         }
     }, [searchParams]);
 
@@ -315,7 +293,13 @@ const RegisterBrand = () => {
                             </div>
                             <div className="flex items-start gap-3 px-2 text-left mb-6">
                                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-1 w-5 h-5" />
-                                <label className="text-xs text-white/60">{t("mvpRegisterBrand.agreeTermsPolicy")}</label>
+                                <label htmlFor="terms" className="text-xs text-white/60 leading-relaxed cursor-pointer select-none">
+                                    {t("mvpLogin.iAgreeToThe")} {" "}
+                                    <a href="/terms" target="_blank" className="text-white underline hover:text-blue-400">{t("mvpLogin.termsOfService")} </a>
+                                    {" "}{t("mvpLogin.and")}{" "}
+                                    <a href="/privacy" target="_blank" className="text-white underline hover:text-blue-400">{t("mvpLogin.privacy")} </a>.
+                                    {t("mvpLogin.acknowledgeUse")}
+                                </label>
                             </div>
                         </div>
                         <div className="mt-auto pt-6">
@@ -332,13 +316,11 @@ const RegisterBrand = () => {
     const seoTitle = useMemo(() => `${t("mvpRegisterBrand.launchYourBrand")} | InfluLink`, [t]);
 
     useEffect(() => {
-        const token = searchParams.get('token');
         const email = searchParams.get('email');
         const name = searchParams.get('name');
         const isGoogleAuth = searchParams.get('isGoogleAuth');
 
-        if (token && isGoogleAuth === 'true') {
-            setToken(token);
+        if (isGoogleAuth === 'true') {
             setAccountType('brand');
 
             setFormData(prev => ({
@@ -352,7 +334,7 @@ const RegisterBrand = () => {
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
         }
-    }, [searchParams, setToken, setAccountType]);
+    }, [searchParams, setAccountType]);
 
     return (
         <div className="relative min-h-screen w-full flex items-center justify-center lg:justify-end overflow-hidden bg-black font-sans">

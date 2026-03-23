@@ -35,7 +35,7 @@ const MainContent = () => {
   const isRegisterPage = location.pathname.startsWith("/register/");
 
   const isSearchPage = location.pathname === "/creators/search" || location.pathname === "/campaigns/search";
-  const isProfilePage = location.pathname === "/profile/me"
+  const showFAB = isSearchPage || location.pathname === "/";
 
   const saveConsentToDb = async (preferences: boolean[]) => {
     const userEmail = localStorage.getItem("user_email"); // Or from your Auth context
@@ -72,7 +72,7 @@ const MainContent = () => {
         <Route path="/contact" element={<Contact />} />
 
         <Route path="/profile/me" element={<Profile />} />
-        <Route path="/profile/:identifier" element={<Profile />} />
+        <Route path="/profile/:identifier" element={<Profile key="identifier" />} />
 
         <Route path="/register/creator" element={<RegisterCreator />} />
         <Route path="/register/brand" element={<RegisterBrand />} />
@@ -90,9 +90,11 @@ const MainContent = () => {
         <Route path="/:username" element={<Profile />} />
       </Routes>
 
-      {!isRegisterPage && !isProfilePage && (
-        <NotificationFAB 
-          className={isSearchPage ? "bottom-24" : "bottom-6"} 
+
+
+      {!isRegisterPage && showFAB && (
+        <NotificationFAB
+          className={isSearchPage ? "bottom-24" : "bottom-6"}
         />
       )}
 
@@ -111,7 +113,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner position="top-center" />
         <BrowserRouter>
           <MainContent />
         </BrowserRouter>

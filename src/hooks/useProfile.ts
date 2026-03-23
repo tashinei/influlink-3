@@ -59,7 +59,6 @@ export const useProfile = (profileIdentifier?: string) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include"
       });
@@ -102,9 +101,9 @@ export const useProfile = (profileIdentifier?: string) => {
       const res = await fetch(`${API_BASE_URL}/profiles/${targetProfileId}/follow`, {
         method: 'POST',
         headers: {
-          "Authorization": `Bearer ${token}`, // ТОВА Е КЛЮЧОВО
           "Content-Type": "application/json",
         },
+        credentials:"include"
       });
 
       if (!res.ok) {

@@ -92,9 +92,10 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
       niches: selectedNiches,
       platforms: selectedPlatforms,
       contentTypes: selectedContentTypes,
-      paymentType,
-      budgetRange: budgetRange,
-      country: country?.name,
+      collabTypes: paymentType !== "any" ? [paymentType] : [],
+      budgetRange: budgetRange === "any" ? null : budgetRange,
+      country: country?.name ? [country.name] : [],
+      countryCode: country?.code ? [country.code] : [],
       urgentOnly,
     });
   };

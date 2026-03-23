@@ -36,15 +36,10 @@ export const PostPreviewModal = ({
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const API_BASE = "https://api.influ-link.com";
-  const { token, user } = useUserStore();
+  const { user } = useUserStore();
 
   const isOwner =
     user && currentPost && String(user.id) === String(currentPost.profileId);
-
-  const getHeaders = () => ({
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  });
 
   const formatStat = (num: number, isViews = false): string => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -69,7 +64,8 @@ export const PostPreviewModal = ({
           `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}/view`,
           {
             method: "POST",
-            headers: getHeaders(),
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
             cache: "no-store",
           }
         );
@@ -99,7 +95,7 @@ export const PostPreviewModal = ({
         `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}/like`,
         {
           method: isNowLiked ? "POST" : "DELETE",
-          headers: getHeaders(),
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
           cache: "no-store",
         }
@@ -131,7 +127,8 @@ export const PostPreviewModal = ({
         `${API_BASE_URL}/profiles/${currentPost.profileId}/portfolio/${currentPost.id}`,
         {
           method: "DELETE",
-          headers: getHeaders(),
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
           cache: "no-store",
         }
       );

@@ -47,7 +47,7 @@ export const EditCampaignModal = ({
   const [description, setDescription] = useState("");
   const [primaryGoal, setPrimaryGoal] = useState("");
   const [budget, setBudget] = useState<number>(0);
-  const [status, setStatus] = useState<CampaignData["status"]>("Draft");
+  const [status, setStatus] = useState<CampaignData["status"]>("Open");
   const [type, setType] = useState<CampaignData["type"]>("social");
   const [startDate, setStartDate] = useState<Date | undefined>();
 
@@ -74,7 +74,7 @@ export const EditCampaignModal = ({
     setReferenceImages([]);
   }, [campaign]);
 
-  const {token} = useUserStore();
+  const { token } = useUserStore();
   /** ---------- SUBMIT ---------- */
   const handleSave = async () => {
     setLoading(true);
@@ -99,10 +99,6 @@ export const EditCampaignModal = ({
       const res = await fetch(`${API_BASE}/api/campaigns/${campaign.id}`, {
         method: "PUT",
         credentials: "include",
-         headers: {
-          "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
-        },
         body: formData,
       });
 
@@ -206,7 +202,10 @@ export const EditCampaignModal = ({
                     {startDate ? format(startDate, "PPP") : "Pick date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0">
+                {/* CHANGE: Ensure PopoverContent has a higher z-index than DialogContent 
+          and check that your Popover implementation uses <PopoverPortal> 
+      */}
+                <PopoverContent align="start" className="w-auto p-0 z-[50001]">
                   <Calendar
                     mode="single"
                     selected={startDate}

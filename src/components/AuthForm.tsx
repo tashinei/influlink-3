@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BsGoogle } from 'react-icons/bs';
-import { Mail, Lock, User, Briefcase, CheckCircle2, Earth } from 'lucide-react';
+import { Mail, Lock, User, Briefcase, CheckCircle2, Earth, Eye, EyeOff } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMediaQuery } from '@/hooks/use-media.query';
@@ -26,6 +26,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const setRegistered = useUserStore((state) => state.setRegistered);
   const setAccountType = useUserStore((state) => state.setAccountType);
   const [searchParams] = useSearchParams();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [mode, setMode] = useState<'register' | 'login'>(
     searchParams.get('mode') === 'login' ? 'login' : 'register'
@@ -38,6 +39,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     email: initialData?.email || '',
     password: ''
   });
+
   useEffect(() => {
     if (initialData) {
       setFormData(prev => ({
@@ -86,11 +88,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           const parsed = JSON.parse(savedCookiePrefs);
           guestConsent = { analytics: !!parsed[1], marketing: !!parsed[2] };
         }
-
         onSuccess({ ...formData, ...guestConsent });
       }, 800);
       return;
     }
+
     try {
       const savedCookiePrefs = localStorage.getItem("cookie_preferences");
       let guestConsent = { analytics: false, marketing: false };
@@ -145,10 +147,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
       }
 
       if (data.token) {
-        setToken(data.token); // Това трябва да запише в Zustand + LocalStorage
+        setToken(data.token);
       } else {
         console.warn("No token received from backend!");
       }
+
       setUser({
         id: data.user.id,
         email: data.user.email,
@@ -180,17 +183,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   };
 
   const isValidPassword = (password: string) => {
-    // Allows English letters, numbers, and common symbols. 
     const asciiRegex = /^[\x20-\x7E]*$/;
     return asciiRegex.test(password);
   };
 
   const [langOpen, setLangOpen] = useState(false);
-
   const isLarge = useMediaQuery("(min-width: 1024px)");
 
   type LanguageCode = 'en' | 'bg';
-
   interface LanguageOption {
     code: LanguageCode;
     label: string;
@@ -225,8 +225,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
                     setLanguage(lang.code);
                     setLangOpen(false);
                   }}
-                  className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${language === lang.code ? 'font-bold text-primary' : 'text-gray-800'
-                    }`}
+                  className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${language === lang.code ? 'font-bold text-primary' : 'text-gray-800'}`}
                 >
                   {lang.label}
                 </button>
@@ -235,6 +234,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           )}
         </div>
       </div>
+
       <div className="w-full max-w-[36rem] p-6 lg:p-6 lg:pb-0 lg:pt-0 2xl:pt-6 bg-transparent dark:bg-background flex flex-col justify-center h-full lg:h-fit 2xl:h-full">
         <div className="flex items-center mb-6 lg:mb-4 2xl:mb-6">
           <Link to="/" className="flex items-center space-x-2 text-[22px] font-bold text-white dark:text-white">
@@ -286,13 +286,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white" />
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder={t("mvpLogin.password")}
               value={formData.password}
               onChange={handleChange}
               required
-              className="pl-9 h-11 border-gray-300 text-white bg-white/20 placeholder:text-white"
+              className="pl-9 pr-10 h-11 border-gray-300 text-white bg-white/20 placeholder:text-white"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="!h-5 !w-5" /> : <Eye className="!h-5 !w-5" />}
+            </button>
           </div>
 
           <Button
@@ -345,15 +353,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
               <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 <CheckCircle2 className="mx-auto text-white mb-4 drop-shadow-lg animate-scale-in" size={64} />
               </div>
-
               <h2 className="text-2xl font-bold mb-2 text-white animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 {t("mvpLogin.registrationSuccess")}
               </h2>
-
               <p className="text-white mb-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 {t("mvpLogin.accountCreatedSuccess")}
               </p>
-
               <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
                 <Button
                   onClick={() => {

@@ -71,6 +71,10 @@ export const InstagramInsights = ({ data }: InstagramInsightsProps) => {
                                         src={data.profile_picture_url}
                                         alt={data.ig_username}
                                         className="w-full h-full rounded-full object-cover"
+                                        referrerPolicy="no-referrer" 
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${data.ig_username}&background=random`;
+                                        }}
                                     />
                                 ) : (
                                     <div className="w-full h-full rounded-full bg-slate-50 flex items-center justify-center">

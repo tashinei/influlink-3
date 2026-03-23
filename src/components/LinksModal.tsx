@@ -63,7 +63,6 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
-              ...(token && { "Authorization": `Bearer ${token}` })
             },
           });
         if (!res.ok) throw new Error("Failed to load collaborators");
@@ -157,7 +156,7 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
                         {person.currentCampaign && (
                           <>
                             <span className="text-[10px] opacity-60">•</span>
-                            <span className="text-[10px] italic truncate max-w-[120px]">
+                            <span className="text-[14px] italic truncate text-white font-semibold max-w-[120px]">
                               {person.currentCampaign}
                             </span>
                           </>
@@ -171,7 +170,10 @@ export default function LinksModal({ open, onOpenChange, onChat }: Collaborators
                       variant="ghost"
                       size="sm"
                       className="h-10 w-10 shrink-0 p-0 rounded-full text-white hover:bg-white/20 active:scale-95 transition-transform"
-                      onClick={() => navigate(`/profile/${person.handle}`)}
+                      onClick={() => {
+                        onOpenChange(false);
+                        navigate(`/profile/${person.handle}`);
+                      }}
                     >
                       <User className="h-5 w-5" />
                     </Button>

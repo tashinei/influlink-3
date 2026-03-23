@@ -5,13 +5,14 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
-  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/useUserStore";
-import NotificationDropdown from "./NotificationDropdown";
+import NotificationDropdown, { type Notification } from "./NotificationDropdown";
+import { NotificationDetailModal } from "./NotificationDetailModal";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface NotificationFABProps {
   className?: string;
@@ -21,14 +22,16 @@ export function NotificationFAB({ className }: NotificationFABProps) {
   const [open, setOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
-  const { token } = useUserStore();
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const { user, isRegistered } = useUserStore();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const fetchCount = async () => {
-    if (!token) return;
+    if (!user) return;
     try {
       const res = await fetch(`${API_BASE_URL}/notifications/unread-count`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include"
       });
       const data = await res.json();
       setUnreadCount(data.count || 0);
@@ -38,37 +41,24 @@ export function NotificationFAB({ className }: NotificationFABProps) {
   };
 
   useEffect(() => {
-    fetchCount();
-    const interval = setInterval(fetchCount, 60000);
-    return () => clearInterval(interval);
-  }, [token]);
-
-  const handleMarkAllRead = async () => {
-    setIsMarkingRead(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        setUnreadCount(0);
-        toast.success("All notifications marked as read");
-      }
-    } catch (err) {
-      toast.error("Failed to update notifications");
-    } finally {
-      setIsMarkingRead(false);
+    if (user && isRegistered) {
+      fetchCount();
+      const interval = setInterval(fetchCount, 60000);
+      return () => clearInterval(interval);
+    } else {
+      setUnreadCount(0);
+      setOpen(false);
     }
-  };
+  }, [user, isRegistered]);
+
+  const navigate = useNavigate();
+
+  if (!user || !isRegistered) {
+    return null;
+  }
 
   return (
-    <div
-      className={cn(
-        "fixed right-6 lg:hidden z-40 transition-all duration-300 ease-in-out",
-        className,
-      )}
-    >
+    <div className={cn("fixed right-6 lg:hidden z-40 transition-all duration-300 ease-in-out", className)}>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button
@@ -90,34 +80,27 @@ export function NotificationFAB({ className }: NotificationFABProps) {
           side="bottom"
           className="p-0 h-fit rounded-t-[20px] border-t overflow-hidden flex flex-col [&>button]:hidden"
         >
-          <SheetHeader className="border-b flex flex-row items-center justify-between space-y-0">
-            {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground hover:text-primary flex gap-2"
-                onClick={handleMarkAllRead}
-                disabled={isMarkingRead}
-              >
-                {isMarkingRead ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <CheckCheck className="w-4 h-4" />
-                )}
-                Mark all read
-              </Button>
-            )}
-          </SheetHeader>
-
           <div className="flex-1 overflow-y-auto min-h-[300px]">
-            {" "}
             <NotificationDropdown
               setDropdownOpen={setOpen}
               className="relative border-none shadow-none w-full"
+              onNotificationSelect={setSelectedNotification}
             />
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Modal lives outside Sheet so it survives when sheet closes */}
+      <NotificationDetailModal
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        onDropdownClose={() => setOpen(false)}
+        onOpenChat={(partner) => {
+          setSelectedNotification(null);
+          setOpen(false);
+          navigate("/profile/me", { state: { openChat: true, partner } });
+        }}
+      />
     </div>
   );
 }

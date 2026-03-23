@@ -11,7 +11,6 @@ import {
     HelpCircle,
     BookOpen,
     MousePointer2,
-    Badge,
     ThumbsUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -75,24 +74,31 @@ const HowToConnect = () => {
                                         <ul className="space-y-4">
                                             <li className="text-sm text-slate-600 flex items-start gap-3">
                                                 <span className="w-5 h-5 rounded-full bg-white flex-shrink-0 flex items-center justify-center border border-slate-200 text-[10px] font-bold text-slate-400">1</span>
-                                                <span dangerouslySetInnerHTML={{ __html: t("howToConnect.step1.tip1") }} />
+                                                <span>Open <strong>Settings</strong> in your Instagram app.</span>
                                             </li>
                                             <li className="text-sm text-slate-600 flex items-start gap-3">
                                                 <span className="w-5 h-5 rounded-full bg-white flex-shrink-0 flex items-center justify-center border border-slate-200 text-[10px] font-bold text-slate-400">2</span>
-                                                <span dangerouslySetInnerHTML={{ __html: t("howToConnect.step1.tip2") }} />
+                                                <span>Select <strong>Edit Profile</strong> or <strong>Account Type</strong>.</span>
                                             </li>
                                             <li className="text-sm text-slate-600 flex items-start gap-3">
                                                 <span className="w-5 h-5 rounded-full bg-white flex-shrink-0 flex items-center justify-center border border-slate-200 text-[10px] font-bold text-slate-400">3</span>
-                                                <span dangerouslySetInnerHTML={{ __html: t("howToConnect.step1.tip3") }} />
+                                                <span>Tap <strong>Switch to Professional Account</strong>.</span>
                                             </li>
                                         </ul>
                                     </div>
 
                                     <div className="flex flex-col gap-3">
-                                        <Button className="w-full h-14 rounded-2xl bg-gradient-to-br from-primary via-secondary to-tertiary text-white font-bold text-lg" onClick={() => window.open('https://www.instagram.com/accounts/convert/to/professional/', '_blank')}>
+                                        <Button
+                                            className="w-full h-14 rounded-2xl bg-gradient-to-br from-primary via-secondary to-tertiary text-white font-bold text-lg"
+                                            onClick={() => window.open('https://www.instagram.com/accounts/edit/', '_blank')}
+                                        >
                                             {t("howToConnect.step1.button")} <ExternalLink className="w-4 h-4 ml-2" />
                                         </Button>
-                                        <a href="https://help.instagram.com/502981923235522" target="_blank" className="text-xs text-center text-slate-400 hover:text-primary transition-colors italic">
+                                        <a
+                                            href="https://help.instagram.com/502981923235522"
+                                            target="_blank"
+                                            className="text-xs text-center text-slate-400 hover:text-primary transition-colors italic"
+                                        >
                                             {t("howToConnect.step1.helpLink")}
                                         </a>
                                     </div>
@@ -110,7 +116,9 @@ const HowToConnect = () => {
 
                                 <div className="space-y-4">
                                     <div className="p-5 rounded-2xl border border-blue-50 bg-blue-50/30">
-                                        <p className="text-sm text-blue-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: t("howToConnect.step2.mainTip") }} />
+                                        <p className="text-sm text-blue-800 leading-relaxed">
+                                            This is the most critical step. You can link your account directly via the <strong>Meta Accounts Center</strong>.
+                                        </p>
                                     </div>
 
                                     <div className="space-y-3">
@@ -118,11 +126,20 @@ const HowToConnect = () => {
                                             <BookOpen className="w-8 h-8 text-slate-300" />
                                             <div className="text-sm">
                                                 <p className="font-bold text-slate-800 tracking-tight">{t("howToConnect.step2.noPageTitle")}</p>
-                                                <a href="https://www.facebook.com/pages/create" target="_blank" className="text-blue-600 underline" dangerouslySetInnerHTML={{ __html: t("howToConnect.step2.createPageLink") }} />
+                                                <a
+                                                    href="https://www.facebook.com/pages/create"
+                                                    target="_blank"
+                                                    className="text-blue-600 underline"
+                                                >
+                                                    Create one here in 1 minute
+                                                </a>
                                             </div>
                                         </div>
 
-                                        <Button className="w-full h-14 rounded-2xl bg-gradient-to-br from-primary via-secondary to-tertiary text-white font-bold text-lg" onClick={() => window.open('https://www.facebook.com/business/help/399237913753231', '_blank')}>
+                                        <Button
+                                            className="w-full h-14 rounded-2xl bg-gradient-to-br from-primary via-secondary to-tertiary text-white font-bold text-lg"
+                                            onClick={() => window.open('https://www.facebook.com/business/help/connect-instagram-to-page', '_blank')}
+                                        >
                                             {t("howToConnect.step2.button")} <ExternalLink className="w-4 h-4 ml-2" />
                                         </Button>
                                     </div>
@@ -169,7 +186,9 @@ const HowToConnect = () => {
                                     <AlertCircle className="w-6 h-6 flex-shrink-0" />
                                     <div className="space-y-1 relative z-10">
                                         <strong className="text-sm">{t("howToConnect.step3.warningTitle")}</strong>
-                                        <p className="text-xs leading-relaxed" dangerouslySetInnerHTML={{ __html: t("howToConnect.step3.warningDesc") }} />
+                                        <p className="text-xs leading-relaxed">
+                                            When you click the button, Meta will request access. Please select <strong>'Select All'</strong> for all your pages to ensure your stats load correctly.
+                                        </p>
                                     </div>
                                 </div>
 

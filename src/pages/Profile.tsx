@@ -48,11 +48,11 @@ const Profile = () => {
 
   const isMyProfileRoute = useMatch("/profile/me");
 
-  const { identifier } = useParams<{ identifier: string }>();
-  const { username } = useParams<{ username: string }>();
-  const { token, user } = useUserStore();
-
+  const { identifier, username } = useParams<{ identifier?: string; username?: string }>();
   const rawIdentifier = username || identifier;
+  const { user } = useUserStore();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<any>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -90,12 +90,12 @@ const Profile = () => {
   } = useProfile(identifierToFetch);
 
   // 6. Ownership logic
-  const isOwner =
+  const isOwner = Boolean(
     isMyProfileRoute ||
-    !cleanIdentifier ||
-    (profile && myProfile &&
+    (cleanIdentifier && profile && myProfile &&
       (profile.handle === myProfile.handle ||
-        profile.id === myProfile.id));
+        profile.id === myProfile.id))
+  );
 
   const location = useLocation();
 
@@ -105,6 +105,14 @@ const Profile = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location]);
+
+  useEffect(() => {
+    if (location.state?.openChat && location.state?.partner) {
+      setSelectedPartner(location.state.partner);
+      setIsChatOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   // Безопасно извличане на API_BASE_URL
   const getApiBaseUrl = () => {
@@ -150,8 +158,6 @@ const Profile = () => {
       const res = await fetch(`${API_BASE_URL}/campaigns`, {
         headers: {
           "Content-Type": "application/json",
-          // АКО ИМА ТОКЕН, ГО ПРАЩАМЕ:
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include"
       });
@@ -204,8 +210,7 @@ const Profile = () => {
   const syncStarted = useRef(false);
 
   useEffect(() => {
-    // 1. Exit immediately if not a success status or already processing
-    if (status !== "success" || syncStarted.current || !token) return;
+    if (status !== "success" || syncStarted.current || !user) return;
 
     // 2. Lock it immediately
     syncStarted.current = true;
@@ -220,7 +225,6 @@ const Profile = () => {
         const res = await fetch(`${API_BASE_URL}/instagram/sync`, {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
           credentials: "include",
@@ -238,7 +242,7 @@ const Profile = () => {
     };
 
     triggerSync();
-  }, [status, token, navigate, API_BASE_URL, refetchIG, refetchAnalytics, refetch]);
+  }, [status, user, navigate, API_BASE_URL, refetchIG, refetchAnalytics, refetch]);
 
   useEffect(() => {
     if (profile?.stats?.instagramLinked !== undefined) {
@@ -247,16 +251,26 @@ const Profile = () => {
   }, [profile]);
 
   useEffect(() => {
-    if (showSuccessModal) return;
+    console.log("Redirect check:", {
+      isMyProfileRoute,
+      cleanIdentifier,
+      profileHandle: profile?.handle,
+      myProfileHandle: myProfile?.handle,
+      profileId: profile?.id,
+      myProfileId: myProfile?.id,
+      showSuccessModal,
+      status
+    });
 
-    if (status === "success") return;
-
-    if (!isMyProfileRoute && profile && myProfile) {
+    if (!isMyProfileRoute && cleanIdentifier && profile && myProfile && !showSuccessModal && status !== "success") {
       if (profile.handle === myProfile.handle || profile.id === myProfile.id) {
+        console.log("REDIRECTING - profiles match");
         navigate("/profile/me", { replace: true });
       }
     }
-  }, [profile, myProfile, isMyProfileRoute, navigate, status, showSuccessModal]);
+  }, [profile, myProfile, isMyProfileRoute, cleanIdentifier, navigate, status, showSuccessModal]);
+
+  console.log("identifierToFetch:", identifierToFetch, "rawIdentifier:", rawIdentifier);
 
   const profileWithLiveStats: ProfileData = {
     ...profile,
@@ -329,7 +343,6 @@ const Profile = () => {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
         body: JSON.stringify(updated),
       });
@@ -379,33 +392,12 @@ const Profile = () => {
     window.location.href = authUrl;
   };
 
-  const handleLogout = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` }) // Добави това
-        },
-        credentials: "include",
-      });
-      if (response.ok) {
-        useUserStore.getState().logout();
-        localStorage.removeItem("user-storage");
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
   const refreshSelectedCampaign = async (campaignId: string | number) => {
     try {
       const res = await fetch(`${API_BASE_URL}/campaigns`, {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
       });
 
@@ -431,9 +423,6 @@ const Profile = () => {
       formData.append("avatar", file);
       const res = await fetch(`${API_BASE_URL}/profiles/me/avatar`, {
         method: "POST",
-        headers: {
-          ...(token && { "Authorization": `Bearer ${token}` })
-        },
         body: formData,
         credentials: "include",
       });
@@ -576,7 +565,6 @@ const Profile = () => {
         onToggleFollow={toggleFollow}
         onChangeProfilePic={isOwner ? handleProfilePicChange : undefined}
         onEditProfile={isOwner ? () => setIsEditProfileOpen(true) : undefined}
-        onLogout={handleLogout}
         onConnectInstagram={isOwner ? handleConnectInstagram : undefined}
         isInstagramLinked={isIGLinked}
       />
@@ -826,7 +814,11 @@ const Profile = () => {
         onClose={() => setIsAddPostOpen(false)}
         onSubmit={addPostHandler}
       />
-      <NavigationDock onCampaignCreated={fetchCampaigns} />
+      <NavigationDock
+        onCampaignCreated={fetchCampaigns}
+        initialChatOpen={isChatOpen}
+        initialChatPartner={selectedPartner}
+        onChatStateChange={(open) => setIsChatOpen(open)} />
     </div>
   );
 };

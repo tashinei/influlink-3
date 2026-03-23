@@ -28,7 +28,7 @@ export const DeleteCampaignConfirmDialog = ({
   const {t} = useTranslation();
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md z-[60000]">
         <AlertDialogHeader>
           <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-9 w-9 text-destructive text-red-700" />

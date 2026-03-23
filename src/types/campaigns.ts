@@ -1,4 +1,4 @@
-export type CampaignStatus = "Draft" | "Active" | "Paused" | "Completed";
+export type CampaignStatus = "Draft" | "Active" | "Paused" | "Completed" | "Open";
 export type CampaignType = "email" | "social" | "paid_ads" | "content";
 
 export interface CampaignData {
@@ -31,6 +31,7 @@ export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
 };
 
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
+  Open: "Open",
   Draft: "Draft",
   Active: "Active",
   Paused: "Paused",
@@ -40,15 +41,12 @@ export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
 export type CampaignFilterState = {
   niches: string[];
   platforms: string[];
-
   contentTypes: string[];
   collabTypes: string[];
-
   budgetRange: string | null;
-
-  country: string | null;
+  country: string[];
+  countryCode: string[];
   language: string[];
-
   status?: CampaignStatus | "any";
 };
 
@@ -58,7 +56,8 @@ export const defaultCampaignFilters: CampaignFilterState = {
   contentTypes: [],
   collabTypes: [],
   budgetRange: null,
-  country: null,
+  country: [],
+  countryCode: [],
   language: [],
   status: "any",
 };

@@ -41,6 +41,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { BsFacebook, BsInstagram, BsLinkedin, BsYoutube } from "react-icons/bs";
 import { useUserStore } from "@/store/useUserStore";
 import { useNavigate } from "react-router-dom";
+import { useMediaQuery } from "@/hooks/use-media.query";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -51,7 +52,6 @@ interface ProfileHeaderProps {
   // --- NEW PROP ADDED ---
   isInstagramLinked: boolean;
   onConnectInstagram: () => void;
-  onLogout: () => void;
 }
 
 export const ProfileHeader = ({
@@ -60,7 +60,6 @@ export const ProfileHeader = ({
   onToggleFollow,
   onChangeProfilePic,
   onEditProfile,
-  onLogout,
   isInstagramLinked,
 }: ProfileHeaderProps) => {
   const getInitials = (name: string) => {
@@ -103,6 +102,28 @@ export const ProfileHeader = ({
     setIsLogoutModalOpen(true);
   };
 
+  const logout = useUserStore((state) => state.logout);
+  const accountType = useUserStore((state) => state.accountType)
+
+  const handleFinalLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${useUserStore.getState().token}`
+        },
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Backend logout failed", err);
+    } finally {
+      logout();
+
+      navigate("/");
+    }
+  };
+
   const onConnectInstagram = () => {
     const clientID = "1829769444346525";
     const redirectUri = encodeURIComponent(
@@ -132,8 +153,8 @@ export const ProfileHeader = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials:"include"
       });
 
       if (response.ok) {
@@ -155,6 +176,8 @@ export const ProfileHeader = ({
   const handleClickHowTo = () => {
     navigate("/connect-instagram");
   }
+
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const API_BASE = "https://api.influ-link.com";
   console.log("Full Profile Data:", profile);
@@ -406,7 +429,7 @@ export const ProfileHeader = ({
                   {profile.bio}
                 </p>
                 <div
-                  className="flex gap-4 mt-4 justify-center"
+                  className={`flex gap-4 mt-4 ${isDesktop ? "justify-start" : "justify-center"}`}
                   role="list"
                   aria-label="Social media links"
                 >
@@ -558,7 +581,7 @@ export const ProfileHeader = ({
             <Button
               variant="destructive"
               className="w-full sm:w-auto text-red-500"
-              onClick={onLogout}
+              onClick={handleFinalLogout}
             >
               <LogOut className="w-4 h-4 mr-2 text-red-400" />
               {t("profile.logOut")}

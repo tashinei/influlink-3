@@ -232,8 +232,6 @@ export const CampaignApplyDialog: React.FC<CampaignApplyDialogProps> = ({
     }
   };
 
-  const {token} = useUserStore();
-
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -302,7 +300,6 @@ ${formData.coverLetter.trim()}`;
         method: "POST",
          headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include",
         body: JSON.stringify({
@@ -664,7 +661,7 @@ ${formData.coverLetter.trim()}`;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="h-[90vh] w-full max-w-2xl overflow-hidden p-6 gap-0 flex flex-col">
+      <DialogContent className="h-[90vh] w-full max-w-2xl overflow-hidden p-6 gap-0 flex flex-col z-[50001]">
         {/* Header */}
         <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b space-y-4">
           <div>

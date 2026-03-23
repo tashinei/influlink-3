@@ -20,7 +20,8 @@ export const defaultFilters: FilterState = {
     followerRange: null,
     engagementRate: "any",
 
-    country: null,
+    country: [],
+    countryCode: [],
 
     budgetRange: null,
 
@@ -62,12 +63,17 @@ const SearchResults = () => {
 
     const initialFilters = useMemo<FilterState>(() => {
         const incomingFilters = location.state?.filters ?? {};
-
-        // Create a clean object starting with defaults
         const cleaned: FilterState = {
             ...defaultFilters,
             ...incomingFilters,
         };
+
+        if (!Array.isArray(cleaned.country)) {
+            cleaned.country = cleaned.country ? [cleaned.country as string] : [];
+        }
+        if (!Array.isArray(cleaned.countryCode)) {
+            cleaned.countryCode = cleaned.countryCode ? [cleaned.countryCode as string] : [];
+        }
 
         if ('language' in cleaned) {
             const legacyVal = (cleaned as any).language;
@@ -188,7 +194,6 @@ const SearchResults = () => {
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token && { "Authorization": `Bearer ${token}` })
                 },
                 body: JSON.stringify({
                     query: searchQuery,
@@ -262,7 +267,7 @@ const SearchResults = () => {
         if (filters.followerRange) count++;
         if (filters.engagementRate !== 'any') count++;
         if (filters.languages.length > 0) count++;
-        if (filters.country) count++;
+        if (filters.country.length > 0) count++;
         if (filters.isVIP) count++;
         if (filters.availableNow) count++;
         return count;

@@ -67,7 +67,6 @@ export const InviteModal = ({
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            ...(token && { "Authorization": `Bearer ${token}` })
           },
         });
 
@@ -100,7 +99,6 @@ export const InviteModal = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include",
         body: JSON.stringify({
@@ -183,7 +181,6 @@ export const InviteModal = ({
                           credentials: "include",
                           headers: {
                             "Content-Type": "application/json",
-                            ...(token && { "Authorization": `Bearer ${token}` })
                           },
                         });
                         if (!response.ok) throw new Error();

@@ -11,8 +11,6 @@ export default function NotificationItem({ notification, onRead, onClick, getNot
 
     const { t, language } = useTranslation();
 
-    const {token} = useUserStore();
-
     const localSetting = language === "bg" ? bg : enUS;
 
     // Helper to translate titles dynamically
@@ -35,7 +33,6 @@ export default function NotificationItem({ notification, onRead, onClick, getNot
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(token && { "Authorization": `Bearer ${token}` })
                 },
             });
             onRead(notification.id);

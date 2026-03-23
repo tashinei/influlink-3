@@ -22,7 +22,6 @@ const ITEMS_PER_PAGE = 12;
 const SearchCampaigns = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const location = useLocation();
-  const { token } = useUserStore();
 
   // --- States ---
   const [sortBy, setSortBy] = useState<SortOption>("recent");
@@ -38,10 +37,21 @@ const SearchCampaigns = () => {
   // --- Filter Initialization ---
   const initialQuery = location.state?.query ?? "";
   const initialFilters = useMemo<CampaignFilterState>(
-    () => ({
-      ...defaultCampaignFilters,
-      ...(location.state?.filters ?? {}),
-    }),
+    () => {
+      const merged = {
+        ...defaultCampaignFilters,
+        ...(location.state?.filters ?? {}),
+      };
+
+      if (!Array.isArray(merged.country)) {
+        merged.country = merged.country ? [merged.country] : [];
+      }
+      if (!Array.isArray(merged.countryCode)) {
+        merged.countryCode = merged.countryCode ? [merged.countryCode] : [];
+      }
+
+      return merged;
+    },
     [location.state]
   );
 
@@ -56,7 +66,7 @@ const SearchCampaigns = () => {
     if (filters.contentTypes.length) count++;
     if (filters.collabTypes.length) count++;
     if (filters.language.length) count++;
-    if (filters.country) count++;
+    if (filters.country.length) count++;
     if (filters.budgetRange) count++;
     if (filters.status !== "any") count++;
     return count;
@@ -76,12 +86,14 @@ const SearchCampaigns = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` }),
         },
+        credentials: "include",
         body: JSON.stringify({
           query: searchQuery,
           ...filters,
           status: filters.status === "any" ? null : filters.status,
+          country: filters.country.filter(c => c && c.trim()),
+          countryCode: filters.countryCode.filter(c => c && c.trim()),
           sortBy,
           page: targetPage,
           limit: ITEMS_PER_PAGE,

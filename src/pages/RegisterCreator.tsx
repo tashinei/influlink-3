@@ -129,7 +129,7 @@ const RegisterCreator = () => {
     const prevStep = () => setStep(s => s - 1);
 
     const navigate = useNavigate();
-    const { setUser, setRegistered, setAccountType, setToken } = useUserStore();
+    const { setUser, setRegistered, setAccountType } = useUserStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -155,10 +155,6 @@ const RegisterCreator = () => {
 
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-            const token = useUserStore.getState().token;
-            const isGoogleAuth = !!token;
-
             const payload = {
                 ...formData,
                 accountType: 'creator'
@@ -168,7 +164,6 @@ const RegisterCreator = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(isGoogleAuth && { 'Authorization': `Bearer ${token}` })
                 },
                 credentials: 'include',
                 body: JSON.stringify(payload),
@@ -192,8 +187,6 @@ const RegisterCreator = () => {
                 isVIP: data.user.isVIP || false,
                 accountType: data.user.accountType
             });
-
-            if (data.token) setToken(data.token);
 
             setRegistered(true);
             setAccountType(data.user.accountType as "creator" | "brand");
@@ -223,7 +216,6 @@ const RegisterCreator = () => {
                     if (res.ok) {
                         const data = await res.json();
 
-                        setToken(data.token);
                         setUser(data.user);
                         setAccountType('creator');
 
@@ -250,13 +242,11 @@ const RegisterCreator = () => {
     }, [searchParams]);
 
     useEffect(() => {
-        const token = searchParams.get('token');
         const email = searchParams.get('email');
         const name = searchParams.get('name');
         const isGoogleAuth = searchParams.get('isGoogleAuth');
 
-        if (token && isGoogleAuth === 'true') {
-            setToken(token);
+        if (isGoogleAuth === 'true') {
             setAccountType('creator');
 
             setFormData(prev => ({
@@ -270,7 +260,7 @@ const RegisterCreator = () => {
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
         }
-    }, [searchParams, setToken, setAccountType]);
+    }, [searchParams, setAccountType]);
 
     const [agreed, setAgreed] = useState(false);
 

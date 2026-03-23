@@ -8,7 +8,7 @@ export const InstagramCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { token } = useUserStore();
+  const { user } = useUserStore();
   
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState(t("instagram.connecting") || "Connecting your account...");
@@ -24,7 +24,7 @@ export const InstagramCallback = () => {
       return;
     }
 
-    if (!token) {
+    if (!user) {
       setStatus("error");
       setMessage(t("instagram.error_session") || "Session expired. Please log in again.");
       return;
@@ -40,8 +40,8 @@ export const InstagramCallback = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
           },
+          credentials:"include",
           body: JSON.stringify({ code }),
         });
 
@@ -51,7 +51,8 @@ export const InstagramCallback = () => {
         setMessage(t("instagram.syncing") || "Syncing your latest insights...");
         const syncRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/instagram/sync`, {
           method: "POST",
-          headers: { "Authorization": `Bearer ${token}` },
+          headers: { "Content-Type": "application/json" },
+          credentials:"include"
         });
 
         if (!syncRes.ok) throw new Error("Sync failed");
@@ -70,7 +71,7 @@ export const InstagramCallback = () => {
     };
 
     performConnection();
-  }, [searchParams, navigate, token, t]);
+  }, [searchParams, navigate, user, t]);
 
   return (
     <div className="flex flex-col items-center justify-center !h-[100dvh] space-y-6 bg-background p-4 text-center">

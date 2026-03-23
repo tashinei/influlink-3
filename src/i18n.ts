@@ -543,6 +543,8 @@ export const translations = {
       french: "Френски",
       spanish: "Испански",
       bulgarian: "Български",
+      native:"Роден",
+      countriesSelected:"избрани държави"
     },
 
     mvpAnalytics: {
@@ -593,7 +595,8 @@ export const translations = {
       inviteDeclinedMsg: "Създател отказа ваша покана за участие в кампания.",
       typeProposal: "Предложение",
       typeInvite: "Покана",
-      typeMessage: "Съобщение"
+      typeMessage: "Съобщение",
+      messageReceived:"Получихте съобщение от бранд!"
     },
 
     mvpCampaignDetails: {
@@ -906,8 +909,10 @@ export const translations = {
 
       countryPick: {
         title: "Изберете целеви държави",
-        subTitle: "Максимум 3 държави.",
-        save: "Запази"
+        subTitleFirstPart: "Максимум",
+        subTitleSecondPart:"държави.",
+        save: "Запази",
+        search:"Търсене..."
       },
 
       validation: {
@@ -1274,7 +1279,8 @@ export const translations = {
       inviteDeclinedMsg: "A creator has declined your invitation to join a campaign.",
       typeProposal: "Proposal",
       typeInvite: "Invitation",
-      typeMessage: "Message"
+      typeMessage: "Message",
+      messageReceived:"You received a message from a brand!"
     },
 
     mvpCampaignDetails: {
@@ -1708,7 +1714,9 @@ export const translations = {
       french: "French",
       spanish: "Spanish",
       bulgarian: "Bulgarian",
-      paidAds: "Paid ads"
+      native:"Native",
+      paidAds: "Paid ads",
+      countriesSelected:"countries selected"
     },
 
     mvpRegisterBrand: {
@@ -1742,7 +1750,8 @@ export const translations = {
       partnerWithPros: "Partner with Pros",
       crossBridgeBetween: "Cross the bridge between professional brands and world-class creators.",
       benefit3: "By joining, you unlock the ability to post campaigns and use our automated creator contracting tools.",
-      descLoginCreators: "Find the perfect creators for you business"
+      descLoginCreators: "Find the perfect creators for you business",
+      agreeTermsPolicy:""
     },
 
     instagram: {
@@ -1944,8 +1953,10 @@ export const translations = {
 
       countryPick: {
         title: "Choose target countries",
-        subTitle: "Maximum 3 countries.",
-        save: "Submit"
+        subTitleFirstPart: "Maximum",
+        subTitleSecondPart:"countries.",
+        save: "Submit",
+        search:"Search..."
       },
 
       validation: {

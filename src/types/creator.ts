@@ -64,7 +64,8 @@ export interface FilterState {
   followerRange: "nano" | "micro" | "mid" | "macro" | "mega" | null;
   engagementRate: "low" | "medium" | "high" | "any";
 
-  country: string | null;
+  country: string[];
+  countryCode: string[];
 
   budgetRange: string | null;
 

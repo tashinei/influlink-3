@@ -43,8 +43,6 @@ export const usePortfolio = (targetProfileId?: string) => {
       const response = await fetch(`${API_BASE_URL}/profiles/${idToFetch}/portfolio`, {
         headers: {
           "Content-Type": "application/json",
-          // АКО ИМА ТОКЕН, ГО ПРАЩАМЕ:
-          ...(token && { "Authorization": `Bearer ${token}` })
         },
         credentials: "include"
       });

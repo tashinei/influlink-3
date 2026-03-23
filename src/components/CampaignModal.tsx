@@ -258,10 +258,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
       const res = await fetch(`${API_BASE}/api/campaigns/create`, {
         method: "POST",
         body: formData,
-        credentials: "include", // if using cookies for auth
-        headers: {
-          ...(token && { "Authorization": `Bearer ${token}` })
-        },
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -570,7 +567,7 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
                 <Label>{t("mvpCreateCampaign.languages")}</Label>
                 <div className="flex flex-wrap gap-2">
                   {[t("mvpCreateCampaign.english"), t("mvpCreateCampaign.german"), t("mvpCreateCampaign.french"),
-                  t("mvpCreateCampaign.spanish"), t("mvpCreateCampaign.bulgarian")].map(l => (
+                  t("mvpCreateCampaign.spanish"), t("mvpCreateCampaign.bulgarian"), t("mvpCreateCampaign.native")].map(l => (
                     <Button
                       key={l}
                       size="sm"

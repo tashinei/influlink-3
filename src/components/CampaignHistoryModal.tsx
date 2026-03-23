@@ -76,9 +76,7 @@ export default function CampaignHistoryModal({ open, onOpenChange }: CampaignHis
                     {
                         credentials: "include",
                         headers: {
-                            "Content-Type": "application/json",
-                            // ЗАДЪЛЖИТЕЛНО И ТУК:
-                            ...(token && { "Authorization": `Bearer ${token}` })
+                            "Content-Type": "application/json"
                         }
                     });
                 if (!res.ok) throw new Error("Could not fetch data.");

@@ -10,7 +10,6 @@ import { useMediaQuery } from "@/hooks/use-media.query";
 import CountryPickerModal from "../CountryPickerModal";
 import { cn } from "@/lib/utils";
 
-/* ------------------ SHARED DATA (Synced with Search Section) ------------------ */
 const platforms = ["Instagram", "TikTok", "YouTube", "X", "Facebook"];
 
 const contentTypes = [
@@ -51,20 +50,6 @@ export const CampaignFilterPanel = ({
   // Initialize from existing filters.country if needed
   const [selectedCountries, setSelectedCountries] = useState<{ code: string, name: string, flag: string }[]>([]);
 
-  const handleCountrySave = () => {
-    const countryValue = selectedCountries.length > 0
-      ? selectedCountries.map(c => c.code).join(",")
-      : null;
-
-    updateFilter("country", countryValue);
-    setIsCountryModalOpen(false);
-  };
-
-  const handleClearAll = () => {
-    setSelectedCountries([]);
-    onClearFilters();
-  };
-
   const hasActiveFilters = useMemo(() => {
     return (
       filters.niches.length > 0 ||
@@ -72,7 +57,7 @@ export const CampaignFilterPanel = ({
       filters.contentTypes.length > 0 ||
       filters.collabTypes.length > 0 ||
       filters.budgetRange !== "any" ||
-      filters.country !== null ||
+      filters.country.length > 0 ||
       filters.urgentOnly === true ||
       filters.status !== "any"
     );
@@ -253,45 +238,63 @@ export const CampaignFilterPanel = ({
           {/* Country */}
           <div className="space-y-3">
             <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Country</Label>
-
-            <Button
-              type="button"
-              variant="outline"
-              className={cn(
-                "w-full h-10 justify-between font-normal border bg-background/50 hover:bg-background transition-all px-3",
-                selectedCountries.length > 0 && "border-primary/30 ring-1 ring-primary/10"
-              )}
+            <div
               onClick={() => setIsCountryModalOpen(true)}
-            >
-              {selectedCountries.length > 0 ? (
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <div className="flex -space-x-1.5 shrink-0">
-                    {selectedCountries.slice(0, 2).map((c) => (
-                      <img
-                        key={c.code}
-                        src={c.flag}
-                        className="h-4 w-5 rounded-sm border border-background object-cover"
-                        alt={c.name}
-                      />
-                    ))}
-                  </div>
-                  <span className="truncate text-xs font-medium">
-                    {selectedCountries.length} {selectedCountries.length === 1 ? 'Country' : 'Countries'}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-muted-foreground text-xs">Select target countries</span>
+              className={cn(
+                "flex items-center justify-between border rounded-lg px-3 py-2 bg-background/50 hover:bg-background transition-all cursor-pointer min-h-[40px]",
+                filters.country.length > 0 && "border-primary/30 ring-1 ring-primary/10"
               )}
-              <Globe className="ml-2 h-3.5 w-3.5 shrink-0 opacity-50" />
-            </Button>
+            >
+              <div className="flex items-center gap-1.5 flex-wrap flex-1 overflow-hidden">
+                <Globe className="w-3.5 h-3.5 text-primary shrink-0" />
+                {filters.country.length === 0 ? (
+                  <span className="text-xs text-muted-foreground">Select target countries</span>
+                ) : (
+                  filters.country.map((c, i) => (
+                    <span
+                      key={filters.countryCode[i]}
+                      className="flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5 rounded"
+                    >
+                      <img
+                        src={`https://flagcdn.com/w40/${filters.countryCode[i].toLowerCase()}.png`}
+                        className="w-3.5 h-2.5 object-cover rounded-[1px]"
+                      />
+                      {c}
+                      <X
+                        className="w-2.5 h-2.5 hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onFilterChange({
+                            ...filters,
+                            country: filters.country.filter((_, idx) => idx !== i),
+                            countryCode: filters.countryCode.filter((_, idx) => idx !== i),
+                          });
+                        }}
+                      />
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
 
             <CountryPickerModal
               open={isCountryModalOpen}
               onClose={() => setIsCountryModalOpen(false)}
-              selected={selectedCountries}
-              setSelected={setSelectedCountries}
+              selected={filters.countryCode.map((code, i) => ({
+                code,
+                name: filters.country[i],
+                flag: `https://flagcdn.com/w40/${code.toLowerCase()}.png`,
+              }))}
+              setSelected={(data) => {
+                const arr = Array.isArray(data) ? data : [];
+                onFilterChange({
+                  ...filters,
+                  country: arr.map(c => c.name),
+                  countryCode: arr.map(c => c.code),
+                });
+              }}
               maxCapacity={5}
-              onSave={handleCountrySave}
+              onSave={() => setIsCountryModalOpen(false)}
               shouldHaveOverlay={true}
             />
           </div>

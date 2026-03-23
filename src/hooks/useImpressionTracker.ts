@@ -12,7 +12,7 @@ const sessionTrackedCampaigns = new Set<number>();
 export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const userId = useUserStore((state) => state.user?.id);
-  const token = useUserStore((state) => state.token); // 1. Вземи токена от стора
+  const user = useUserStore((state) => state.user); // 1. Вземи токена от стора
 
   useEffect(() => {
     // 2. Добави проверка за токен и валидни ID-та
@@ -20,7 +20,7 @@ export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) 
       !ref.current ||
       !userId ||
       !campaignId ||
-      !token || // Задължително провери за токен
+      !user || // Задължително провери за токен
       sessionTrackedCampaigns.has(campaignId)
     ) return;
 
@@ -33,7 +33,6 @@ export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) 
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
             },
           }
         );
@@ -57,7 +56,7 @@ export const useImpressionTracker = ({ campaignId }: UseImpressionTrackerProps) 
     observer.observe(ref.current);
 
     return () => observer.disconnect();
-  }, [campaignId, userId, token]);
+  }, [campaignId, userId, user]);
 
   return ref;
 };

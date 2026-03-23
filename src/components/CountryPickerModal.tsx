@@ -97,7 +97,7 @@ export default function CountryPickerModal({
           </div>
 
           <p className="text-xs text-gray-500 mt-1">
-            {t("form.countryPick.subTitle")}
+            {t("form.countryPick.subTitleFirstPart")} <span className="font-bold text-secondary">{maxCapacity}</span> {t("form.countryPick.subTitleSecondPart")}
           </p>
 
           {/* CHIPS: More compact */}
@@ -129,7 +129,7 @@ export default function CountryPickerModal({
             <input
               ref={inputRef}
               type="text"
-              placeholder="Търсене..."
+              placeholder={t("form.countryPick.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all"

@@ -17,8 +17,6 @@ export const useLiveNotifications = (user: any) => {
         {
           headers: {
             "Content-Type": "application/json",
-            // ТОВА Е КЛЮЧЪТ:
-            ...(token && { "Authorization": `Bearer ${token}` })
           },
           credentials: "include"
         });
@@ -31,8 +29,6 @@ export const useLiveNotifications = (user: any) => {
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
-              // ЗАДЪЛЖИТЕЛНО И ТУК:
-              ...(token && { "Authorization": `Bearer ${token}` })
             }
         });
       const listData = await listRes.json();

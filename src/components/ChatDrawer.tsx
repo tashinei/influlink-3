@@ -36,7 +36,7 @@ interface ChatDrawerProps {
 }
 
 export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps) {
-    const { user, token: storeToken } = useUserStore();
+    const { user } = useUserStore();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [contacts, setContacts] = useState<ChatContact[]>([]);
@@ -45,7 +45,6 @@ export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps
     const API_BASE = import.meta.env.VITE_API_URL;
     const scrollRef = useRef<HTMLDivElement>(null);
     const socketRef = useRef<Socket | null>(null);
-    const activeToken = storeToken || Cookies.get('token');
 
     useEffect(() => {
         if (isOpen && partner && contacts.length > 0) {
@@ -77,12 +76,9 @@ export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps
     }, [isOpen]);
 
     useEffect(() => {
-        const currentToken = storeToken || Cookies.get('token');
-
-        if (isOpen && user && currentToken) {
+        if (isOpen && user) {
             socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
                 withCredentials: true,
-                auth: { token: currentToken }
             });
 
             const s = socketRef.current;
@@ -110,7 +106,7 @@ export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps
                 socketRef.current = null;
             };
         }
-    }, [isOpen, user, storeToken]);
+    }, [isOpen, user]);
 
     useEffect(() => {
         if (activeContact && socketRef.current) {
@@ -126,7 +122,7 @@ export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps
     const fetchContacts = async () => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
-                headers: { "Authorization": `Bearer ${activeToken}` }
+                credentials: "include"
             });
             const data = await res.json();
             if (Array.isArray(data)) {
@@ -139,7 +135,7 @@ export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps
     const fetchMessages = async (roomId: number) => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${roomId}/messages`, {
-                headers: { "Authorization": `Bearer ${activeToken}` }
+                credentials: "include"
             });
             const data = await res.json();
             setMessages(Array.isArray(data) ? data : []);
@@ -223,7 +219,7 @@ export default function ChatDrawer({ isOpen, onClose, partner }: ChatDrawerProps
                                             >
                                                 <div
                                                     className={cn(
-                                                        "py-2 rounded-2xl text-sm shadow-sm text-center",
+                                                        "py-2 rounded-2xl text-sm shadow-sm",
                                                         isMe
                                                             ? "bg-gradient-to-br from-primary/90 via-secondary to-tertiary text-white px-4"
                                                             : "bg-gradient-to-br from-gray-200 via-white to-gray-200 px-4"

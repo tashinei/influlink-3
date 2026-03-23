@@ -11,7 +11,7 @@ if (!API_BASE_URL) {
 
 export const useAnalytics = () => {
   const { profile } = useProfile();
-  const { token } = useUserStore();
+  const { user } = useUserStore();
 
   const profileId = profile?.id ?? null;
   const isVIP = profile?.isVIP ?? false;
@@ -21,7 +21,7 @@ export const useAnalytics = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAnalytics = useCallback(async () => {
-    if (!profileId || !isVIP || !token) return;
+    if (!profileId || !isVIP || !user) return;
 
     try {
       setIsLoading(true);
@@ -33,7 +33,6 @@ export const useAnalytics = () => {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -69,18 +68,18 @@ export const useAnalytics = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [profileId, isVIP, token]);
+  }, [profileId, isVIP, user]);
 
   // Fetch + Poll
   useEffect(() => {
-    if (!profileId || !isVIP || !token) return;
+    if (!profileId || !isVIP || !user) return;
 
     fetchAnalytics(); // initial fetch
 
     const interval = setInterval(fetchAnalytics, 60000); // 60s polling
 
     return () => clearInterval(interval);
-  }, [profileId, isVIP, token, fetchAnalytics]);
+  }, [profileId, isVIP, user, fetchAnalytics]);
 
   return {
     analytics,
