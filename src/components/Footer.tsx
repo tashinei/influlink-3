@@ -8,7 +8,7 @@ const Footer = () => {
     <footer className="bg-gradient-to-r from-secondary to-primary bg-card border-border mt-0">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center md:justify-items-start text-center md:text-left">
-          
+
           <div>
             <h3 className="text-white text-xl font-bold mb-4">
               InfluLink
@@ -49,7 +49,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4 text-muted text-lg">{t("footer.nav.contact")}</h4>
             <ul className="space-y-2 text-muted">
-              <li>support@influ-link.com</li>
+              <li>global@influ-link.com</li>
               <li>{t("footer.support")}</li>
             </ul>
           </div>
@@ -57,7 +57,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-muted text-sm">
-          <p>&copy; 2025 InfluLink. {t("footer.rights")}</p>
+          <p>&copy; {new Date().getFullYear()} InfluLink. {t("footer.rights")}</p>
           <div className="flex gap-6">
             <Link to="/privacy" className="hover:text-white transition-colors">{t("legal.privacyPolicy")}</Link>
             <Link to="/terms" className="hover:text-white transition-colors">{t("legal.terms")}</Link>

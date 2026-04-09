@@ -21,20 +21,10 @@ const Home = () => {
   const { toast } = useToast();
   const setRegistered = useUserStore(state => state.setRegistered);
   const isRegistered = useUserStore(state => state.isRegistered);
-  const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-
-  const validTLDs = [
-    "com", "net", "org", "edu", "gov", "mil", "int", "info", "biz",
-    "co", "io", "ai", "me", "tv", "us", "uk", "ca", "de", "fr", "jp",
-    "au", "ru", "ch", "it", "nl", "se", "no", "es", "in", "cn", "br",
-    "za", "nz", "mx", "kr", "be", "at", "dk", "fi", "pl", "gr", "pt",
-    "tr", "ar", "cl", "sg", "hk", "ie", "my", "th", "vn"
-    // You can expand this list with more TLDs if needed
-  ];
-
 
   function isValidEmail(email: string) {
-    const [localPart, domainPart] = email.split("@");
+    const trimmedEmail = email.trim();
+    const [localPart, domainPart] = trimmedEmail.split("@");
 
     if (!localPart || !domainPart) return false;
 
@@ -46,12 +36,11 @@ const Home = () => {
     const domainRegex = /^(?!-)(?!.*--)(?!.*\.\.)[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
     if (!domainRegex.test(domainPart)) return false;
 
-    // Check if domain has a valid TLD
     const domainParts = domainPart.split(".");
-    const tld = domainParts[domainParts.length - 1].toLowerCase();
-    if (!validTLDs.includes(tld)) return false;
+    const tld = domainParts[domainParts.length - 1];
 
-    return true;
+    // Validates TLD is at least 2 chars and only letters
+    return /^[A-Za-z]{2,}$/.test(tld);
   }
 
   const { t } = useTranslation();

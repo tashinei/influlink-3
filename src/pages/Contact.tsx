@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, MapPin, Clock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -31,11 +31,15 @@ const Contact = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [])
+
   const contactInfo = [
     {
       icon: Mail,
       title: t("contacts.email"),
-      content: "influlink@gmail.com",
+      content: "global@influ-link.com",
     },
     {
       icon: MapPin,
@@ -50,7 +54,7 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-20" style={{position:"relative", top:"-80px"}}>
+    <div className="min-h-screen pt-20" style={{ position: "relative", top: "-80px" }}>
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-primary via-secondary to-[#6EC5E9]">
         <div className="container mx-auto px-4 text-center">

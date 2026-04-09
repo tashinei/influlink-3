@@ -21,7 +21,7 @@ export default function VipStatusDialog({ open, onOpenChange, accountType }) {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [modalType, setModalType] = useState("success");
   const [modalMessage, setModalMessage] = useState("");
-  const {t} = useTranslation();
+  const { t } = useTranslation();
 
   const isCreator = accountType === "creator";
   const accountAbout = isCreator ? "creatorAbout" : "brandAbout";
@@ -142,91 +142,119 @@ export default function VipStatusDialog({ open, onOpenChange, accountType }) {
         </div>
       )}
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[40dvw] p-0 overflow-hidden gap-0 max-h-[45dvh] md:pr-0">
+        {/* FIX: added 'h-fit' to ensure the modal wraps the content tightly */}
+        <DialogContent className="w-[92vw] max-w-[440px] p-0 overflow-hidden gap-0 !h-fit max-h-[90dvh] flex flex-col">
 
-          {/* Хедър с динамична икона */}
-          <div className="flex flex-col items-center pt-10 md:pt-16 text-center">
-            <div className="mb-4 bg-gradient-to-br from-primary to-secondary p-3 rounded-full transition-all duration-300">
-              {step === 1 ? <Mail className="h-6 w-6 text-[white]" /> : <ShieldCheck className="text-[white] h-6 w-6" />}
+          {/* Header Section */}
+          <div className="flex flex-col items-center pt-8 pb-2 px-8 text-center shrink-0">
+            <div className="mb-4 bg-gradient-to-br from-primary to-secondary p-3 rounded-full shrink-0 shadow-sm">
+              {step === 1
+                ? <Mail className="h-6 w-6 text-white" />
+                : <ShieldCheck className="h-6 w-6 text-white" />}
             </div>
 
-            <DialogTitle className="text-xl lg:text-3xl font-bold transition-all">
-              {step === 1 ? t(`${accountAbout}.statusSection.modalFirstTitle`) : t(`${accountAbout}.statusSection.modalSecondTitle`)}
+            <DialogTitle className="text-xl font-bold leading-tight">
+              {step === 1
+                ? t(`${accountAbout}.statusSection.modalFirstTitle`)
+                : t(`${accountAbout}.statusSection.modalSecondTitle`)}
             </DialogTitle>
 
-            <DialogDescription className="mt-2 text-center max-w-[280px] lg:text-[15px]">
+            <DialogDescription className="mt-2 text-sm leading-snug max-w-[280px]">
               {step === 1
                 ? t(`${accountAbout}.statusSection.modalFirstSubtitle`)
-                : <>{t(`${accountAbout}.statusSection.modalSecondSubtitle`)}<span className="font-medium text-foreground"> {statusEmail}</span></>
-              }
+                : (
+                  <>
+                    {t(`${accountAbout}.statusSection.modalSecondSubtitle`)}
+                    <span className="font-semibold text-foreground block mt-1 break-all"> {statusEmail}</span>
+                  </>
+                )}
             </DialogDescription>
           </div>
 
-          <div className="pt-6 pb-10 flex flex-col items-center">
-            {/* --- СТЪПКА 1: ИМЕЙЛ --- */}
+          <div className="flex flex-col items-center px-8 pt-6 pb-10">
+
             {step === 1 && (
-              <form onSubmit={handleNextStep} className="space-y-4 animate-in slide-in-from-left-4 fade-in duration-300 w-full flex flex-col justify-center">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="sr-only">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    className="text-center h-11 w-[60%]"
-                    style={{ alignSelf: "center", justifySelf: "center" }}
-                    value={statusEmail}
-                    onChange={(e) => setStatusEmail(e.target.value)}
-                    autoFocus
-                    required
-                  />
-                </div>
-                <Button type="submit" className="bg-gradient-to-tl from-primary to-secondary w-[40%] h-10 font-medium" style={{ alignSelf: "center", justifySelf: "center" }}>
+              <form
+                onSubmit={handleNextStep}
+                className="flex flex-col items-center gap-4 w-full animate-in slide-in-from-left-4 fade-in duration-300"
+              >
+                <Label htmlFor="email" className="sr-only">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className="text-center h-12 w-full text-base"
+                  value={statusEmail}
+                  onChange={(e) => setStatusEmail(e.target.value)}
+                  autoFocus
+                  required
+                />
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-tl from-primary to-secondary h-12 w-full font-bold text-base shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                >
                   {t(`${accountAbout}.statusSection.modalFirstButton`)}
                 </Button>
               </form>
             )}
 
-            {/* --- СТЪПКА 2: OTP КОД --- */}
             {step === 2 && (
-              <div className="space-y-6 flex flex-col items-center animate-in slide-in-from-right-4 fade-in duration-300">
-
+              <div className="flex flex-col items-center gap-6 w-full animate-in slide-in-from-right-4 fade-in duration-300">
                 <InputOTP
                   maxLength={11}
                   value={statusCode}
                   onChange={(value) => setStatusCode(value)}
+                  className="w-full"
                 >
-                  <InputOTPGroup className="gap-2 justify-center">
-                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((index) => (
-                      <InputOTPSlot
-                        key={index}
-                        index={index}
-                        className="w-6 h-6 text-md md:w-10 md:h-10 md:text-[15px] lg:w-9 lg:h-9 lg:text-md 2xl:w-12 2xl:h-12 2xl:text-lg border rounded-md shadow-sm"
-                      />
-                    ))}
-                  </InputOTPGroup>
+                  <div className="flex flex-col gap-3 w-full items-center">
+                    {/* Row 1: 6 Slots */}
+                    <InputOTPGroup className="flex gap-1.5 justify-center">
+                      {[0, 1, 2, 3, 4, 5].map((index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="w-10 h-10 sm:w-11 sm:h-11 text-lg border-2 rounded-xl"
+                        />
+                      ))}
+                    </InputOTPGroup>
+
+                    {/* Row 2: 5 Slots */}
+                    <InputOTPGroup className="flex gap-1.5 justify-center">
+                      {[6, 7, 8, 9, 10].map((index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="w-10 h-10 sm:w-11 sm:h-11 text-lg border-2 rounded-xl"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </div>
                 </InputOTP>
 
-                <Button
-                  onClick={handleStatusSubmit}
-                  className="h-10 font-medium bg-gradient-to-tr from-primary to-secondary w-[50%]"
-                  disabled={statusCode.length < 11 || isSubmitting}
-                >
-                  {isSubmitting ? "Проверка..." : t(`${accountAbout}.statusSection.modalSecondButton`)}
-                </Button>
+                <div className="w-full space-y-5">
+                  <Button
+                    onClick={handleStatusSubmit}
+                    className="h-12 w-full font-bold text-base bg-gradient-to-tr from-primary to-secondary shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                    disabled={statusCode.length < 11 || isSubmitting}
+                  >
+                    {isSubmitting ? "Проверка..." : t(`${accountAbout}.statusSection.modalSecondButton`)}
+                  </Button>
 
-                <div className="flex justify-between w-full text-xs text-muted-foreground px-1">
-                  <button
-                    onClick={() => setStep(1)}
-                    className="flex items-center hover:text-foreground transition-colors"
-                  >
-                    <ArrowLeft className="mr-1 h-3 w-3" /> {t(`${accountAbout}.statusSection.modalBackButton`)}
-                  </button>
-                  <button
-                    onClick={() => console.log("Resend code")}
-                    className="hover:underline hover:text-foreground transition-colors"
-                  >
-                    {t(`${accountAbout}.statusSection.modalResendButton`)}
-                  </button>
+                  <div className="flex justify-between w-full text-[13px] font-medium text-muted-foreground px-1">
+                    <button
+                      onClick={() => setStep(1)}
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      {t(`${accountAbout}.statusSection.modalBackButton`)}
+                    </button>
+                    <button
+                      onClick={() => console.log("Resend code")}
+                      className="hover:text-primary transition-colors underline underline-offset-4 decoration-primary/30"
+                    >
+                      {t(`${accountAbout}.statusSection.modalResendButton`)}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

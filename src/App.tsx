@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
-import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { useLocation } from "react-router-dom";
@@ -15,6 +14,8 @@ import BrandAbout from "./pages/AboutPages/BrandAbout";
 import Privacy from "./legal/PrivacyPolicy";
 import Terms from "./legal/TermsConditions";
 import CookieConsent from "./legal/CookieConsent";
+import MVPStatus from "./pages/MvpStatus";
+import AboutPage from "./pages/AboutPages/AboutPage";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,8 @@ const MainContent = () => {
         <Route path="*" element={<NotFound />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/about" element={<AboutPage />} />
+        {/* <Route path="/mvp" element={<MVPStatus />} /> */}
         {/* <Route path="/profile" element={<Profile />} /> */}
       </Routes>
       

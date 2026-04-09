@@ -443,19 +443,23 @@ export const translations = {
         },
         q2: {
           question: "Кога ще стартира платформата?",
-          answer: "Очаквайте старта в началото на 2026. Запишете се в списъка с чакащи за ранен достъп."
+          answer: "Очаквайте старта в средата на 2026. Запишете се в списъка с чакащи за ранен достъп."
         },
         q3: {
-          question: "Как работи специалният акаунт?",
-          answer: "Публикувайте нашето видео в Instagram и Facebook и получете специални предложения и отстъпки."
+          question: "Какви възможности за работа предлага InfluLink?",
+          answer: "Получавате достъп до брандове от цяла Европа, които активно търсят партньорства. Вече не е нужно да разчитате на „студени“ съобщения или несигурни уговорки – кампаниите идват директно при вас."
         },
         q4: {
-          question: "Кой може да се регистрира като създател?",
-          answer: "Отговор скоро..."
+          question: "Трябва ли да имам стотици хиляди последователи, за да печеля?",
+          answer: "Категорично не. InfluLink е създаден, за да даде равен шанс на нано и микро криейторите. Важно е качеството на съдържанието и ангажираността на вашата аудитория, а не просто броят им."
         },
         q5: {
-          question: "“Има ли минимални изисквания за последователи?",
-          answer: "Отговор скоро..."
+          question: "Как се гарантира заплащането ми?",
+          answer: "Платформата гарантира сигурни плащания и ясни условия за всяка колаборация. InfluLink действа като защитен слой между вас и бранда, осигурявайки спокойствие при работа."
+        },
+        q6: {
+          question: "Как мога да получавам по-добри и по-скъпи оферти?",
+          answer: "Чрез нашата система от профилен рейтинг и баджове. Колкото по-професионално изпълнявате ангажиментите си, толкова по-висока репутация градите, което автоматично ви отваря врати към по-престижни сделки."
         }
       },
     },
@@ -468,7 +472,7 @@ export const translations = {
       section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
       card_1: {
         title: "Развийте бизнеса си и изградете нови партньорства.",
-        description: "InfluLink свързва вашия бизнес със създатели, които отговарят на вашата аудитория, като гарантира максимална ефективност и ясно измерими резултати."
+        description: "InfluLink свързва вашия бизнес със създатели, които отговарят на вашата аудитория, като гарантира максимална ефективност."
       },
       card_2: {
         title: "Прозрачни плащания",
@@ -558,19 +562,23 @@ export const translations = {
         },
         q2: {
           question: "Кога ще стартира платформата?",
-          answer: "Очаквайте старта в началото на 2026. Запишете се в списъка с чакащи за ранен достъп."
+          answer: "Очаквайте старта в средата на 2026. Запишете се в списъка с чакащи за ранен достъп."
         },
         q3: {
-          question: "Как работи специалният акаунт?",
-          answer: "Публикувайте нашето видео в Instagram и Facebook и получете специални предложения и отстъпки."
+          question: "Какви криейтори ще открия в InfluLink?",
+          answer: "Платформата ви дава директен достъп до нано и микро криейтори от цяла Европа. Ние се фокусираме върху автори с реално ангажирани, нишови аудитории, където доверието е по-високо от това при големите инфлуенсъри."
         },
         q4: {
-          question: "Кой може да се регистрира като създател?",
-          answer: "Отговор скоро..."
+          question: "С какво InfluLink е по-различен от другите платформи?",
+          answer: "Ние приоритизираме резултатите и продажбите пред празните статистики за гледания. InfluLink е създаден, за да ви свърже с криейтори, които реално влияят на решенията за покупка на своите последователи."
         },
         q5: {
-          question: "“Има ли минимални изисквания за последователи?",
-          answer: "Отговор скоро..."
+          question: "Как мога да оптимизирам бюджета си за маркетинг?",
+          answer: "Чрез InfluLink можете да стартирате кампании с по-голям брой криейтори на по-достъпна цена. Това ви позволява да тествате различни ниши едновременно и да увеличите общата ефективност на инвестицията си."
+        },
+        q6: {
+          question: "Сигурни ли са кампаниите в платформата?",
+          answer: "Да. Осигуряваме напълно сигурни плащания, пълна прозрачност на процесите и детайлни аналитики, за да знаете във всеки момент какво работи за вашия бизнес."
         }
       },
     },
@@ -942,7 +950,7 @@ export const translations = {
       },
       card_4: {
         subtitle: "Trust",
-        title: "Create real partnernships"
+        title: "Create real partnerships"
       },
       card_5: {
         subtitle: "Perspective",
@@ -1020,20 +1028,24 @@ export const translations = {
         },
         q2: {
           question: "When will the platform launch?",
-          answer: "Expect the launch in early 2026. Sign up for the waiting list for early access."
+          answer: "Expect the launch in mid 2026. Sign up for the waiting list for early access."
         },
         q3: {
-          question: "How does the special account work?",
-          answer: "Post our video on Instagram and Facebook and receive special offers and discounts."
+          question: "What work opportunities does InfluLink offer?",
+          answer: "You get access to brands from across Europe that are actively looking for partnerships. You no longer need to rely on \"cold\" DMs or uncertain verbal agreements—campaigns come directly to you."
         },
         q4: {
-          question: "Are there any minimum requirements?",
-          answer: "Answers soon..."
+          question: "Do I need hundreds of thousands of followers to start earning?",
+          answer: "Definitely not. InfluLink is built to give nano and micro-creators a fair chance. We value the quality of your content and the engagement of your audience over raw follower counts."
         },
         q5: {
-          question: "Who can register as a creator?",
-          answer: "Answers soon..."
-        }
+          question: "How is my payment guaranteed?",
+          answer: "The platform ensures secure payments and clear terms for every collaboration. InfluLink acts as a protective layer between you and the brand, giving you peace of mind while you focus on creating."
+        },
+        q6: {
+          question: "How can I get better and higher-paying offers?",
+          answer: "Through our Profile Rating and Badge system. By completing assignments professionally, you build a high-tier reputation, which automatically unlocks access to more prestigious and higher-paying deals."
+        },
       },
       toasts: {
         success_title: "Form submitted successfully!",
@@ -1055,8 +1067,8 @@ export const translations = {
       section_title_1: "Created for your business",
       section_subtitle_1: "Станете част от бъдещето на сътрудничествата между бизнеси и създатели на съдържание.",
       card_1: {
-        title: "Развийте бизнеса си и изградете нови партньорства.",
-        description: "InfluLink свързва вашия бизнес със създатели, които отговарят на вашата аудитория, като гарантира максимална ефективност и ясно измерими резултати."
+        title: "Grow your business and create lasting partnerships.",
+        description: "InfluLink connects your brand with creators that match your audience, maximizing growth."
       },
       card_2: {
         title: "Transparent payments",
@@ -1146,20 +1158,25 @@ export const translations = {
         },
         q2: {
           question: "When will the platform launch?",
-          answer: "Expect the launch in early 2026. Sign up for the waiting list for early access."
+          answer: "Expect the launch in mid 2026. Sign up for the waiting list for early access."
         },
         q3: {
-          question: "How does the special account work?",
-          answer: "Post our video on Instagram and Facebook and receive special offers and discounts."
+          question: "What kind of creators will I find on InfluLink?",
+          answer: "You get direct access to nano and micro-creators across Europe. We focus on authors with genuinely engaged, niche audiences where trust is significantly higher than with traditional \"mega\" influencers."
         },
         q4: {
-          question: "Are there any minimum requirements?",
-          answer: "Answers soon..."
+          question: "How is InfluLink different from other platforms?",
+          answer: "We prioritize results and sales over vanity metrics like view counts. InfluLink is designed to connect you with creators who actually influence the purchasing decisions of their followers."
         },
         q5: {
-          question: "Who can register as a creator?",
-          answer: "Answers soon..."
-        }
+          question: "How can I optimize my marketing budget?",
+          answer: "InfluLink allows you to launch campaigns with a higher volume of creators at a more accessible price point. This lets you test multiple niches simultaneously and increase your overall Return on Investment (ROI)."
+        },
+        q6: {
+          question: "Is it safe to run campaigns on the platform?",
+          answer: "Absolutely. We provide secure payments, full process transparency, and detailed analytics so you know exactly what is working for your business at any given moment."
+        },
+        
       },
     },
   }

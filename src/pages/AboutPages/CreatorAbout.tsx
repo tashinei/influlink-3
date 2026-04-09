@@ -10,7 +10,7 @@ import support from "@/assets/support.jpg";
 import handshake from "@/assets/handshake.png";
 import globe from "@/assets/globe.jpg";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GlassSection from "@/components/ui/glass-section";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -123,6 +123,17 @@ const CreatorAbout = () => {
         niche: "",
     });
 
+    const [isSmallMobile, setIsSmallMobile] = useState(false);
+
+    useEffect(() => {
+        const checkSize = () => {
+            setIsSmallMobile(window.innerWidth < 380);
+        };
+        checkSize();
+        window.addEventListener('resize', checkSize);
+        return () => window.removeEventListener('resize', checkSize);
+    }, []);
+
     const sendEmail = async () => {
         try {
             const response = await fetch(
@@ -177,6 +188,10 @@ const CreatorAbout = () => {
         {
             question: t("creatorAbout.faq.q5.question"),
             answer: t("creatorAbout.faq.q5.answer"),
+        },
+        {
+            question: t("creatorAbout.faq.q6.question"),
+            answer: t("creatorAbout.faq.q6.answer"),
         }
     ];
     const values = [
@@ -184,7 +199,7 @@ const CreatorAbout = () => {
             icon: Target,
             title: t("drivesUs.card1Title"),
             description: t("drivesUs.card1Content"),
-            },
+        },
         {
             icon: Heart,
             title: t("drivesUs.card2Title"),
@@ -225,10 +240,10 @@ const CreatorAbout = () => {
             {!isMobile ? (
                 <DisplayCards isCreator={true} />
             ) : (
-                <DisplaySection accountType= "creator"/>
+                <DisplaySection accountType="creator" />
             )}
 
-            <section className="flex pt-20 pb-[20px] md:pb-20 bg-white">
+            <section className="flex py-20 lg:pb-[10rem] xl:pb-[10rem] md:pb-20 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto text-center mb-16">
                         <h2 className="text-4xl md:text-7xl font-bold mb-6">
@@ -260,89 +275,43 @@ const CreatorAbout = () => {
                             </p>
                         </div>
 
-                        <div className="col-span-1 md:col-span-1 flex flex-col space-y-8 h-[85dvh] lg:h-[75vh]">
-                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
-                                {/* Background image */}
-                                <img
-                                    src={cardPay}
-                                    alt="Community"
-                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
-                                />
+                        <div className="col-span-1 md:col-span-1 grid grid-cols-1 gap-6 h-auto lg:h-[130dvh] xl:h-[80dvh] lg:flex lg:flex-col lg:space-y-6">
 
-                                {/* Text content */}
-                                <div className="relative z-10">
-                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
-                                        {t("creatorAbout.card_2.title")}
-                                    </h4>
-                                    <p className="text-white font-bold text-2xl mb-2">
-                                        {t("creatorAbout.card_2.subtitle")}
-                                    </p>
+                            {[
+                                { img: cardPay, t1: "creatorAbout.card_2.title", t2: "creatorAbout.card_2.subtitle" },
+                                // { img: support, t1: "creatorAbout.card_3.subtitle", t2: "creatorAbout.card_3.title" },
+                                { img: handshake, t1: "creatorAbout.card_4.subtitle", t2: "creatorAbout.card_4.title" },
+                                { img: globe, t1: "creatorAbout.card_5.subtitle", t2: "creatorAbout.card_5.title" }
+                            ].map((card, idx) => (
+                                <div
+                                    key={idx}
+                                    className="group relative flex flex-col justify-end overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary p-6 shadow-xl transition-all duration-300 hover:scale-[1.02] min-h-[220px] lg:flex-1"
+                                >
+                                    {/* Background image */}
+                                    <img
+                                        src={card.img}
+                                        alt="Background"
+                                        className="absolute inset-0 z-0 h-full w-full object-cover opacity-20 transition-transform duration-500 group-hover:scale-110 transform-gpu"
+                                    />
+
+                                    {/* Text content */}
+                                    <div className="relative z-10">
+                                        <h4 className="mb-2 text-lg font-bold leading-tight text-white/90 sm:text-xl">
+                                            {t(card.t1)}
+                                        </h4>
+                                        <p className="text-2xl font-black text-white sm:text-2xl">
+                                            {t(card.t2)}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* CARD 3: COMMUNITY */}
-                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
-                                {/* Background image */}
-                                <img
-                                    src={support}
-                                    alt="Community"
-                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
-                                />
-
-                                {/* Text content */}
-                                <div className="relative z-10">
-                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
-                                        {t("creatorAbout.card_3.subtitle")}
-                                    </h4>
-                                    <p className="text-white font-bold text-2xl mb-2">
-                                        {t("creatorAbout.card_3.title")}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
-                                {/* Background image */}
-                                <img
-                                    src={handshake}
-                                    alt="Community"
-                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
-                                />
-
-                                {/* Text content */}
-                                <div className="relative z-10">
-                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
-                                        {t("creatorAbout.card_4.subtitle")}
-                                    </h4>
-                                    <p className="text-white font-bold text-2xl mb-2">
-                                        {t("creatorAbout.card_4.title")}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-gradient-to-br from-[#90d5f3ff] via-secondary to-primary text-text p-6 rounded-3xl shadow-xl flex-1 flex flex-col justify-end relative overflow-hidden border border-gray-200 transition duration-300 ease-in-out hover:scale-105">
-                                {/* Background image */}
-                                <img
-                                    src={globe}
-                                    alt="Community"
-                                    className="absolute inset-0 w-full h-full object-cover rounded-3xl opacity-20 z-0"
-                                />
-
-                                <div className="relative z-10">
-                                    <h4 className="text-lg font-bold mb-3 leading-snug text-white">
-                                       {t("creatorAbout.card_5.subtitle")}
-                                    </h4>
-                                    <p className="text-white font-bold text-2xl mb-2">
-                                        {t("creatorAbout.card_5.title")}
-                                    </p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
 
-            <section className="py-20 bg-[white]">
+            {/* <section className="py-20 bg-[white]">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto">
                         <div className="text-center mb-12">
@@ -424,7 +393,6 @@ const CreatorAbout = () => {
                                                 </li>
                                             </ul>
 
-                                            {/* Hover Overlay */}
                                             <div className="absolute inset-0 bg-foreground/55 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                 <Button
                                                     onClick={() => setIsDialogOpen(true)}
@@ -442,7 +410,7 @@ const CreatorAbout = () => {
                         </Card>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             <GlassSection isCreator={true} onOpenDialog={() => { setIsStatusDialogOpen(true); }}></GlassSection>
 
