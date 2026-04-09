@@ -761,7 +761,9 @@ export const translations = {
       defaultMetaDescription: "Вижте професионалния профил на {{name}} в InfluLink. Свържете се за колаборации и кампании.",
       nicheMetaDescription: "Вижте {{name}}, специалист в сфера {{niche}} в InfluLink. {{bio}}",
       creator: "Създател",
-      brand: "Бранд"
+      brand: "Бранд",
+      setupPayouts:"Настройте Плащания",
+      loading:"Зареждане..."
     },
 
     instagram: {
@@ -1603,7 +1605,9 @@ export const translations = {
       defaultMetaDescription: "View {{name}}'s professional profile on InfluLink. Connect for collaborations and campaigns.",
       nicheMetaDescription: "Check out {{name}}, a {{niche}} specialist on InfluLink. {{bio}}",
       creator: "Creator",
-      brand: "Brand"
+      brand: "Brand",
+      setupPayouts:"Setup Payouts",
+      loading:"Loading..."
     },
 
     about: {

@@ -12,6 +12,7 @@ import {
   Trash2,
   Facebook,
   Linkedin,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -154,7 +155,7 @@ export const ProfileHeader = ({
         headers: {
           "Content-Type": "application/json",
         },
-        credentials:"include"
+        credentials: "include"
       });
 
       if (response.ok) {
@@ -172,6 +173,30 @@ export const ProfileHeader = ({
   };
 
   const navigate = useNavigate();
+  const [isStripeLoading, setIsStripeLoading] = useState(false);
+
+  const handleStripeConnect = async () => {
+    setIsStripeLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/payouts/setup`, {
+        method: "POST",
+        credentials: "include", // Essential for HttpOnly cookies
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        // Redirect to Stripe's hosted onboarding UI
+        window.location.href = data.url;
+      } else {
+        console.error("Stripe error:", data.error);
+      }
+    } catch (err) {
+      console.error("Failed to initiate Stripe Connect:", err);
+    } finally {
+      setIsStripeLoading(false);
+    }
+  };
 
   const handleClickHowTo = () => {
     navigate("/connect-instagram");
@@ -363,6 +388,17 @@ export const ProfileHeader = ({
                               <BsInstagram className="mr-2 h-4 w-4 text-[#FF0069]" />
                               <span>{t("profile.howConnectInstagram")}</span>
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={handleStripeConnect}
+                              disabled={isStripeLoading}
+                              className="focus:bg-slate-50 cursor-pointer" // Optional: subtle highlight on hover
+                            >
+                              <CreditCard className="mr-2 h-4 w-4 text-[#635BFF]" /> {/* Stripe's core Blurple */}
+
+                              <span className={`font-semibold bg-clip-text text-transparent bg-gradient-to-r from-[#635BFF] via-[#1ba8c4] to-[#7A73FF] ${isStripeLoading ? 'animate-pulse' : ''}`}>
+                                {isStripeLoading ? t("profile.loading") : t("profile.setupPayouts")}
+                              </span>
+                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={handleLogoutClick}
@@ -371,6 +407,7 @@ export const ProfileHeader = ({
                               <LogOut className="mr-2 h-4 w-4" />
                               <span>{t("profile.logout")}</span>
                             </DropdownMenuItem>
+
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -378,33 +415,30 @@ export const ProfileHeader = ({
                   )}
                 </div>
 
-                {/* Mobile Only: Secondary Action Row (Share, Logout, How to) */}
+                {/* Mobile Only: Secondary Action Row */}
                 {isOwner && (
                   <div className="flex md:hidden flex-col gap-2 w-full">
-                    {/* First Row: Share & Logout */}
+                    {/* Row 1: Share & Logout */}
                     <div className="flex items-center gap-2 w-full">
                       <Button
                         variant="outline"
-                        className="flex-1 rounded-xl h-10 text-xs font-semibold border-slate-200"
-                        onClick={() =>
-                          navigator.clipboard.writeText(window.location.href)
-                        }
+                        className="flex-1 rounded-xl h-10 text-[10px] xs:text-xs font-semibold border-slate-200"
+                        onClick={() => navigator.clipboard.writeText(window.location.href)}
                       >
-                        <LinkIcon className="w-3.5 h-3.5 mr-2 text-slate-500" />
+                        <LinkIcon className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
                         {t("profile.shareProfile")}
                       </Button>
 
                       <Button
                         variant="outline"
-                        className="flex-1 rounded-xl h-10 text-xs font-semibold border-red-100 text-red-600 bg-red-50/30"
+                        className="flex-1 rounded-xl h-10 text-[10px] xs:text-xs font-semibold border-red-100 text-red-600 bg-red-50/30"
                         onClick={handleLogoutClick}
                       >
-                        <LogOut className="w-3.5 h-3.5 mr-2" />
+                        <LogOut className="w-3.5 h-3.5 mr-1.5" />
                         {t("profile.logOut")}
                       </Button>
                     </div>
 
-                    {/* Second Row: How to Connect (Placed Below) */}
                     {!isInstagramLinked && (
                       <Button
                         variant="outline"
@@ -415,6 +449,29 @@ export const ProfileHeader = ({
                         <span className="bg-gradient-to-tr from-[#FFD600] via-[#FF0069] to-[#7638FA] bg-clip-text text-transparent">
                           {t("profile.howConnectInstagram")}
                         </span>
+                      </Button>
+                    )}
+
+                    {/* Row 2: Stripe Payouts (Full Width) */}
+                    {profile.stripeOnboardingComplete ? (
+                      <Button
+                        variant="outline"
+                        className="flex-[1.5] rounded-xl h-10 px-1 text-[10px] font-black border-slate-200"
+                        onClick={handleViewDashboard}
+                        disabled={isStripeLoading}
+                      >
+                        <CreditCard className="w-3 h-3 mr-1 text-[#635BFF]" />
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#635BFF] to-[#00D4FF] truncate">
+                          Payouts
+                        </span>
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleStripeConnect}
+                        className="bg-gradient-to-r from-[#635BFF] to-[#00D4FF] text-white"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        {t("profile.setupPayouts")}
                       </Button>
                     )}
                   </div>
