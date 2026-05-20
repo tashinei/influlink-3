@@ -263,6 +263,22 @@ const BrandAbout = () => {
             question: t("brandAbout.faq.q6.question"),
             answer: t("brandAbout.faq.q6.answer"),
         },
+        {
+            question: t("brandAbout.faq.q7.question"),
+            answer: t("brandAbout.faq.q7.answer"),
+        },
+        {
+            question: t("brandAbout.faq.q8.question"),
+            answer: t("brandAbout.faq.q8.answer"),
+        },
+        {
+            question: t("brandAbout.faq.q9.question"),
+            answer: t("brandAbout.faq.q9.answer"),
+        },
+        {
+            question: t("brandAbout.faq.q10.question"),
+            answer: t("brandAbout.faq.q10.answer"),
+        }
     ];
 
     const values = [

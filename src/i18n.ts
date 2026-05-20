@@ -16,7 +16,7 @@ export const translations = {
       creatorAbout: "За създатели"
     },
 
-    legal:{
+    legal: {
       title: "Правна информация",
       privacyPolicy: "Политика за поверителност",
       terms: "Условия за ползване",
@@ -451,7 +451,7 @@ export const translations = {
         },
         q4: {
           question: "Трябва ли да имам стотици хиляди последователи, за да печеля?",
-          answer: "Категорично не. InfluLink е създаден, за да даде равен шанс на нано и микро криейторите. Важно е качеството на съдържанието и ангажираността на вашата аудитория, а не просто броят им."
+          answer: "Категорично не. InfluLink е създаден, за да даде равен шанс на нано и микро създателите. Важно е качеството на съдържанието и ангажираността на вашата аудитория, а не просто броят им."
         },
         q5: {
           question: "Как се гарантира заплащането ми?",
@@ -460,8 +460,106 @@ export const translations = {
         q6: {
           question: "Как мога да получавам по-добри и по-скъпи оферти?",
           answer: "Чрез нашата система от профилен рейтинг и баджове. Колкото по-професионално изпълнявате ангажиментите си, толкова по-висока репутация градите, което автоматично ви отваря врати към по-престижни сделки."
+        },
+        q7: {
+          question: "Какво представлява waiting list-ът?",
+          answer: "Това е начин да се включите рано. Регистрираните получават Early Access badge, по-голяма видимост и предимство при първите кампании."
+        },
+        q8: {
+          question: "Кой може да се регистрира?",
+          answer: "Всеки създател е добре дошъл. Всички профили преминават през верификация, за да гарантираме качество и реално присъствие."
+        },
+        q9: {
+          question: "Защо да използвам InfluLink (за брандове)?",
+          answer: "InfluLink прави маркетинга по-лесен, бърз и сигурен. Получавате филтри за точно търсене, аналитики и директна комуникация с цяла Европа."
+        },
+        q10: {
+          question: "Подходящо ли е за малки бизнеси?",
+          answer: "Да. Платформата е мащабируема и работи еднакво добре за малки бизнеси, средни компании и големи брандове."
+        },
+        q11: {
+          question: "Как работи InfluLink?",
+          answer: "InfluLink свързва брандове и създатели на едно място, като целият процес – от намиране до реализация на кампания – се случва в платформата. Брандовете създават кампании, а създателите кандидатстват според профила си."
         }
       },
+    },
+    aboutPage: {
+      hero: {
+        title: "Направете влиянието си глобално чрез локални създатели.",
+        description: "е европейска платформа, която свързва брандове и създатели на съдържание в цяла Европа — на едно място, с ясен и ефективен процес."
+      },
+      problem: {
+        title: "Инфлуенсър маркетингът е голям, но е бавен и неорганизиран.",
+        stats_highlight: "Намирането на правилните хора в различни държави и култури е основното предизвикателство 67% от маркетолозите казват, че това е най-трудната част от процеса.",
+        market_insight: {
+          quote: "Брандовете губят ~$4.6 млрд. годишно от фалшивa ангажираност и измамни профили.",
+          source: "SociaVault Labs, 2026"
+        }
+      },
+      solution: {
+        title: "Какво правим?",
+        description: "InfluLink решава този проблем в 48 европейски държави, фокусирайки се върху нано и микро създателите.",
+        features: [
+          "Смарт филтри и алгоритъм",
+          "Затворена чат система",
+          "Ескроу плащания (Сигурност)"
+        ]
+      },
+      stats: [
+        { value: "91.6%", label: "Европейски нано инфлуенсъри", desc: "Ние сме платформата за тях." },
+        { value: "4.2%", label: "Среден Conversion Rate", desc: "Срещу 0.8% при макро инфлуенсърите." },
+        { value: "+36.5%", label: "Годишен ръст", desc: "На пазара в Европа до 2031." },
+        { value: "76%", label: "Предпочитат роден език", desc: "Локализацията е ключът." }
+      ],
+      whyUs: {
+        title: "Защо InfluLink?",
+        subtitle: "Числата и фактите, които променят играта.",
+        sellingPoints: [
+          "Достъп до създатели от цяла Европа",
+          "Фокус върху нишови аудитории с реална ангажираност",
+          "По-лесен и по-бърз процес за създаване на партньорства",
+          "Сигурност при комуникация и плащания",
+          "По-добри резултати — +42% CTR при локализирани кампании"
+        ]
+      },
+      dual_value: {
+        creators: {
+          title: "За създатели",
+          benefits: [
+            "Намираш брандове по-лесно",
+            "Участваш в кампании, които отговарят на профила ти",
+            "Изграждаш присъствие и позиция още от самото начало",
+            "Развиваш влиянието си на европейско ниво",
+            "Растеш заедно с нас",
+            "Изкарваш пари от аудиторията си — сигурно и навреме"
+          ]
+        },
+        brands: {
+          title: "За брандове",
+          benefits: [
+            "Откриваш точните създатели за твоята аудитория",
+            "Работиш с хора от различни пазари в Европа",
+            "Управляваш кампании бързо и ефективно",
+            "Постигаш по-добри резултати с по-малко усилие",
+            "Разширяваш компанията си из цяла Европа — 26.1M МСП вече го правят",
+            "Плащаш сигурно — само след одобрен резултат",
+            "Увеличаваш CR — нано инфлуенсърите носят 3.6× по-нисък CAC"
+          ]
+        }
+      },
+      status: {
+        title: "Къде сме сега?",
+        subtitle: "В момента сме в ранен етап и изграждаме платформата, като официалният старт е планиран за средата на 2026 година.",
+        description: "Навлизаме в пазар, оценен на €15–20 млрд. в Европа, растящ с над 36% годишно — и изграждаме платформата, която малкият бизнес и нано създателите заслужаваха от самото начало.",
+        waitingListNote: "Създадохме waiting list, чрез който събираме първите създатели и брандове, които ще получат ранен достъп и предимство при старта."
+      },
+      decision: {
+        launch_date: "Официален старт: Средата на 2026",
+        title: "Присъедини се към waiting list-a и бъди сред първите.",
+        perks: "Ранен достъп · Предимство при старта · Без такси в началото",
+        cta_brand: "Присъедини се като бранд",
+        cta_creator: "Присъедини се като създател"
+      }
     },
     brandAbout: {
       hero: {
@@ -565,20 +663,36 @@ export const translations = {
           answer: "Очаквайте старта в средата на 2026. Запишете се в списъка с чакащи за ранен достъп."
         },
         q3: {
-          question: "Какви криейтори ще открия в InfluLink?",
-          answer: "Платформата ви дава директен достъп до нано и микро криейтори от цяла Европа. Ние се фокусираме върху автори с реално ангажирани, нишови аудитории, където доверието е по-високо от това при големите инфлуенсъри."
+          question: "Какви създатели ще открия в InfluLink?",
+          answer: "Платформата ви дава директен достъп до нано и микро създатели от цяла Европа. Ние се фокусираме върху автори с реално ангажирани, нишови аудитории, където доверието е по-високо от това при големите инфлуенсъри."
         },
         q4: {
           question: "С какво InfluLink е по-различен от другите платформи?",
-          answer: "Ние приоритизираме резултатите и продажбите пред празните статистики за гледания. InfluLink е създаден, за да ви свърже с криейтори, които реално влияят на решенията за покупка на своите последователи."
+          answer: "Ние приоритизираме резултатите и продажбите пред празните статистики за гледания. InfluLink е създаден, за да ви свърже със създатели, които реално влияят на решенията за покупка на своите последователи."
         },
         q5: {
           question: "Как мога да оптимизирам бюджета си за маркетинг?",
-          answer: "Чрез InfluLink можете да стартирате кампании с по-голям брой криейтори на по-достъпна цена. Това ви позволява да тествате различни ниши едновременно и да увеличите общата ефективност на инвестицията си."
+          answer: "Чрез InfluLink можете да стартирате кампании с по-голям брой създатели на по-достъпна цена. Това ви позволява да тествате различни ниши едновременно и да увеличите общата ефективност на инвестицията си."
         },
         q6: {
           question: "Сигурни ли са кампаниите в платформата?",
           answer: "Да. Осигуряваме напълно сигурни плащания, пълна прозрачност на процесите и детайлни аналитики, за да знаете във всеки момент какво работи за вашия бизнес."
+        },
+        q7: {
+          question: "Защо да използвам InfluLink?",
+          answer: "InfluLink прави маркетинга по-лесен, бърз и сигурен. Получавате филтри за точно търсене и директна комуникация."
+        },
+        q8: {
+          question: "Подходящо ли е за малки бизнеси?",
+          answer: "Да. Платформата работи еднакво добре за малки бизнеси, средни компании и големи брандове."
+        },
+        q9: {
+          question: "Как работи процесът за брандове?",
+          answer: "Брандовете създават кампании, а създателите кандидатстват. Можете директно да откривате таланти чрез нашия алгоритъм."
+        },
+        q10: {
+          question: "Как се гарантира сигурността на кампанията?",
+          answer: "Плащанията се освобождават само след одобрен резултат, а затворената чат система пази комуникацията проследима."
         }
       },
     },
@@ -603,9 +717,9 @@ export const translations = {
 
     legal: {
       title: "Legal",
-      privacyPolicy:"Privacy Policy",
-      terms:"Terms & Conditions",
-      cookies:"Cookies"
+      privacyPolicy: "Privacy Policy",
+      terms: "Terms & Conditions",
+      cookies: "Cookies"
     },
 
     common: {
@@ -634,6 +748,84 @@ export const translations = {
       card2Content: "Quality, transparency and authenticity. We believe in niche influence and lasting partnerships.",
       card3Title: "Our vision",
       card3Content: "To set a new standard through quality, trust and lasting growth."
+    },
+    aboutPage: {
+      hero: {
+        title: "Make your influence global through local creators.",
+        description: "is an European platform connecting brands and content creators across Europe—all in one place, with a clear and efficient process."
+      },
+      problem: {
+        title: "Influencer marketing is huge, but it's slow and unorganized.",
+        stats_highlight: "Finding the right people in different countries and cultures is the obstacle that 67% of marketologists say is the toughest part of the process.",
+        market_insight: {
+          quote: "Brands lose ~$4.6 billion annually to fake engagement and fraudulent profiles.",
+          source: "SociaVault Labs, 2026"
+        }
+      },
+      solution: {
+        title: "What do we do?",
+        description: "InfluLink solves this problem across 48 European countries, focusing on nano and micro-creators.",
+        features: [
+          "Smart filters and matching algorithms",
+          "Closed-loop chat system",
+          "Escrow payments (Secure transactions)"
+        ]
+      },
+      stats: [
+        { value: "91.6%", label: "European Nano-Influencers", desc: "Built specifically for them." },
+        { value: "4.2%", label: "Average Conversion Rate", desc: "Vs 0.8% for macro-influencers." },
+        { value: "+36.5%", label: "Annual Growth", desc: "Market growth through 2031." },
+        { value: "76%", label: "Prefer Native Language", desc: "Localization drives sales." }
+      ],
+      whyUs: {
+        title: "Why InfluLink?",
+        subtitle: "The numbers and facts that change the game.",
+        sellingPoints: [
+          "Access to creators across all of Europe",
+          "Focus on niche audiences with real engagement",
+          "Easier and faster process for creating partnerships",
+          "Security in communication and payments",
+          "Better results — +42% CTR in localized campaigns"
+        ]
+      },
+      dual_value: {
+        creators: {
+          title: "For Creators",
+          benefits: [
+            "Find brands more easily",
+            "Join campaigns that match your profile",
+            "Build your presence and position from day one",
+            "Expand your influence on a European scale",
+            "Grow your business alongside us",
+            "Monetize your audience — securely and on time"
+          ]
+        },
+        brands: {
+          title: "For Brands",
+          benefits: [
+            "Discover the exact creators for your target audience",
+            "Work with talent from diverse European markets",
+            "Manage campaigns quickly and effectively",
+            "Achieve better results with less effort",
+            "Scale your company across Europe — 26.1M SMEs are already doing it",
+            "Pay securely — only after approved results",
+            "Increase CR — nano-influencers deliver a 3.6× lower CAC"
+          ]
+        }
+      },
+      status: {
+        title: "Where we are now?",
+        subtitle: "We are currently in the early stages of building the platform, with the official launch planned for mid-2026.",
+        description: "We are entering a market valued at €15–20 billion in Europe, growing at over 36% annually — and we are building the platform that small businesses and nano-creators have deserved from the start.",
+        waitingListNote: "We have created a waiting list to gather the first creators and brands who will receive early access and priority at launch."
+      },
+      decision: {
+        launch_date: "Official Launch: Mid-2026",
+        title: "Join the waiting list and be among the first.",
+        perks: "Early Access · Founding Priority · Zero Fees at Launch",
+        cta_brand: "Join as a Brand",
+        cta_creator: "Join as a Creator"
+      }
     },
 
     contacts: {
@@ -1046,6 +1238,22 @@ export const translations = {
           question: "How can I get better and higher-paying offers?",
           answer: "Through our Profile Rating and Badge system. By completing assignments professionally, you build a high-tier reputation, which automatically unlocks access to more prestigious and higher-paying deals."
         },
+        q7: {
+          question: "What is the waiting list?",
+          answer: "It's a way to join early. Registrants receive an Early Access badge, better visibility, and priority for the first campaigns."
+        },
+        q8: {
+          question: "Who can register?",
+          answer: "Every creator is welcome. All profiles undergo verification to ensure quality and a real presence on the platform."
+        },
+        q9: {
+          question: "Who can register?",
+          answer: "Every creator is welcome. All profiles undergo verification to ensure guaranteed quality."
+        },
+        q11: {
+          question: "How does InfluLink work?",
+          answer: "Influlink connects brands and influencers in one place. The whole process - from finding to creating a campaign - happpens within the platform. Brands create campaigns and creators apply. You can also directly discover talent using our algorithm."
+        }
       },
       toasts: {
         success_title: "Form submitted successfully!",
@@ -1176,7 +1384,22 @@ export const translations = {
           question: "Is it safe to run campaigns on the platform?",
           answer: "Absolutely. We provide secure payments, full process transparency, and detailed analytics so you know exactly what is working for your business at any given moment."
         },
-        
+        q7: {
+          question: "Why should I use InfluLink?",
+          answer: "InfluLink makes marketing easier, faster, and more secure. You get precision search filters and direct communication."
+        },
+        q8: {
+          question: "Is it suitable for small businesses?",
+          answer: "Yes. The platform works equally well for small businesses, medium companies, and large brands."
+        },
+        q9: {
+          question: "How does the process work for brands?",
+          answer: "Brands create campaigns and creators apply. You can also directly discover talent using our algorithm."
+        },
+        q10: {
+          question: "How is campaign security guaranteed?",
+          answer: "Payments are only released after approved results, and the closed chat system keeps communication traceable."
+        }
       },
     },
   }

@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import process from "process";
 import waitlistHero from "@/assets/hero-grad3.jpg";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "@/hooks/useTranslation";
+import { InfluLinkHowItWorksSection } from "@/components/HowItWorks";
+import { InfluLinkMatchSection } from "@/components/MatchSection";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -28,11 +30,9 @@ const Home = () => {
 
     if (!localPart || !domainPart) return false;
 
-    // Local part validation
     const localRegex = /^[A-Za-z0-9._%+-]+$/;
     if (!localRegex.test(localPart)) return false;
 
-    // Domain part validation
     const domainRegex = /^(?!-)(?!.*--)(?!.*\.\.)[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
     if (!domainRegex.test(domainPart)) return false;
 
@@ -56,8 +56,24 @@ const Home = () => {
     return t(key) as unknown as string[];
   };
 
-  // Use the local stepNames array for the initial state and update in useEffect
-  // const [stepName, setStepName] = useState("Основна информация");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const registerIntent = searchParams.get("register");
+    const typeIntent = searchParams.get("type");
+
+    if (registerIntent === "true") {
+      if (typeIntent) setAccountType(typeIntent as "creator" | "brand");
+      setIsDialogOpen(true);
+
+      // This cleans the URL so it doesn't pop up again on refresh
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("register");
+      newParams.delete("type");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams]);
+
   const stepNames = t(stepNamesKey) as unknown as string[];
   const [step, setStep] = useState(1);
   const [currentStepTitle, setCurrentStepTitle] = useState("Основна информация");
@@ -251,6 +267,13 @@ const Home = () => {
     if (step < maxStep) setStep(step + 1);
   };
 
+  const matchSectionRef = useRef<HTMLDivElement>(null);
+
+  // 2. Add scroll handler
+  const scrollToMatch = () => {
+    matchSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -337,26 +360,60 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-dvh max-h-dvh w-full overflow-x-hidden">
-      <HeroSection
-        title={t("hero.title")}
-        highlightText={t("hero.highlightText")}
-        description={t("hero.description")}
-        buttonText={t("hero.creatorButton")}
-        secondaryButtonText={t("hero.brandButton")}
-        onButtonClick={() =>
-          !isRegistered ? handleOpenDialog("creator") : setIsSuccessModalOpen(true)
-        }
-        onSecondaryButtonClick={() =>
-          !isRegistered ? handleOpenDialog("brand") : setIsSuccessModalOpen(true)
-        }
-        colors={["#90d5f3ff", "#6EC5E9", "#1E88E5"]}
-        distortion={2.5}
-        speed={0.8}
-        swirl={1.5}
-        veilOpacity="bg-black/40"
-      />
+    <div className="min-h-screen w-full overflow-x-hidden overflow-y-auto">
+      <div className="relative">
+        <HeroSection
+          title={t("hero.title")}
+          highlightText={t("hero.highlightText")}
+          description={t("hero.description")}
+          buttonText={t("hero.creatorButton")}
+          secondaryButtonText={t("hero.brandButton")}
+          onButtonClick={() =>
+            !isRegistered ? handleOpenDialog("creator") : setIsSuccessModalOpen(true)
+          }
+          onSecondaryButtonClick={() =>
+            !isRegistered ? handleOpenDialog("brand") : setIsSuccessModalOpen(true)
+          }
+          colors={["#90d5f3ff", "#6EC5E9", "#1E88E5"]}
+          distortion={2.5}
+          speed={0.8}
+          swirl={1.5}
+          veilOpacity="bg-black/40"
+        />
+        <button
+          onClick={scrollToMatch}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1.5 group"
+          aria-label="Explore features"
+        >
+          <span className="text-white/60 text-[11px] font-semibold uppercase tracking-widest group-hover:text-white transition-colors">
+            Explore Features
+          </span>
+          <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center group-hover:border-white/50 group-hover:bg-white/10 transition-all">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-4 h-4 text-white/60 group-hover:text-white transition-colors animate-bounce"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        </button>
+      </div>
 
+
+      <div ref={matchSectionRef}>
+        <InfluLinkMatchSection
+          onCreatorCta={() =>
+            !isRegistered ? handleOpenDialog("creator") : setIsSuccessModalOpen(true)
+          }
+          onBrandCta={() =>
+            !isRegistered ? handleOpenDialog("brand") : setIsSuccessModalOpen(true)
+          }
+        />
+      </div>
       {!isRegistered && accountType && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="w-[95vw] max-w-[500px] md:max-w-[45%] p-0 overflow-hidden rounded-xl bg-white border-none">

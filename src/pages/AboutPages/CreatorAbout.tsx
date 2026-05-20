@@ -192,6 +192,22 @@ const CreatorAbout = () => {
         {
             question: t("creatorAbout.faq.q6.question"),
             answer: t("creatorAbout.faq.q6.answer"),
+        },
+        {
+            question: t("creatorAbout.faq.q7.question"),
+            answer: t("creatorAbout.faq.q7.answer"),
+        },
+        {
+            question: t("creatorAbout.faq.q8.question"),
+            answer: t("creatorAbout.faq.q8.answer"),
+        },
+        {
+            question: t("creatorAbout.faq.q9.question"),
+            answer: t("creatorAbout.faq.q9.answer"),
+        },
+        {
+            question: t("creatorAbout.faq.q11.question"),
+            answer: t("creatorAbout.faq.q11.answer"),
         }
     ];
     const values = [

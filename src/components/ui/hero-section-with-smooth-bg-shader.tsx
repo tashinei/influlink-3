@@ -69,7 +69,7 @@ export function HeroSection({
       });
     }
   }, []);
-
+  
   useEffect(() => {
     if (!containerRef.current) return;
 
