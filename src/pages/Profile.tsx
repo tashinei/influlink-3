@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Calendar as CalendarIcon,
   Target as TargetIcon,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,12 +48,14 @@ const Profile = () => {
   const status = searchParams.get("status");
 
   const isMyProfileRoute = useMatch("/profile/me");
+  const stripeStatus = searchParams.get("stripe");
 
   const { identifier, username } = useParams<{ identifier?: string; username?: string }>();
   const rawIdentifier = username || identifier;
   const { user } = useUserStore();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
+  const [isStripeLoading, setIsStripeLoading] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -80,6 +83,22 @@ const Profile = () => {
   // 4. Fetch the logged-in user's profile (for ownership checks)
   const { profile: myProfile } = useProfile("me");
 
+  const handleStripeAction = async () => {
+    setIsStripeLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/payouts/stripe-action`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Stripe action failed:", err);
+    } finally {
+      setIsStripeLoading(false);
+    }
+  };
+
   // 5. Fetch the profile for the current page
   const {
     profile,
@@ -105,6 +124,48 @@ const Profile = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location]);
+
+  useEffect(() => {
+    if (!stripeStatus) return;
+
+    if (stripeStatus === "success") {
+      fetch(`${API_BASE_URL}/payouts/status`, {
+        method: "POST",
+        credentials: "include",
+      })
+        .then(r => r.json())
+        .then(async data => {
+          if (data.complete) {
+            toast(
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-[#635BFF] shrink-0" />
+                <span className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-[#635BFF] via-[#1ba8c4] to-[#7A73FF]">
+                  Payouts enabled!
+                </span>
+              </div>,
+              {
+                style: {
+                  background: "white",
+                  border: "none",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                },
+                duration: 2500,
+              }
+            )
+          }
+          await refetch(); // ← await before navigate
+          navigate("/profile/me", { replace: true });
+        })
+        .catch(err => console.error("Status check failed:", err));
+    }
+
+    if (stripeStatus === "refresh") {
+      handleStripeAction();
+    }
+  }, [stripeStatus]);
 
   useEffect(() => {
     if (location.state?.openChat && location.state?.partner) {
@@ -274,6 +335,7 @@ const Profile = () => {
 
   const profileWithLiveStats: ProfileData = {
     ...profile,
+    stripeOnboardingComplete: profile?.stripeOnboardingComplete ?? false,
     stats: {
       ...profile?.stats,
       totalReach: analytics?.totalViews
@@ -567,6 +629,8 @@ const Profile = () => {
         onEditProfile={isOwner ? () => setIsEditProfileOpen(true) : undefined}
         onConnectInstagram={isOwner ? handleConnectInstagram : undefined}
         isInstagramLinked={isIGLinked}
+        onStripeAction={isOwner ? handleStripeAction : undefined}
+        isStripeLoading={isStripeLoading}
       />
 
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">

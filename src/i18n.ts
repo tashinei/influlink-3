@@ -762,7 +762,8 @@ export const translations = {
       nicheMetaDescription: "Вижте {{name}}, специалист в сфера {{niche}} в InfluLink. {{bio}}",
       creator: "Създател",
       brand: "Бранд",
-      setupPayouts:"Настройте Плащания",
+      setupPayouts:"Настройте плащания",
+      managePayouts:"Управление на плащания",
       loading:"Зареждане..."
     },
 
@@ -1607,6 +1608,7 @@ export const translations = {
       creator: "Creator",
       brand: "Brand",
       setupPayouts:"Setup Payouts",
+      managePayouts:"Manage Payouts",
       loading:"Loading..."
     },
 

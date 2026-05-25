@@ -14,6 +14,7 @@ import NotificationDropdown, { type Notification } from "./notifications/Notific
 import { NotificationDetailModal } from "./notifications/NotificationDetailModal";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/use-media.query";
+import { PaymentModal } from "./payments/PaymentModal";
 
 interface NavigationDockProps {
   onCampaignCreated?: () => void;
@@ -37,10 +38,21 @@ export default function NavigationDock
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
+
+  // Add inside the component alongside other state:
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentTarget, setPaymentTarget] = useState<any>(null);
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const { user, accountType } = useUserStore();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const handlePayBegin = (collaborator: any) => {
+    setPaymentTarget(collaborator);
+    setIsLinksModalOpen(false);
+    setIsPaymentOpen(true);
+  };
 
   const fetchCount = async () => {
     if (!user) return;
@@ -130,7 +142,7 @@ export default function NavigationDock
         <Dock items={visibleLinks} />
       </div>
 
-      <LinksModal open={isLinksModalOpen} onOpenChange={setIsLinksModalOpen} accountType={accountType} onChat={handleChatWithCollaborator} />
+      <LinksModal open={isLinksModalOpen} onOpenChange={setIsLinksModalOpen} accountType={accountType} onChat={handleChatWithCollaborator} onPayBegin={handlePayBegin} />
       <ChatDrawer isOpen={isChatOpen} onClose={() => { setIsChatOpen(false); setSelectedPartner(null); }} partner={selectedPartner} />
 
       <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
@@ -163,6 +175,24 @@ export default function NavigationDock
 
       <CreateCampaignModal open={isNewCampaignModalOpen} onOpenChange={setIsNewCampaignModalOpen} onSuccess={() => onCampaignCreated?.()} />
       <CampaignHistoryModal open={isHistoryModalOpen} onOpenChange={setIsHistoryModalOpen} />
+      {paymentTarget && (
+        <PaymentModal
+          open={isPaymentOpen}
+          onOpenChange={(open) => {
+            setIsPaymentOpen(open);
+            if (!open) setPaymentTarget(null);
+          }}
+          dealAmount={Number(paymentTarget.proposedPrice) || 0}
+          creatorId={paymentTarget.id}
+          campaignId={paymentTarget.campaignId || ""}
+          creatorName={paymentTarget.name}
+          campaignName={paymentTarget.currentCampaign}
+          onSuccess={() => {
+            setIsPaymentOpen(false);
+            setPaymentTarget(null);
+          }}
+        />
+      )}
     </>
   );
 }

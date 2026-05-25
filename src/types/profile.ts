@@ -6,6 +6,7 @@ export interface ProfileData {
   niche: string;
   location: string;
   verified: boolean;
+  stripeOnboardingComplete: boolean;
   bio: string;
   avatar: string;
   coverImage?: string;

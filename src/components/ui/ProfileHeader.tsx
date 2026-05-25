@@ -43,6 +43,7 @@ import { BsFacebook, BsInstagram, BsLinkedin, BsYoutube } from "react-icons/bs";
 import { useUserStore } from "@/store/useUserStore";
 import { useNavigate } from "react-router-dom";
 import { useMediaQuery } from "@/hooks/use-media.query";
+import { toast } from "sonner";
 
 interface ProfileHeaderProps {
   profile: ProfileData;
@@ -53,6 +54,8 @@ interface ProfileHeaderProps {
   // --- NEW PROP ADDED ---
   isInstagramLinked: boolean;
   onConnectInstagram: () => void;
+  onStripeAction?: () => void;
+  isStripeLoading?: boolean;
 }
 
 export const ProfileHeader = ({
@@ -62,6 +65,8 @@ export const ProfileHeader = ({
   onChangeProfilePic,
   onEditProfile,
   isInstagramLinked,
+  onStripeAction,
+  isStripeLoading
 }: ProfileHeaderProps) => {
   const getInitials = (name: string) => {
     return name
@@ -173,30 +178,6 @@ export const ProfileHeader = ({
   };
 
   const navigate = useNavigate();
-  const [isStripeLoading, setIsStripeLoading] = useState(false);
-
-  const handleStripeConnect = async () => {
-    setIsStripeLoading(true);
-    try {
-      const response = await fetch(`${API_BASE}/api/payouts/setup`, {
-        method: "POST",
-        credentials: "include", // Essential for HttpOnly cookies
-      });
-
-      const data = await response.json();
-
-      if (data.url) {
-        // Redirect to Stripe's hosted onboarding UI
-        window.location.href = data.url;
-      } else {
-        console.error("Stripe error:", data.error);
-      }
-    } catch (err) {
-      console.error("Failed to initiate Stripe Connect:", err);
-    } finally {
-      setIsStripeLoading(false);
-    }
-  };
 
   const handleClickHowTo = () => {
     navigate("/connect-instagram");
@@ -377,6 +358,8 @@ export const ProfileHeader = ({
                                   window.location.href,
                                 )
                               }
+                              style={{ cursor: "pointer" }}
+                              className="hover:bg-gray-50 hover:text-purple"
                             >
                               <LinkIcon className="mr-2 h-4 w-4" />
                               <span>{t("profile.shareProfile")}</span>
@@ -384,19 +367,19 @@ export const ProfileHeader = ({
                             <DropdownMenuItem
                               onClick={handleClickHowTo}
                               className="bg-gradient-to-tr from-[#FFD600] via-[#FF0069] to-[#7638FA] bg-clip-text text-transparent flex items-center"
+                              style={{ cursor: "pointer" }}
                             >
                               <BsInstagram className="mr-2 h-4 w-4 text-[#FF0069]" />
                               <span>{t("profile.howConnectInstagram")}</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={handleStripeConnect}
+                              onClick={onStripeAction}
                               disabled={isStripeLoading}
-                              className="focus:bg-slate-50 cursor-pointer" // Optional: subtle highlight on hover
+                              className="focus:bg-slate-50 cursor-pointer"
                             >
-                              <CreditCard className="mr-2 h-4 w-4 text-[#635BFF]" /> {/* Stripe's core Blurple */}
-
+                              <CreditCard className="mr-2 h-4 w-4 text-[#635BFF]" />
                               <span className={`font-semibold bg-clip-text text-transparent bg-gradient-to-r from-[#635BFF] via-[#1ba8c4] to-[#7A73FF] ${isStripeLoading ? 'animate-pulse' : ''}`}>
-                                {isStripeLoading ? t("profile.loading") : t("profile.setupPayouts")}
+                                {isStripeLoading ? t("profile.loading") : profile.stripeOnboardingComplete ? t("profile.managePayouts") : t("profile.setupPayouts")}
                               </span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -442,8 +425,9 @@ export const ProfileHeader = ({
                     {!isInstagramLinked && (
                       <Button
                         variant="outline"
-                        className="w-full rounded-xl h-10 text-xs font-semibold border-slate-200 bg-white/50"
+                        className="w-full rounded-xl h-10 text-xs font-semibold border-slate-200 bg-white/50 cursor-pointer"
                         onClick={handleClickHowTo}
+                        style={{ cursor: "pointer" }}
                       >
                         <BsInstagram className="w-3.5 h-3.5 mr-2 text-[#FF0069]" />
                         <span className="bg-gradient-to-tr from-[#FFD600] via-[#FF0069] to-[#7638FA] bg-clip-text text-transparent">
@@ -457,17 +441,19 @@ export const ProfileHeader = ({
                       <Button
                         variant="outline"
                         className="flex-[1.5] rounded-xl h-10 px-1 text-[10px] font-black border-slate-200"
-                        onClick={handleViewDashboard}
+                        onClick={onStripeAction}
                         disabled={isStripeLoading}
                       >
                         <CreditCard className="w-3 h-3 mr-1 text-[#635BFF]" />
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#635BFF] to-[#00D4FF] truncate">
-                          Payouts
+                          {t("profile.managePayouts")}
                         </span>
+
                       </Button>
                     ) : (
                       <Button
-                        onClick={handleStripeConnect}
+                        onClick={onStripeAction}
+                        disabled={isStripeLoading}
                         className="bg-gradient-to-r from-[#635BFF] to-[#00D4FF] text-white"
                       >
                         <CreditCard className="mr-2 h-4 w-4" />
@@ -485,6 +471,7 @@ export const ProfileHeader = ({
                 <p className="text-muted-foreground leading-relaxed">
                   {profile.bio}
                 </p>
+
                 <div
                   className={`flex gap-4 mt-4 ${isDesktop ? "justify-start" : "justify-center"}`}
                   role="list"
