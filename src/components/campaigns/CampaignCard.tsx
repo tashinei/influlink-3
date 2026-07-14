@@ -228,7 +228,7 @@ export const CampaignCard = ({ campaign, onApply }: Props) => {
         {isCreator && (
           <Button
             variant={campaign.hasApplied ? "secondary" : "default"}
-            className="w-full"
+            className="w-full bg-gradient-to-br from-tertiary via-secondary to-primary"
             disabled={campaign.hasApplied}
             onClick={(e) => {
               e.stopPropagation();

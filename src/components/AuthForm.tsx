@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const setAccountType = useUserStore((state) => state.setAccountType);
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+  // Timing honeypot: when the form was rendered. Bots submit near-instantly.
+  const formLoadedAt = useRef(Date.now());
 
   const [mode, setMode] = useState<'register' | 'login'>(
     searchParams.get('mode') === 'login' ? 'login' : 'register'
@@ -37,7 +39,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     email: initialData?.email || '',
-    password: ''
+    password: '',
+    website: '' // honeypot: hidden from real users, bots tend to fill it
   });
 
   useEffect(() => {
@@ -88,7 +91,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
           const parsed = JSON.parse(savedCookiePrefs);
           guestConsent = { analytics: !!parsed[1], marketing: !!parsed[2] };
         }
-        onSuccess({ ...formData, ...guestConsent });
+        onSuccess({ ...formData, formLoadedAt: formLoadedAt.current, ...guestConsent });
       }, 800);
       return;
     }
@@ -110,8 +113,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
       }
 
       const payload = mode === 'register'
-        ? { ...formData, accountType, ...guestConsent }
-        : { email: formData.email, password: formData.password, ...guestConsent };
+        ? { ...formData, accountType, formLoadedAt: formLoadedAt.current, ...guestConsent }
+        : { email: formData.email, password: formData.password, website: formData.website, formLoadedAt: formLoadedAt.current, ...guestConsent };
 
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -268,6 +271,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
               />
             </div>
           )}
+
+          {/* Honeypot: hidden from real users; bots that auto-fill forms will
+              populate it and be rejected server-side. */}
+          <input
+            id="website"
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            value={formData.website}
+            onChange={handleChange}
+            style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+          />
 
           <div className="relative w-[80%] mx-auto">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white" />

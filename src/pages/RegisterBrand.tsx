@@ -362,7 +362,7 @@ const RegisterBrand = () => {
                 </>
             )}
 
-            <div className={`relative z-20 w-full lg:w-[40vw] flex justify-center lg:justify-end lg:pr-32 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div className={`relative z-20 w-full lg:w-[50vw] xl:w-[40vw] flex justify-center lg:justify-end lg:pr-16 xl:pr-32 transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
                 <div id="form-card-container" className="w-full
                         h-screen lg:h-[90vh] 2xl:h-[80vh]
                         relative
@@ -375,7 +375,7 @@ const RegisterBrand = () => {
                         />
                         <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
                     </div>
-                    <div className="relative z-10 p-5 lg:p-10 h-full overflow-y-auto custom-scrollbar">
+                    <div className="relative z-10 p-5 flex items-center lg:p-10 h-full overflow-y-auto custom-scrollbar">
                         {renderStepContent()}
                     </div>
                 </div>

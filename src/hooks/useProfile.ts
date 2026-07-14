@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { ProfileData } from "@/types/profile";
 import { useUserStore } from "@/store/useUserStore";
 
@@ -9,7 +10,9 @@ if (!API_BASE_URL) {
 }
 
 export const useProfile = (profileIdentifier?: string) => {
+  const navigate = useNavigate();
   const user = useUserStore(state => state.user);
+  const accountType = useUserStore(state => state.accountType);
   const currentUserId = user?.id ?? null;
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -62,6 +65,16 @@ export const useProfile = (profileIdentifier?: string) => {
         },
         credentials: "include"
       });
+
+      if (res.status === 401 || res.status === 403) {
+        const prevAccountType = useUserStore.getState().accountType ?? accountType;
+        useUserStore.getState().logout();
+        const loginPath = prevAccountType
+          ? `/register/${prevAccountType}?mode=login`
+          : "/";
+        navigate(loginPath, { replace: true });
+        return;
+      }
 
       if (!res.ok) {
         const errorData = await res.json();

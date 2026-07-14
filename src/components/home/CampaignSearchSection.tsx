@@ -127,7 +127,7 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
         {/* HEADER */}
         <div className="text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-5xl font-bold mb-4">
-            {t("mvpCampaignSearchSection.titleFirst")} <span className="text-primary">{t("mvpCampaignSearchSection.titleSecond")}</span>
+            {t("mvpCampaignSearchSection.titleFirst")} <span className="bg-gradient-to-br from-secondary to-primary bg-clip-text text-transparent">{t("mvpCampaignSearchSection.titleSecond")}</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
             {t("mvpCampaignSearchSection.subTitle")}

@@ -247,12 +247,6 @@ export const PaymentModal = ({
                     <div className="px-6 py-4 text-sm text-destructive">{error}</div>
                 )}
 
-                {!isLoading && !clientSecret && !error && dealAmount === 0 && (
-                    <div className="px-6 py-4 text-sm text-muted-foreground">
-                        Please enter a deal amount above $0.50 to proceed.
-                    </div>
-                )}
-
                 {clientSecret && breakdown && (
                     <Elements
                         stripe={stripePromise}

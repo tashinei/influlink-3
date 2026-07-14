@@ -169,7 +169,7 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
                   placeholder={t("mvpSearchSection.searchButton")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-6 text-base md:text-lg border-2 border-border focus:border-primary rounded-xl bg-background w-full"
+                  className="pl-12 pr-4 py-6 text-base md:text-lg border-2 border-border focus:border-primary rounded-xl bg-background w-full bg-gradient-to-br from-tertiary via-secondary to-primary bg-clip-text text-transparent"
                 />
               </div>
               <Button

@@ -9,6 +9,11 @@ import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useUserStore } from "@/store/useUserStore";
 import { cn } from "@/lib/utils";
+import {
+  getNotificationIcon,
+  translateNotificationTitle,
+  translateNotificationMessage,
+} from "@/utils/notificationLabels";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -28,19 +33,6 @@ interface NotificationDropdownProps {
   setDropdownOpen: (open: boolean) => void;
   onNotificationSelect: (notification: Notification) => void;
 }
-
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case "proposal_received": return <FileText className="h-5 w-5 text-primary" />;
-    case "proposal_accepted": return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-    case "proposal_rejected": return <XCircle className="h-5 w-5 text-destructive" />;
-    case "campaign_invite": return <Mail className="h-5 w-5 text-primary" />;
-    case "message": return <MessageSquare className="h-5 w-5 text-blue-500" />;
-    case "payment": return <DollarSign className="h-5 w-5 text-emerald-500" />;
-    case "campaign": return <Package className="h-5 w-5 text-purple-500" />;
-    default: return <Bell className="h-5 w-5 text-muted-foreground" />;
-  }
-};
 
 export default function NotificationDropdown({ className, setDropdownOpen, onNotificationSelect }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -98,32 +90,6 @@ export default function NotificationDropdown({ className, setDropdownOpen, onNot
     }
   };
 
-  const getTranslatedTitle = (type: string, fallback: string) => {
-    const keys: Record<string, string> = {
-      proposal_received: "mvpNotifications.proposalReceived",
-      proposal_accepted: "mvpNotifications.proposalAccepted",
-      proposal_declined: "mvpNotifications.proposalDeclined",
-      proposal_rejected: "mvpNotifications.proposalDeclined",
-      campaign_invite: "mvpNotifications.campaignInvitation",
-      invite_accepted: "mvpNotifications.inviteAccepted",
-    };
-    const key = keys[type];
-    return key ? t(key) : fallback;
-  };
-
-  const getTranslatedMessage = (notification: Notification) => {
-    const messageKeys: Record<string, string> = {
-      proposal_received: "mvpNotifications.proposalReceivedMsg",
-      proposal_accepted: "mvpNotifications.proposalAcceptedMsg",
-      proposal_rejected: "mvpNotifications.proposalRejectedMsg",
-      campaign_invite: "mvpNotifications.campaignInviteMsg",
-      invite_accepted: "mvpNotifications.inviteAcceptedMsg",
-      invite_declined: "mvpNotifications.inviteDeclinedMsg",
-    };
-    const key = messageKeys[notification.type];
-    return key ? t(key) : notification.message;
-  };
-
   return (
     <div className={cn(
       "flex flex-col bg-popover z-50 overflow-hidden",
@@ -177,12 +143,12 @@ export default function NotificationDropdown({ className, setDropdownOpen, onNot
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <p className={`text-sm line-clamp-1 ${!n.is_read ? "font-semibold" : "font-medium"}`}>
-                    {getTranslatedTitle(n.type, n.title)}
+                    {translateNotificationTitle(t, n.type, n.title)}
                   </p>
                   {!n.is_read && <span className="flex-shrink-0 h-2 w-2 rounded-full bg-primary mt-1.5" />}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-                  {getTranslatedMessage(n)}
+                  {translateNotificationMessage(t, n.type, n.message)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <Clock className="h-3 w-3" />

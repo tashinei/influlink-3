@@ -182,7 +182,7 @@ export default function NavigationDock
             setIsPaymentOpen(open);
             if (!open) setPaymentTarget(null);
           }}
-          dealAmount={Number(paymentTarget.proposedPrice) || 0}
+          dealAmount={Number(paymentTarget.proposedPrice ?? paymentTarget.campaignBudget) || 0}
           creatorId={paymentTarget.id}
           campaignId={paymentTarget.campaignId || ""}
           creatorName={paymentTarget.name}

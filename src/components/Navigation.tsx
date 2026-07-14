@@ -55,6 +55,7 @@ const Navigation = () => {
 
   const links = [
     { name: t("nav.home"), path: "/" },
+    { name: t("nav.pricing"), path: "/pricing" },
     { name: t("nav.contact"), path: "/contact" },
   ];
 
@@ -167,9 +168,9 @@ const Navigation = () => {
                   to="/profile/me"
                   onClick={() => setIsOpen(false)}
                   className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300
-                  ${isActive("/profile/me") && isSolidBackground ? "border border-primary text-primary"
+                  ${isActive("/profile/me") && isSolidBackground ? "border border-secondary bg-gradient-to-br from-tertiary via-secondary to-primary bg-clip-text text-transparent"
                       : isActive("/profile/me") ? "border border-white text-white"
-                        : isSolidBackground ? "border-transparent text-primary hover:bg-muted"
+                        : isSolidBackground ? "border-transparent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent hover:bg-muted"
                           : "border-transparent text-white hover:bg-white/10"}`}
                 >
                   {t("nav.profile")}

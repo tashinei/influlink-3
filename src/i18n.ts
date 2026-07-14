@@ -19,7 +19,78 @@ export const translations = {
       brandAbout: "За бизнеси",
       creatorAbout: "За създатели",
       register: "Регистрирай се",
-      profile: "Профил"
+      profile: "Профил",
+      pricing: "Цени"
+    },
+
+    pricing: {
+      seoTitle: "Цени | InfluLink",
+      seoDescription: "Прозрачни планове за създатели и брандове. Изберете плана, който отговаря на вашите нужди.",
+      title: "Планове, които растат с вас.",
+      description: "Изберете плана, който отговаря на вашия екип. Прозрачни цени, без скрити такси.",
+      currency: "€",
+      period: "/мес.",
+      popularLabel: "Най-популярен",
+      ctaStart: "Започни",
+      ctaContact: "Свържи се с нас",
+      customPrice: "По договаряне",
+      comparisonTitle: "Пълно сравнение на плановете",
+      comparisonSubtitle: "Всички функции една до друга, за да изберете правилния план.",
+      featuresLabel: "Функции",
+      audience: { brands: "За брандове", creators: "За създатели" },
+      creators: {
+        title: "Цени за създатели",
+        description: "Без месечни такси. Печелите — ние взимаме малка комисиона от всяка успешна сделка.",
+        commissionLabel: "комисиона",
+        note: "Плащате само когато печелите. Комисионата намалява с ръста на приходите ви.",
+        tiers: {
+          new: { name: "Нов създател", price: "15%", description: "До €1,000 приходи.", features: ["Безплатен профил и портфолио", "Достъп до всички кампании", "Автоматични плащания"] },
+          pro: { name: "Про създател", price: "10%", description: "€1,000 – €10,000 приходи.", features: ["Приоритетно класиране", "Разширена аналитика", "Verified баджа"] },
+          top: { name: "Топ създател", price: "7%", description: "€10,000+ приходи.", features: ["Featured позициониране", "Най-ниска комисиона", "Личен мениджър"] }
+        }
+      },
+      tiers: {
+        essential: { description: "Индивидуални потребители и много малки екипи.", features: ["Търсене и наемане на създатели", "Сигурни ескроу плащания", "Такса 15%"] },
+        starter: { description: "Малки екипи и стартъпи.", features: ["Чат преди наемане", "Разширени филтри", "3 активни кампании"] },
+        growth: { description: "Растящи брандове.", features: ["10 кампании месечно", "Анализи и отчети", "Приоритетна поддръжка"] },
+        pro: { description: "Утвърдени компании.", features: ["Неограничени кампании", "Пълни анализи и отчети", "Личен акаунт мениджър"] },
+        enterprise: { description: "Големи организации.", features: ["Персонализирани лимити", "Индивидуална такса", "Dedicated мениджър"] }
+      },
+      comparison: {
+        groups: [
+          {
+            title: "Търсене и наемане",
+            rows: [
+              { label: "Търсене и разглеждане на създатели", values: [true, true, true, true, true] },
+              { label: "Директно наемане (оферти и покани)", values: [true, true, true, true, true] },
+              { label: "Сигурни ескроу плащания", values: [true, true, true, true, true] },
+              { label: "Такса на платформата", values: ["15%", "12%", "10%", "8%", "Индивидуална"] },
+              { label: "Чат със създатели преди наемане", values: [false, true, true, true, true] }
+            ]
+          },
+          {
+            title: "Кампании",
+            rows: [
+              { label: "Активни кампании", values: ["1", "3", "10", "Неограничени", "Неограничени"] },
+              { label: "Разширени филтри (ниша, държава, език)", values: [false, true, true, true, true] }
+            ]
+          },
+          {
+            title: "Анализи и отчети",
+            rows: [
+              { label: "Проследяване на публикации", values: [false, "5", "15", "50", "Индивидуално"] },
+              { label: "Отчети за ангажираност и аудитория", values: [false, "20", "50", "200", "Индивидуално"] }
+            ]
+          },
+          {
+            title: "Поддръжка",
+            rows: [
+              { label: "Приоритетна поддръжка", values: [false, false, true, true, true] },
+              { label: "Личен акаунт мениджър", values: [false, false, false, true, true] }
+            ]
+          }
+        ]
+      }
     },
 
     legal: {
@@ -65,21 +136,41 @@ export const translations = {
     },
 
     contacts: {
-      title: "Свържете се с нас",
-      subtitle: "Имате въпроси? Нашият екип е на разположение 24/7, за да ви помогне",
-      email: "Имейл",
-      location: "Локация",
-      locationValue: "България",
-      workHours: "Работно време",
-      workHoursValue: "Поддръжка 24/7",
-      sendMessage: "Изпратете ни съобщение",
-      name: "Име",
-      namePlaceholder: "Вашето име",
-      subject: "Тема",
-      subjectPlaceholder: "Относно какво е Вашето съобщение?",
+      title: "Нека поговорим за растеж",
+      subtitle: "Готови ли сте да разраснете бранда си или да монетизирате влиянието си? Свържете се с нашия екип и ще ви отговорим възможно най-скоро.",
+      firstName: "Име",
+      firstNamePlaceholder: "Вашето име",
+      lastName: "Фамилия",
+      lastNamePlaceholder: "Вашата фамилия",
+      handle: "Длъжност или основен социален профил",
+      handlePlaceholder: "напр. Маркетинг мениджър или @потребител",
+      email: "Имейл адрес",
+      emailPlaceholder: "your@email.com",
+      phone: "Телефонен номер",
+      phonePlaceholder: "888 123 456",
       message: "Съобщение",
-      messagePlaceholder: "Вашето съобщение...",
-      button: "Изпрати"
+      messagePlaceholder: "Разкажете ни за вашия проект или запитване...",
+      joinAs: "Свързвам се с вас като...",
+      creatorTitle: "Създател съм",
+      creatorSubtext: "Искам да партнирам с водещи брандове и да монетизирам съдържанието си.",
+      brandTitle: "Част съм от бранд",
+      brandSubtext: "Искам да стартирам кампании и да наемам проверени инфлуенсъри.",
+      button: "Изпрати съобщение",
+      sending: "Изпращане...",
+      testimonialQuote: "Тази платформа напълно промени начина, по който провеждаме инфлуенсър маркетинг. Намалихме времето за стартиране на кампании наполовина, увеличихме обхвата си с 300% и открихме най-добрите си посланици на бранда за по-малко от седмица.",
+      testimonialAuthor: "Елена Ростова",
+      testimonialAuthorTitle: "VP Маркетинг, ScaleGlow Beauty",
+      successTitle: "Съобщението е изпратено!",
+      successDescription: "Ще се свържем с вас възможно най-скоро.",
+      errorTitle: "Нещо се обърка",
+      errorDescription: "Съобщението не можа да бъде изпратено. Моля, опитайте отново."
+    },
+
+    authGuard: {
+      title: "Вече сте влезли в профила си",
+      description: "Вече имате активна сесия. Излезте от профила си, за да влезете с друг акаунт.",
+      goToProfile: "Към моя профил",
+      logout: "Изход"
     },
 
     drivesUs: {
@@ -596,7 +687,19 @@ export const translations = {
       typeProposal: "Предложение",
       typeInvite: "Покана",
       typeMessage: "Съобщение",
-      messageReceived:"Получихте съобщение от бранд!"
+      typePayment: "Плащане",
+      messageReceived:"Получихте съобщение от бранд!",
+      inviteDeclined: "Поканата е отказана",
+      campaignFinished: "Кампанията е завършена",
+      brandApproved: "Брандът одобри сделката",
+      paymentReleased: "Плащането е освободено!",
+      paymentCompleted: "Средствата са преведени",
+      campaignFinishedMsg: "Създателят отбеляза кампанията като завършена. Прегледайте работата и одобрете, за да освободите средствата.",
+      brandApprovedMsg: "Брандът одобри сделката. Отбележете кампанията като завършена, за да получите плащането си.",
+      paymentReleasedMsg: "Средствата са преведени към профила ви. Вижте баланса си в Stripe по-долу.",
+      paymentCompletedMsg: "Създателят получи плащане за завършената кампания.",
+      viewStripeBalance: "Преглед на баланса в Stripe",
+      close: "Затвори"
     },
 
     mvpCampaignDetails: {
@@ -1120,7 +1223,78 @@ export const translations = {
       brandAbout: "For businesses",
       creatorAbout: "For creators",
       register: "Register",
-      profile: "Profile"
+      profile: "Profile",
+      pricing: "Pricing"
+    },
+
+    pricing: {
+      seoTitle: "Pricing | InfluLink",
+      seoDescription: "Transparent plans for creators and brands. Choose the plan that fits your needs.",
+      title: "Plans that grow with you.",
+      description: "Choose the plan that fits your team. Transparent pricing, no hidden fees.",
+      currency: "€",
+      period: "/mo",
+      popularLabel: "Most Popular",
+      ctaStart: "Get started",
+      ctaContact: "Contact us",
+      customPrice: "Custom",
+      comparisonTitle: "Full plan comparison",
+      comparisonSubtitle: "Every feature side by side, so you can pick the right plan.",
+      featuresLabel: "Features",
+      audience: { brands: "For Brands", creators: "For Creators" },
+      creators: {
+        title: "Creator pricing",
+        description: "No monthly fees. You earn — we take a small commission on each successful deal.",
+        commissionLabel: "commission",
+        note: "You only pay when you earn. Your commission drops as your earnings grow.",
+        tiers: {
+          new: { name: "New Creator", price: "15%", description: "Up to €1,000 earned.", features: ["Free profile & portfolio", "Access to all campaigns", "Automatic payments"] },
+          pro: { name: "Pro Creator", price: "10%", description: "€1,000 – €10,000 earned.", features: ["Priority placement", "Advanced analytics", "Verified badge"] },
+          top: { name: "Top Creator", price: "7%", description: "€10,000+ earned.", features: ["Featured placement", "Lowest commission", "Dedicated manager"] }
+        }
+      },
+      tiers: {
+        essential: { description: "Individuals and very small teams.", features: ["Search & hire creators", "Secure escrow payments", "15% platform fee"] },
+        starter: { description: "Small teams and startups.", features: ["Chat before hiring", "Advanced filters", "3 active campaigns"] },
+        growth: { description: "Growing brands.", features: ["10 campaigns / month", "Analytics & reports", "Priority support"] },
+        pro: { description: "Established companies.", features: ["Unlimited campaigns", "Full analytics & reports", "Dedicated account manager"] },
+        enterprise: { description: "Large organizations.", features: ["Custom limits", "Custom platform fee", "Dedicated manager"] }
+      },
+      comparison: {
+        groups: [
+          {
+            title: "Search & Hiring",
+            rows: [
+              { label: "Search & browse creators", values: [true, true, true, true, true] },
+              { label: "Hire creators directly (proposals & invites)", values: [true, true, true, true, true] },
+              { label: "Secure escrow payments", values: [true, true, true, true, true] },
+              { label: "Platform fee", values: ["15%", "12%", "10%", "8%", "Custom"] },
+              { label: "Chat with creators before hiring", values: [false, true, true, true, true] }
+            ]
+          },
+          {
+            title: "Campaigns",
+            rows: [
+              { label: "Active campaigns", values: ["1", "3", "10", "Unlimited", "Unlimited"] },
+              { label: "Advanced filters (niche, country, language)", values: [false, true, true, true, true] }
+            ]
+          },
+          {
+            title: "Analytics & Reporting",
+            rows: [
+              { label: "Post tracking", values: [false, "5", "15", "50", "Custom"] },
+              { label: "Engagement & audience reports", values: [false, "20", "50", "200", "Custom"] }
+            ]
+          },
+          {
+            title: "Support",
+            rows: [
+              { label: "Priority support", values: [false, false, true, true, true] },
+              { label: "Dedicated account manager", values: [false, false, false, true, true] }
+            ]
+          }
+        ]
+      }
     },
 
     common: {
@@ -1283,7 +1457,19 @@ export const translations = {
       typeProposal: "Proposal",
       typeInvite: "Invitation",
       typeMessage: "Message",
-      messageReceived:"You received a message from a brand!"
+      typePayment: "Payment",
+      messageReceived:"You received a message from a brand!",
+      inviteDeclined: "Invitation declined",
+      campaignFinished: "Campaign marked finished",
+      brandApproved: "Brand approved your deal",
+      paymentReleased: "Payment released!",
+      paymentCompleted: "Funds released",
+      campaignFinishedMsg: "The creator marked the campaign as finished. Review the work and approve to release the funds.",
+      brandApprovedMsg: "The brand approved the deal. Mark the campaign as finished to receive your payment.",
+      paymentReleasedMsg: "Your funds have been released to your account. View your Stripe balance below.",
+      paymentCompletedMsg: "The creator has been paid for the completed campaign.",
+      viewStripeBalance: "View Stripe balance",
+      close: "Close"
     },
 
     mvpCampaignDetails: {
@@ -1850,21 +2036,41 @@ export const translations = {
     },
 
     contacts: {
-      title: "Contact us",
-      subtitle: "Have any questions? Our team is available 24/7 to offer you assistance",
-      email: "Email",
-      location: "Location",
-      locationValue: "Bulgaria",
-      workHours: "Work hours",
-      workHoursValue: "Support 24/7",
-      sendMessage: "Send us a message",
-      name: "Name",
-      namePlaceholder: "Your name",
-      subject: "Subject",
-      subjectPlaceholder: "What is your message about?",
+      title: "Let's talk growth",
+      subtitle: "Ready to scale your brand or monetize your influence? Get in touch with our team and we'll get back to you as soon as possible.",
+      firstName: "First name",
+      firstNamePlaceholder: "Jane",
+      lastName: "Last name",
+      lastNamePlaceholder: "Doe",
+      handle: "Job title or Primary Social Handle",
+      handlePlaceholder: "e.g. Marketing Manager or @username",
+      email: "Email address",
+      emailPlaceholder: "your@email.com",
+      phone: "Phone number",
+      phonePlaceholder: "888 123 456",
       message: "Message",
-      messagePlaceholder: "Your message...",
-      button: "Send"
+      messagePlaceholder: "Tell us about your project or inquiry...",
+      joinAs: "I'm reaching out as a...",
+      creatorTitle: "I'm a creator",
+      creatorSubtext: "I want to partner with top brands and monetize my content.",
+      brandTitle: "I'm part of a brand",
+      brandSubtext: "I want to launch campaigns and hire vetted influencers.",
+      button: "Send message",
+      sending: "Sending...",
+      testimonialQuote: "This platform completely transformed how we run influencer marketing. We cut our campaign launch time in half, scaled our reach by 300%, and found our top-performing brand ambassadors in less than a week.",
+      testimonialAuthor: "Elena Rostova",
+      testimonialAuthorTitle: "VP of Marketing, ScaleGlow Beauty",
+      successTitle: "Message sent!",
+      successDescription: "We'll get back to you as soon as possible.",
+      errorTitle: "Something went wrong",
+      errorDescription: "Your message could not be sent. Please try again."
+    },
+
+    authGuard: {
+      title: "You're already logged in",
+      description: "You already have an active session. Log out first if you want to sign in with a different account.",
+      goToProfile: "Go to my profile",
+      logout: "Log out"
     },
 
     footer: {

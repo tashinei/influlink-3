@@ -36,9 +36,12 @@ interface Collaborator {
   currentCampaign?: string;
   campaignId?: string;
   proposedPrice?: number | null;
+  campaignBudget?: number | null;     // ← fallback deal price for invites (campaign budget)
   dealPaymentId?: string | null;      // ← add
   paymentStatus?: string | null;      // ← add
   creatorPayout?: number | null;      // ← add
+  creatorMarkedDone?: boolean;        // ← creator marked the work finished
+  brandApproved?: boolean;            // ← brand approved the release
 }
 
 interface CollaboratorsModalProps {
@@ -98,7 +101,10 @@ export default function LinksModal({ open, onOpenChange, onChat, accountType, on
   };
 
   const [isReleasing, setIsReleasing] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
 
+  // Brand: approve the deal. Funds only leave escrow once the creator has also
+  // marked the campaign finished — the backend returns `released` to tell us.
   const handleRelease = async (person: Collaborator) => {
     if (!person.dealPaymentId) return;
     setIsReleasing(true);
@@ -116,15 +122,61 @@ export default function LinksModal({ open, onOpenChange, onChat, accountType, on
       setCollaborators(prev =>
         prev.map(c =>
           c.dealPaymentId === person.dealPaymentId
-            ? { ...c, paymentStatus: "transferred" }
+            ? {
+                ...c,
+                brandApproved: true,
+                paymentStatus: data.released ? "transferred" : c.paymentStatus,
+              }
             : c
         )
       );
-      toast.success("Funds released to creator!");
+      toast.success(
+        data.released
+          ? "Funds released to creator!"
+          : "Approved. Funds release once the creator marks the campaign finished."
+      );
     } catch (err: any) {
       toast.error(err.message || "Failed to release funds");
     } finally {
       setIsReleasing(false);
+    }
+  };
+
+  // Creator: mark the campaign finished. Funds release automatically if the
+  // brand has already approved; otherwise we wait for their approval.
+  const handleMarkFinished = async (person: Collaborator) => {
+    if (!person.dealPaymentId) return;
+    setIsFinishing(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/payments/creator-finished`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dealPaymentId: person.dealPaymentId }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setCollaborators(prev =>
+        prev.map(c =>
+          c.dealPaymentId === person.dealPaymentId
+            ? {
+                ...c,
+                creatorMarkedDone: true,
+                paymentStatus: data.released ? "transferred" : c.paymentStatus,
+              }
+            : c
+        )
+      );
+      toast.success(
+        data.released
+          ? "Campaign finished — funds released to you!"
+          : "Marked as finished. Awaiting brand approval."
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Failed to mark as finished");
+    } finally {
+      setIsFinishing(false);
     }
   };
 
@@ -257,7 +309,7 @@ export default function LinksModal({ open, onOpenChange, onChat, accountType, on
                         </span>
                       </Button>
 
-                      {/* Brand: Pay & Begin */}
+                      {/* Brand: Pay & Begin → Approve & Release */}
                       {accountType === "brand" && (
                         <>
                           {person.paymentStatus === "transferred" ? (
@@ -267,18 +319,26 @@ export default function LinksModal({ open, onOpenChange, onChat, accountType, on
                               <span className="text-[12px] font-bold tracking-wide">FUNDS RELEASED</span>
                             </span>
                           ) : person.paymentStatus === "paid" ? (
-                            // Payment done, ready to release
-                            <Button
-                              size="sm"
-                              className="h-10 gap-2 bg-green-500 text-white hover:bg-green-600 rounded-full px-4 active:scale-95 transition-all shadow-md font-bold"
-                              onClick={() => handleRelease(person)}
-                              disabled={isReleasing}
-                            >
-                              <CreditCard className="h-4 w-4" />
-                              <span className="text-xs font-bold uppercase tracking-wider">
-                                {isReleasing ? "Releasing..." : "Approve & Release"}
+                            person.brandApproved && !person.creatorMarkedDone ? (
+                              // Brand approved, but creator hasn't finished yet
+                              <span className="flex items-center gap-1.5 bg-white/85 text-secondary rounded-full px-4 h-10 shrink-0">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span className="text-[11px] font-bold tracking-wide uppercase">Waiting for creator</span>
                               </span>
-                            </Button>
+                            ) : (
+                              // Funds held in escrow — approve to release (releases now if creator already finished)
+                              <Button
+                                size="sm"
+                                className="h-10 gap-2 bg-green-500 text-white hover:bg-green-600 rounded-full px-4 active:scale-95 transition-all shadow-md font-bold"
+                                onClick={() => handleRelease(person)}
+                                disabled={isReleasing}
+                              >
+                                <CreditCard className="h-4 w-4" />
+                                <span className="text-xs font-bold uppercase tracking-wider">
+                                  {isReleasing ? "Approving..." : "Approve & Release"}
+                                </span>
+                              </Button>
+                            )
                           ) : (
                             // No payment yet
                             <Button
@@ -295,18 +355,50 @@ export default function LinksModal({ open, onOpenChange, onChat, accountType, on
                         </>
                       )}
 
-                      {/* Creator: Request Payment */}
+                      {/* Creator: Request → Mark Finished → Paid */}
                       {accountType === "creator" && (
-                        <Button
-                          size="sm"
-                          className="h-10 gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30 rounded-full px-4 active:scale-95 transition-all shadow-md"
-                          onClick={() => handleRequestPayment(person)}
-                        >
-                          <CreditCard className="h-4 w-4" />
-                          <span className="text-xs font-bold uppercase tracking-wider">
-                            Request
-                          </span>
-                        </Button>
+                        <>
+                          {person.paymentStatus === "transferred" ? (
+                            // Funds received
+                            <span className="flex items-center gap-1.5 bg-white border text-secondary rounded-full px-4 h-10 shrink-0">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-secondary" />
+                              <span className="text-[12px] font-bold tracking-wide">PAID</span>
+                            </span>
+                          ) : person.paymentStatus === "paid" ? (
+                            person.creatorMarkedDone ? (
+                              // Finished, waiting on brand approval
+                              <span className="flex items-center gap-1.5 bg-white/85 text-secondary rounded-full px-4 h-10 shrink-0">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span className="text-[11px] font-bold tracking-wide uppercase">Awaiting brand</span>
+                              </span>
+                            ) : (
+                              // Funded and held in escrow — mark the work finished
+                              <Button
+                                size="sm"
+                                className="h-10 gap-2 bg-green-500 text-white hover:bg-green-600 rounded-full px-4 active:scale-95 transition-all shadow-md font-bold"
+                                onClick={() => handleMarkFinished(person)}
+                                disabled={isFinishing}
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span className="text-xs font-bold uppercase tracking-wider">
+                                  {isFinishing ? "Saving..." : "Mark Finished"}
+                                </span>
+                              </Button>
+                            )
+                          ) : (
+                            // No payment yet — nudge the brand
+                            <Button
+                              size="sm"
+                              className="h-10 gap-2 bg-white/20 text-white hover:bg-white/30 border border-white/30 rounded-full px-4 active:scale-95 transition-all shadow-md"
+                              onClick={() => handleRequestPayment(person)}
+                            >
+                              <CreditCard className="h-4 w-4" />
+                              <span className="text-xs font-bold uppercase tracking-wider">
+                                Request
+                              </span>
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

@@ -9,10 +9,20 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: true,
     port: 5173,
+    strictPort:true,
+    // Local dev: forward API/socket/upload traffic to the backend so the app
+    // (and the smoke test) can use http://localhost:5173 as a single origin,
+    // mirroring the nginx reverse-proxy setup in production.
+    proxy: {
+      '/api': { target: 'http://localhost:3000', changeOrigin: true },
+      '/socket.io': { target: 'http://localhost:3000', changeOrigin: true, ws: true },
+      '/uploads': { target: 'http://localhost:3000', changeOrigin: true },
+    },
     allowedHosts: [
       'localhost',
       '127.0.0.1',
-      'anitra-nonenigmatic-areally.ngrok-free.dev'
+      'anitra-nonenigmatic-areally.ngrok-free.dev',
+      '100.119.84.32'
     ]
   },
   plugins: [

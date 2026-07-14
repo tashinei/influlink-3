@@ -46,10 +46,10 @@ const FeatureSection = ({
   const image = imageSrc && (
     <div
       className={`w-full lg:flex-1 flex justify-center ${
-        imagePosition === "left" ? "lg:-ml-24" : "lg:-mr-24"
+        imagePosition === "left" ? "lg:-ml-8 xl:-ml-24" : "lg:-mr-8 xl:-mr-24"
       } -mx-6 sm:mx-0`}
     >
-      <div className="relative w-screen sm:w-full">
+      <div className="relative w-screen sm:w-full lg:max-w-[460px] xl:max-w-none">
         <img
           src={imageSrc}
           alt={imageAlt}

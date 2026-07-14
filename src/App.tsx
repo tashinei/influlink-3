@@ -14,6 +14,7 @@ import BrandAbout from "./pages/AboutPages/BrandAbout";
 import Profile from "./pages/Profile";
 import RegisterCreator from "./pages/RegisterCreator";
 import RegisterBrand from "./pages/RegisterBrand";
+import RequireLoggedOut from "./components/RequireLoggedOut";
 import HomeMVP from "./pages/HomeMVP";
 import SearchResults from "./pages/SearchResult";
 import SearchCampaigns from "./components/campaigns/SearchCampaigns";
@@ -27,6 +28,7 @@ import { NotificationFAB } from "./components/notifications/NotificationFAB";
 import GoogleCallback from "./pages/GoogleCallback";
 import { HelmetProvider } from "react-helmet-async";
 import HowToConnect from "./pages/HowToConnect";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -44,9 +46,9 @@ const MainContent = () => {
     try {
       const response = await fetch('/api/consent/update', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: userEmail,
           analytics: preferences[1],
           marketing: preferences[2],
         }),
@@ -70,12 +72,13 @@ const MainContent = () => {
         <Route path="/creator/about" element={<CreatorAbout />} />
         <Route path="/brand/about" element={<BrandAbout />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/pricing" element={<Pricing />} />
 
         <Route path="/profile/me" element={<Profile />} />
         <Route path="/profile/:identifier" element={<Profile key="identifier" />} />
 
-        <Route path="/register/creator" element={<RegisterCreator />} />
-        <Route path="/register/brand" element={<RegisterBrand />} />
+        <Route path="/register/creator" element={<RequireLoggedOut><RegisterCreator /></RequireLoggedOut>} />
+        <Route path="/register/brand" element={<RequireLoggedOut><RegisterBrand /></RequireLoggedOut>} />
         <Route path="/creators/search" element={<SearchResults />} />
         <Route path="/campaigns/search" element={<SearchCampaigns />} />
         <Route path="*" element={<NotFound />} />

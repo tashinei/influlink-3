@@ -28,11 +28,19 @@ import {
     MapPin,
     Globe,
     ExternalLink,
+    Wallet,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import avatarPickPlaceholder from "@/assets/avatarPickPlaceholder.png";
 import { useTranslation } from "@/hooks/useTranslation";
+import {
+    getNotificationIcon,
+    translateNotificationTitle,
+    translateNotificationMessage,
+    translateNotificationCategory,
+    PAYMENT_FLOW_TYPES,
+} from "@/utils/notificationLabels";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_BASE = "https://api.influ-link.com";
@@ -92,19 +100,6 @@ interface NotificationDetailModalProps {
     onOpenChat?: (partner: any) => void; 
 }
 
-const getNotificationIcon = (type: string) => {
-    switch (type) {
-        case "proposal_received": return <FileText className="h-5 w-5 text-primary" />;
-        case "proposal_accepted": return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-        case "proposal_rejected": return <XCircle className="h-5 w-5 text-destructive" />;
-        case "campaign_invite": return <Mail className="h-5 w-5 text-primary" />;
-        case "message": return <MessageSquare className="h-5 w-5 text-blue-500" />;
-        case "payment": return <DollarSign className="h-5 w-5 text-emerald-500" />;
-        case "campaign": return <Package className="h-5 w-5 text-purple-500" />;
-        default: return <Bell className="h-5 w-5 text-muted-foreground" />;
-    }
-};
-
 const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
         case "pending": return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Pending</Badge>;
@@ -123,6 +118,7 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
     const [proposalLoading, setProposalLoading] = useState(false);
     const [inviteLoading, setInviteLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<"accept" | "decline" | null>(null);
+    const [stripeLinkLoading, setStripeLinkLoading] = useState(false);
 
     const { t, language } = useTranslation();
     const languageSetting = language === "bg" ? bg : enUS;
@@ -183,49 +179,6 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
         }
     }, [notification]);
 
-    const getTranslatedTitle = (type: string, fallback: string) => {
-        const keys: Record<string, string> = {
-            proposal_received: "mvpNotifications.proposalReceived",
-            proposal_accepted: "mvpNotifications.proposalAccepted",
-            proposal_declined: "mvpNotifications.proposalDeclined",
-            proposal_rejected: "mvpNotifications.proposalDeclined",
-            campaign_invite: "mvpNotifications.campaignInvitation",
-            invite_accepted: "mvpNotifications.inviteAccepted",
-        };
-        const key = keys[type];
-        return key ? t(key) : fallback;
-    };
-
-    const getNotificationCategory = (type: string) => {
-        const categoryKeys: Record<string, string> = {
-            proposal_received: "mvpNotifications.typeProposal",
-            proposal_accepted: "mvpNotifications.typeProposal",
-            proposal_rejected: "mvpNotifications.typeProposal",
-            campaign_invite: "mvpNotifications.typeInvite",
-            invite_accepted: "mvpNotifications.typeInvite",
-            invite_declined: "mvpNotifications.typeInvite",
-            message: "mvpNotifications.typeMessage",
-        };
-        const key = categoryKeys[type];
-        if (key) return t(key);
-        const firstWord = type.split("_")[0];
-        return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
-    };
-
-    const getTranslatedMessage = (n: Notification) => {
-        const messageKeys: Record<string, string> = {
-            proposal_received: "mvpNotifications.proposalReceivedMsg",
-            proposal_accepted: "mvpNotifications.proposalAcceptedMsg",
-            proposal_rejected: "mvpNotifications.proposalRejectedMsg",
-            campaign_invite: "mvpNotifications.campaignInviteMsg",
-            invite_accepted: "mvpNotifications.inviteAcceptedMsg",
-            invite_declined: "mvpNotifications.inviteDeclinedMsg",
-            message: "mvpNotifications.messageReceived"
-        };
-        const key = messageKeys[n.type];
-        return key ? t(key) : n.message;
-    };
-
     const handleInvitationAction = async (action: "accept" | "decline") => {
         if (!inviteDetails || !brandProfile) return;
         setActionLoading(action);
@@ -275,6 +228,26 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
         onDropdownClose?.();
     };
 
+    // Express dashboard login links are single-use and short-lived, so fetch a
+    // fresh one on click rather than baking it into the notification.
+    const handleViewStripeBalance = async () => {
+        setStripeLinkLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/payouts/dashboard-link`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
+            const data = await res.json();
+            if (data.error || !data.url) throw new Error(data.error || "Could not open Stripe");
+            window.open(data.url, "_blank", "noopener,noreferrer");
+        } catch (err: any) {
+            toast.error(err.message || "Could not open Stripe dashboard");
+        } finally {
+            setStripeLinkLoading(false);
+        }
+    };
+
     return (
         <Dialog open={!!notification} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
@@ -293,10 +266,10 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
                                     : <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />}
                             </div>
                             <DialogTitle className="text-xl font-semibold mb-2">
-                                {notification && getTranslatedTitle(notification.type, notification.title)}
+                                {notification && translateNotificationTitle(t, notification.type, notification.title)}
                             </DialogTitle>
                             <DialogDescription className="text-sm text-muted-foreground">
-                                {notification && getTranslatedMessage(notification)}
+                                {notification && translateNotificationMessage(t, notification.type, notification.message)}
                             </DialogDescription>
                             <p className="text-xs text-muted-foreground mt-4 flex items-center justify-center gap-1">
                                 <Clock className="h-3 w-3" />
@@ -316,10 +289,10 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <DialogTitle className="text-xl font-semibold mb-2">
-                                        {notification && getTranslatedTitle(notification.type, notification.title)}
+                                        {notification && translateNotificationTitle(t, notification.type, notification.title)}
                                     </DialogTitle>
                                     <DialogDescription className="mt-1 text-sm">
-                                        {notification && getTranslatedMessage(notification)}
+                                        {notification && translateNotificationMessage(t, notification.type, notification.message)}
                                     </DialogDescription>
                                 </div>
                             </div>
@@ -333,7 +306,7 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
                                             <AlertCircle className="h-4 w-4 text-muted-foreground" />
                                             <div>
                                                 <p className="text-xs text-muted-foreground">{t("mvpNotifications.type")}</p>
-                                                <p className="text-sm font-medium">{notification && getNotificationCategory(notification.type)}</p>
+                                                <p className="text-sm font-medium">{notification && translateNotificationCategory(t, notification.type)}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
@@ -348,12 +321,45 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
                                     </div>
                                 )}
 
-                                {notification?.entity_type && notification?.type !== "campaign_invite" && notification?.type !== "proposal_received" && notification?.type !== "message" && (
+                                {notification?.entity_type && notification?.type !== "campaign_invite" && notification?.type !== "proposal_received" && notification?.type !== "message" && !PAYMENT_FLOW_TYPES.includes(notification?.type) && (
                                     <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                                         <Package className="h-4 w-4 text-muted-foreground" />
                                         <div>
                                             <p className="text-xs text-muted-foreground">{t("mvpNotifications.relatedTo")}</p>
                                             <p className="text-sm font-medium capitalize">{notification.entity_type} #{notification.entity_id}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Payment / escrow flow card */}
+                                {notification && PAYMENT_FLOW_TYPES.includes(notification.type) && (
+                                    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-secondary to-primary/85 p-4 shadow-lg">
+                                        <div className="flex items-start gap-3">
+                                            <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                                                {getNotificationIcon(notification.type)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-sm font-bold text-white">
+                                                    {translateNotificationTitle(t, notification.type, notification.title)}
+                                                </h3>
+                                                <p className="text-xs text-white/80 mt-1">
+                                                    {translateNotificationMessage(t, notification.type, notification.message)}
+                                                </p>
+                                                {notification.type === "payment_released" && (
+                                                    <Button
+                                                        size="sm"
+                                                        className="mt-3 bg-white text-secondary hover:bg-white/90"
+                                                        onClick={handleViewStripeBalance}
+                                                        disabled={stripeLinkLoading}
+                                                    >
+                                                        {stripeLinkLoading
+                                                            ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                                            : <Wallet className="h-4 w-4 mr-1" />}
+                                                        {t("mvpNotifications.viewStripeBalance")}
+                                                        <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -581,7 +587,7 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
                                 )}
                                 {(notification?.type !== "proposal_received" || !proposalDetails || proposalDetails.status !== "pending") &&
                                     (notification?.type !== "campaign_invite" || !inviteDetails || inviteDetails.status !== "pending") && (
-                                        <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
+                                        <Button variant="outline" size="sm" onClick={onClose}>{t("mvpNotifications.close")}</Button>
                                     )}
                             </div>
                         </div>
