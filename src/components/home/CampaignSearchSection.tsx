@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CountryPickerModal from "../CountryPickerModal";
+import NicheMultiSelect from "./NicheMultiSelect";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCreatorNiches } from "@/data/mockCreators";
 
@@ -152,21 +153,15 @@ const CampaignSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props)
 
             {/* QUICK FILTERS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {/* NICHES - Improved Mobile Scroll */}
+              {/* NICHES - Multi-select dropdown */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-primary">{t("mvpCampaignSearchSection.niche")}</Label>
-                <div className="flex flex-wrap md:flex-nowrap md:overflow-x-auto gap-2 p-3 bg-muted/30 rounded-xl max-h-40 overflow-y-auto scrollbar-hide">
-                  {niches.map((niche) => (
-                    <Badge
-                      key={niche}
-                      variant={selectedNiches.includes(niche) ? "default" : "outline"}
-                      onClick={() => toggleSelection(niche, selectedNiches, setSelectedNiches)}
-                      className="cursor-pointer whitespace-nowrap py-1.5 px-3 text-xs md:text-sm transition-all active:scale-95"
-                    >
-                      {niche}
-                    </Badge>
-                  ))}
-                </div>
+                <NicheMultiSelect
+                  niches={niches}
+                  selected={selectedNiches}
+                  onChange={setSelectedNiches}
+                  placeholder={t("mvpCampaignSearchSection.nichePlaceholder")}
+                />
               </div>
 
               {/* PLATFORM */}

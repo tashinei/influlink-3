@@ -69,9 +69,24 @@ body {
     @apply border-border;
   }
 
+  html {
+    @apply bg-background;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* When a Radix dialog opens, its scroll-lock removes the page scrollbar and
+   adds `margin-right: 15px` to <body> to compensate. That margin pushed the
+   page content left and exposed a 15px strip on the right (the old scrollbar
+   gutter), which read as a white line against the page. Zeroing the margin
+   lets <body> fill the full viewport width instead — the dialog overlay then
+   covers the whole width with no exposed strip. The only trade-off is a subtle
+   content reflow where the scrollbar used to be, which is far less noticeable. */
+body[data-scroll-locked] {
+  margin-right: 0 !important;
 }
 
 .marquee-inner>* {

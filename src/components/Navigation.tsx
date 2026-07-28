@@ -65,7 +65,19 @@ const Navigation = () => {
   const aboutLabel = accountType === "creator" ? t("nav.creatorAbout") : t("nav.brandAbout");
 
   const isSolidBackground = isScrolled || isOpen;
-  const textColorClass = !isSolidBackground ? "text-white" : "text-primary";
+
+  // Pages with a light background from the top need the "scrolled" text/icon
+  // colors even while unscrolled, otherwise the white items are invisible.
+  // Home, the legal pages, profile and verify-email keep the transparent/white
+  // treatment (they have their own dark hero background at the top).
+  const legalPaths = ["/privacy", "/terms", "/cookies", "/data-deletion", "/data-deletion-status"];
+  const transparentHeaderPaths = ["/", "/email-verification", ...legalPaths];
+  const isTransparentHeaderPage =
+    transparentHeaderPaths.includes(location.pathname) ||
+    location.pathname.startsWith("/profile");
+  const useSolidText = isSolidBackground || !isTransparentHeaderPage;
+
+  const textColorClass = !useSolidText ? "text-white" : "text-primary";
 
   const navClasses = `
     fixed top-0 w-full transition-all duration-300 z-[3000]
@@ -93,7 +105,7 @@ const Navigation = () => {
           <div className="flex items-center justify-between h-16 md:h-20">
             <Link to="/" className="text-2xl font-bold tracking-tight transition-colors duration-300">
               <img
-                src={isSolidBackground ? "/influLink4.png" : "/influLink3.png"}
+                src={useSolidText ? "/influLink4.png" : "/influLink3.png"}
                 className="h-16 md:h-20 lg:h-19 object-contain"
                 alt="InfluLink logo"
               />
@@ -142,9 +154,9 @@ const Navigation = () => {
 
               {links.map((link) => {
                 const activeClasses =
-                  isActive(link.path) && isSolidBackground ? "border-primary text-primary"
+                  isActive(link.path) && useSolidText ? "border-secondary bg-gradient-to-br from-tertiary via-secondary to-primary bg-clip-text text-transparent"
                     : isActive(link.path) ? "border-white text-white"
-                      : isSolidBackground ? "border-transparent text-primary hover:bg-muted"
+                      : useSolidText ? "border-transparent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent hover:bg-muted"
                         : "border-transparent text-white hover:bg-white/10";
 
                 return (
@@ -168,9 +180,9 @@ const Navigation = () => {
                   to="/profile/me"
                   onClick={() => setIsOpen(false)}
                   className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300
-                  ${isActive("/profile/me") && isSolidBackground ? "border border-secondary bg-gradient-to-br from-tertiary via-secondary to-primary bg-clip-text text-transparent"
+                  ${isActive("/profile/me") && useSolidText ? "border border-secondary bg-gradient-to-br from-tertiary via-secondary to-primary bg-clip-text text-transparent"
                       : isActive("/profile/me") ? "border border-white text-white"
-                        : isSolidBackground ? "border-transparent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent hover:bg-muted"
+                        : useSolidText ? "border-transparent bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent hover:bg-muted"
                           : "border-transparent text-white hover:bg-white/10"}`}
                 >
                   {t("nav.profile")}

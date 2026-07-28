@@ -27,14 +27,72 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+// Radix Dialog (via react-remove-scroll) can leave `pointer-events: none` on
+// document.body after a dialog closes, freezing the whole page until reload.
+// The closed content can linger mounted (its exit animation may not resolve),
+// and Radix re-applies the body lock during the close sequence, so a one-shot
+// reset races and loses. Instead we return a ref callback that keeps a
+// MutationObserver alive while the content is mounted: whenever the body's
+// inline style changes and no dialog is actually open, we clear the stray lock.
+// See https://github.com/radix-ui/primitives/issues/2122
+function useRestoreBodyPointerEvents(
+  forwardedRef: React.ForwardedRef<HTMLDivElement>,
+) {
+  const observerRef = React.useRef<MutationObserver | null>(null);
+
+  const setRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (typeof forwardedRef === "function") forwardedRef(node);
+      else if (forwardedRef) forwardedRef.current = node;
+
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+
+      if (node) {
+        const reconcile = () => {
+          if (document.body.style.pointerEvents !== "none") return;
+          // A genuinely-open dialog is allowed to lock the body; only clear the
+          // lock when nothing is open (i.e. it's a stale leftover after close).
+          if (document.querySelector("[data-state=open][role=dialog]")) return;
+          document.body.style.pointerEvents = "";
+        };
+
+        const observer = new MutationObserver(reconcile);
+        // Watch the body lock itself (re-applied on close) and this content's
+        // open/closed transition.
+        observer.observe(document.body, {
+          attributes: true,
+          attributeFilter: ["style"],
+        });
+        observer.observe(node, {
+          attributes: true,
+          attributeFilter: ["data-state"],
+        });
+        observerRef.current = observer;
+        reconcile();
+      }
+    },
+    [forwardedRef],
+  );
+
+  React.useEffect(
+    () => () => observerRef.current?.disconnect(),
+    [],
+  );
+
+  return setRef;
+}
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const setContentRef = useRestoreBodyPointerEvents(ref);
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
-      ref={ref}
+      ref={setContentRef}
       className={cn(
         "md:h-[90%] 2xl:h-[70%] 9xl:h-[30%] fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-2xl",
         className,
@@ -49,7 +107,8 @@ const DialogContent = React.forwardRef<
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

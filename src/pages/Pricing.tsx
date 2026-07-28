@@ -1,9 +1,25 @@
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Check } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { PricingGlass, type TierType } from "@/components/ui/pricing-glass";
 import { useTranslation } from "@/hooks/useTranslation";
 import { translations } from "@/i18n";
+import { BRANDS_ENABLED } from "@/config/features";
+import { useUserStore } from "@/store/useUserStore";
+import { useSubscription } from "@/hooks/useSubscription";
+import { SUBSCRIBABLE_TIERS, type BrandTier, type BillingInterval } from "@/config/brandPlans";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PLAN_NAMES = ["Essential", "Starter", "Growth", "Pro", "Enterprise"];
 const TIER_KEYS = ["essential", "starter", "growth", "pro", "enterprise"] as const;
@@ -24,7 +40,20 @@ type PricingContent = {
   popularLabel: string;
   ctaStart: string;
   ctaContact: string;
+  ctaManage: string;
+  ctaSwitch: string;
   customPrice: string;
+  checkoutSuccess: string;
+  checkoutCancelled: string;
+  planChanged: string;
+  paymentIssueBanner: string;
+  paymentIssueCta: string;
+  switchConfirmTitle: string;
+  switchConfirmBody: string;
+  switchConfirmCancel: string;
+  switchConfirmCta: string;
+  switchConfirmBusy: string;
+  saveBadge: string;
   comparisonTitle: string;
   comparisonSubtitle: string;
   featuresLabel: string;
@@ -199,36 +228,116 @@ function ComparisonTable({ p, isAnnual }: { p: PricingContent; isAnnual: boolean
 }
 
 export default function Pricing() {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   const p = translations[language].pricing as unknown as PricingContent;
-  const [audience, setAudience] = useState<"brands" | "creators">("brands");
+  // Creator-only launch: default to creators and hide the brand view (see src/config/features.ts).
+  const [audience, setAudience] = useState<"brands" | "creators">(BRANDS_ENABLED ? "brands" : "creators");
   const [isAnnual, setIsAnnual] = useState(false);
+
+  const navigate = useNavigate();
+  const accountType = useUserStore((s) => s.accountType);
+  const { subscription, startCheckout, changePlan, openPortal, busy } = useSubscription();
+  const isBrand = accountType === "brand";
+
+  // Plan-switch confirmation: an in-place change charges a prorated amount
+  // immediately (no card re-entry), so we confirm before doing it.
+  const [switchTo, setSwitchTo] = useState<BrandTier | null>(null);
+
+  // Surface the Stripe redirect result (?checkout=success|cancelled).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("checkout");
+    if (status === "success") toast.success(p.checkoutSuccess || "Subscription active");
+    else if (status === "cancelled") toast(p.checkoutCancelled || "Checkout cancelled");
+    if (status) {
+      params.delete("checkout");
+      navigate({ pathname: "/pricing", search: params.toString() }, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // What a brand-tier button does, depending on where the brand stands:
+  //  • not a brand      → register
+  //  • Enterprise       → contact sales
+  //  • current plan     → manage billing (portal: update card / cancel)
+  //  • has a plan, other tier → change plan in place (prorated), not a 2nd sub
+  //  • no plan          → checkout
+  const interval: BillingInterval = isAnnual ? "annual" : "monthly";
+
+  // First-time purchase → Stripe Checkout (its own confirmation). If the server
+  // says a plan already exists (stale client view), fall back to a switch.
+  const beginCheckout = async (tier: BrandTier) => {
+    const err = await startCheckout(tier, interval);
+    if (err === "__change_plan__") { setSwitchTo(tier); return; }
+    if (err) toast.error(err);
+  };
+
+  // Confirmed in-place plan change (prorated). Falls back to checkout if the
+  // server reports no existing subscription.
+  const confirmSwitch = async (tier: BrandTier) => {
+    setSwitchTo(null);
+    const err = await changePlan(tier, interval);
+    if (err === "__checkout__") return beginCheckout(tier);
+    if (err) toast.error(err);
+    else toast.success(p.planChanged || "Plan updated");
+  };
+
+  const brandCtaFor = (tier: BrandTier, isEnterprise: boolean) => {
+    if (isEnterprise) return { href: "/contact" as string | undefined, onCta: undefined };
+    if (!isBrand) return { href: "/register/brand" as string | undefined, onCta: undefined };
+    const onCta = async () => {
+      // Current tier → billing portal.
+      if (subscription.tier === tier) {
+        const err = await openPortal();
+        if (err) toast.error(err);
+        return;
+      }
+      // Live subscription switching tiers → confirm, then prorated change.
+      if (subscription.isActive) { setSwitchTo(tier); return; }
+      // Otherwise a first-time purchase.
+      await beginCheckout(tier);
+    };
+    return { href: undefined as string | undefined, onCta };
+  };
 
   const brandTiers: TierType[] = TIER_KEYS.map((key, i) => {
     const isEnterprise = i === TIER_KEYS.length - 1;
     const rawPrice = isEnterprise ? p.customPrice : getDiscountedPrice(PRICES[i], isAnnual);
+    const tierKey = key as BrandTier;
+    const subscribable = SUBSCRIBABLE_TIERS.includes(tierKey);
+    const isCurrent = isBrand && subscription.tier === tierKey && subscription.isActive;
+    const { href, onCta } = brandCtaFor(tierKey, isEnterprise);
 
-    // Securely lock the bubble inside the card container next to the price
-    const priceWithBubble =
-      isAnnual && !isEnterprise
-        ? ((
-            <span className="inline-flex items-center gap-1.5 vertical-align-middle">
-              <span>{rawPrice}</span>
-              <span className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-extrabold text-white uppercase tracking-wide whitespace-nowrap leading-none h-4 self-center transform -translate-y-1 shadow-sm">
-                -20%
-              </span>
-            </span>
-          ) as unknown as string)
-        : rawPrice;
+    // Annual shows the discounted price in the SAME clean format as monthly
+    // (a plain string). The discount is called out by a separate savings pill
+    // beside the price, not baked into the number.
+    const priceDisplay = rawPrice;
+    const monthlyNum = parseFloat(PRICES[i]);
+    const discountedNum = parseFloat(getDiscountedPrice(PRICES[i], true));
+    const yearlySaving = Math.round((monthlyNum - discountedNum) * 12);
+    const savingsBadge =
+      isAnnual && !isEnterprise && Number.isFinite(yearlySaving) && yearlySaving > 0
+        ? (p.saveBadge || "Save {{amount}}").replace("{{amount}}", `${p.currency}${yearlySaving}`)
+        : undefined;
+
+    const ctaLabel = isEnterprise
+      ? p.ctaContact
+      : isCurrent
+        ? p.ctaManage || "Manage plan"
+        : isBrand && subscription.isActive && subscribable
+          ? p.ctaSwitch || "Switch to this plan"
+          : p.ctaStart;
 
     return {
       name: PLAN_NAMES[i],
-      priceMonthly: priceWithBubble,
+      priceMonthly: priceDisplay,
       description: p.tiers[key].description,
       features: p.tiers[key].features,
       isPopular: i === POPULAR_INDEX,
-      cta: isEnterprise ? p.ctaContact : p.ctaStart,
-      href: HREFS[i],
+      cta: ctaLabel,
+      href,
+      onCta,
+      ctaDisabled: busy && subscribable,
+      savingsBadge,
     };
   });
 
@@ -255,9 +364,25 @@ export default function Pricing() {
       />
 
       <div className="relative z-10 max-w-7xl mx-auto py-20 md:py-28 px-4 flex flex-col gap-14">
-        <div className="flex justify-center">
-          <AudienceToggle value={audience} labels={p.audience} onChange={setAudience} />
-        </div>
+        {BRANDS_ENABLED && (
+          <div className="flex justify-center">
+            <AudienceToggle value={audience} labels={p.audience} onChange={setAudience} />
+          </div>
+        )}
+
+        {/* Payment-issue banner: the brand is past-due but still inside grace.
+            Access continues; nudge them to fix the card before it lapses. */}
+        {isBrand && subscription.paymentIssue && (
+          <button
+            type="button"
+            onClick={() => openPortal()}
+            className="mx-auto flex w-full max-w-2xl items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-4 text-left transition-colors hover:bg-amber-100"
+          >
+            <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" />
+            <span className="flex-1 text-sm text-amber-900">{p.paymentIssueBanner || "A recent payment didn't go through. Update your card to keep your subscription."}</span>
+            <span className="shrink-0 text-sm font-semibold text-amber-700 underline">{p.paymentIssueCta || "Fix it"}</span>
+          </button>
+        )}
 
         {audience === "brands" ? (
           <div className="flex flex-col gap-24">
@@ -296,6 +421,31 @@ export default function Pricing() {
           </div>
         )}
       </div>
+
+      {/* Confirm an in-place plan switch before charging the prorated amount. */}
+      <AlertDialog open={switchTo !== null} onOpenChange={(o) => !o && setSwitchTo(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{p.switchConfirmTitle || "Switch your plan?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(p.switchConfirmBody ||
+                "You'll move from {{from}} to {{to}} right away. Stripe charges or credits the prorated difference automatically — you keep one active plan.")
+                .replace("{{from}}", subscription.tier ? t(`upgrade.tierNames.${subscription.tier}`) : "—")
+                .replace("{{to}}", switchTo ? t(`upgrade.tierNames.${switchTo}`) : "—")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>{p.switchConfirmCancel || "Keep current plan"}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={() => switchTo && confirmSwitch(switchTo)}
+              className="bg-gradient-to-br from-secondary to-primary text-white"
+            >
+              {busy ? (p.switchConfirmBusy || "Switching…") : (p.switchConfirmCta || "Confirm switch")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

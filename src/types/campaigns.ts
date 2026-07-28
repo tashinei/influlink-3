@@ -21,6 +21,12 @@ export interface CampaignData {
   country: string;
   contentTypes: string[];
   language: string[];
+  isUrgent?: boolean;
+  // Brief fields set by the brand on creation, shown to creators.
+  deliverables?: string;
+  applicationDeadline?: string;
+  minFollowers?: number;
+  requirements?: string;
 }
 
 export const CAMPAIGN_TYPE_LABELS: Record<CampaignType, string> = {
@@ -48,6 +54,7 @@ export type CampaignFilterState = {
   countryCode: string[];
   language: string[];
   status?: CampaignStatus | "any";
+  urgentOnly: boolean;
 };
 
 export const defaultCampaignFilters: CampaignFilterState = {
@@ -60,6 +67,7 @@ export const defaultCampaignFilters: CampaignFilterState = {
   countryCode: [],
   language: [],
   status: "any",
+  urgentOnly: false,
 };
 
 export type CampaignSearchFilters = {

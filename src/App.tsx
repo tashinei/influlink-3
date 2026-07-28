@@ -24,11 +24,15 @@ import Terms from "./legal/TermsConditions";
 import Cookies from "./legal/Cookies";
 import { InstagramCallback } from "./components/InstagramCallback";
 import DataDeletion from "./legal/DataDeletion";
+import DataDeletionStatus from "./legal/DataDeletionStatus";
+import VerifyEmail from "./pages/VerifyEmail";
 import { NotificationFAB } from "./components/notifications/NotificationFAB";
 import GoogleCallback from "./pages/GoogleCallback";
 import { HelmetProvider } from "react-helmet-async";
 import HowToConnect from "./pages/HowToConnect";
 import Pricing from "./pages/Pricing";
+import { BRANDS_ENABLED } from "./config/features";
+import { BrandsClosedNotice } from "./components/BrandsComingSoon";
 
 const queryClient = new QueryClient();
 
@@ -78,7 +82,16 @@ const MainContent = () => {
         <Route path="/profile/:identifier" element={<Profile key="identifier" />} />
 
         <Route path="/register/creator" element={<RequireLoggedOut><RegisterCreator /></RequireLoggedOut>} />
-        <Route path="/register/brand" element={<RequireLoggedOut><RegisterBrand /></RequireLoggedOut>} />
+        <Route
+          path="/register/brand"
+          element={
+            BRANDS_ENABLED ? (
+              <RequireLoggedOut><RegisterBrand /></RequireLoggedOut>
+            ) : (
+              <BrandsClosedNotice />
+            )
+          }
+        />
         <Route path="/creators/search" element={<SearchResults />} />
         <Route path="/campaigns/search" element={<SearchCampaigns />} />
         <Route path="*" element={<NotFound />} />
@@ -86,6 +99,8 @@ const MainContent = () => {
         <Route path="/terms" element={<Terms />} />
         <Route path="/cookies" element={<Cookies />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
+        <Route path="/data-deletion-status" element={<DataDeletionStatus />} />
+        <Route path="/email-verification" element={<VerifyEmail />} />
         <Route path="/instagram-callback" element={<InstagramCallback />} />
         <Route path="/google-callback" element={<GoogleCallback />} />
         <Route path="/connect-instagram" element={<HowToConnect />} />

@@ -10,6 +10,7 @@ import {
   Instagram,
   Youtube,
   Twitter,
+  Clock,
 } from "lucide-react";
 import { useUserStore } from "@/store/useUserStore";
 import { useImpressionTracker } from "@/hooks/useImpressionTracker";
@@ -19,21 +20,39 @@ import { BsFacebook, BsInstagram, BsX, BsYoutube } from "react-icons/bs";
 interface Props {
   campaign: any;
   onApply?: (campaignId: string) => void;
+  onView?: (campaign: any) => void;
 }
+
+// Brand gradient clipped to text — same treatment as the nav menu items.
+const GRADIENT_TEXT =
+  "bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent";
+// Same gradient applied to icon strokes/fills via a shared SVG def.
+const GRADIENT_FILL = "url(#campaignBrandGradient)";
+
+const BrandGradientDef = () => (
+  <svg width="0" height="0" className="absolute" aria-hidden>
+    <defs>
+      <linearGradient id="campaignBrandGradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="hsl(var(--primary))" />
+        <stop offset="100%" stopColor="hsl(var(--secondary))" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
 
 const PlatformIcon = ({ platform }: { platform: string }) => {
   switch (platform.toLowerCase()) {
     case 'instagram':
-      return <BsInstagram className="h-4 w-4" />;
+      return <BsInstagram className="h-4 w-4" fill={GRADIENT_FILL} />;
     case 'youtube':
-      return <BsYoutube className="h-4 w-4" />;
+      return <BsYoutube className="h-4 w-4" fill={GRADIENT_FILL} />;
     case 'twitter':
-      return <BsX className="h-4 w-4" />;
+      return <BsX className="h-4 w-4" fill={GRADIENT_FILL} />;
     case 'facebook':
-      return <BsFacebook className="h-4 w-4" />;
+      return <BsFacebook className="h-4 w-4" fill={GRADIENT_FILL} />;
     case 'tiktok':
       return (
-        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill={GRADIENT_FILL}>
           <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
         </svg>
       );
@@ -42,7 +61,7 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
   }
 };
 
-export const CampaignCard = ({ campaign, onApply }: Props) => {
+export const CampaignCard = ({ campaign, onApply, onView }: Props) => {
   const API_BASE = "https://api.influ-link.com";
   const isCreator = useUserStore((state) => state.accountType === "creator");
   const {
@@ -56,6 +75,7 @@ export const CampaignCard = ({ campaign, onApply }: Props) => {
     goal,
     company_logo,
     type,
+    isUrgent,
   } = campaign;
 
   const ref = useImpressionTracker({ campaignId: campaign.id });
@@ -79,31 +99,26 @@ export const CampaignCard = ({ campaign, onApply }: Props) => {
     });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case 'active':
-        return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
-      case 'completed':
-        return 'bg-muted text-muted-foreground border-border';
-      case 'draft':
-        return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
-      default:
-        return 'bg-muted text-muted-foreground border-border';
-    }
-  };
-
   return (
     <div
       ref={ref}
+      onClick={() => onView?.(campaign)}
       className="group relative flex h-[480px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
+      <BrandGradientDef />
       {/* TOP HALF: Logo Hero Section */}
       <div className="relative h-40 bg-gradient-to-b from-secondary/70 via-primary/30 to-secondary/10">
         {/* Status Badge */}
-        <div className="absolute top-3 left-3 z-10">
-          <Badge className={`${getStatusColor(status)} border capitalize`}>
-            {status || 'Draft'}
+        <div className="absolute top-3 left-3 z-10 flex flex-col items-start gap-1.5">
+          <Badge className="border border-border bg-background/90 backdrop-blur-sm capitalize">
+            <span className={GRADIENT_TEXT}>{status || 'Draft'}</span>
           </Badge>
+          {isUrgent && (
+            <Badge className="gap-1 border border-border bg-background/90 backdrop-blur-sm">
+              <Clock className="h-3 w-3" stroke={GRADIENT_FILL} />
+              <span className={GRADIENT_TEXT}>Urgent</span>
+            </Badge>
+          )}
         </div>
 
         {/* Quick Actions */}
@@ -185,20 +200,20 @@ export const CampaignCard = ({ campaign, onApply }: Props) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="text-center p-2 rounded-lg bg-muted/50">
+          <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <DollarSign className="h-3 w-3 text-muted-foreground" />
+              <DollarSign className="h-3 w-3" stroke={GRADIENT_FILL} />
             </div>
-            <p className="text-sm font-bold text-foreground">
+            <p className={`text-sm font-bold ${GRADIENT_TEXT}`}>
               ${Number(budget || 0).toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground">Budget</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-muted/50">
+          <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Calendar className="h-3 w-3 text-muted-foreground" />
+              <Calendar className="h-3 w-3" stroke={GRADIENT_FILL} />
             </div>
-            <p className="text-sm font-bold text-foreground">
+            <p className={`text-sm font-bold ${GRADIENT_TEXT}`}>
               {start_date ? new Date(start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'TBD'}
             </p>
             <p className="text-xs text-muted-foreground">Start Date</p>
@@ -217,7 +232,7 @@ export const CampaignCard = ({ campaign, onApply }: Props) => {
         {platforms.length > 0 && (
           <div className="flex justify-center gap-2 mb-4">
             {platforms.map((platform: string) => (
-              <div key={platform} className="p-1.5 rounded-full bg-muted text-muted-foreground">
+              <div key={platform} className="p-1.5 rounded-full bg-muted/60 border border-border">
                 <PlatformIcon platform={platform} />
               </div>
             ))}

@@ -26,6 +26,38 @@ export interface ProfileData {
   };
 }
 
+/** One line of a package: "2 × Reel". */
+export interface PlanDeliverable {
+  /** Key from PLAN_DELIVERABLES for the plan's platform. */
+  type: string;
+  /** null on legacy rows stored as free text before deliverables were structured. */
+  qty: number | null;
+}
+
+/**
+ * A fixed-price package on a creator's rate card ("Instagram · Growth — €750").
+ * Display-only: brands read it and start a conversation. Nothing here is
+ * payable on its own — deals still run through the campaign/escrow flow.
+ *
+ * Every field except price and description is an enum key (see
+ * src/config/planOptions.ts) rendered through i18n, so packages stay
+ * comparable between creators.
+ */
+export interface CreatorPlan {
+  id: string;
+  /** Key from PLAN_PLATFORMS. */
+  platform: string;
+  /** Tier key from PLAN_TIERS — the label comes from i18n, not the DB. */
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+  /** Turnaround in days, or null when the creator didn't specify one. */
+  deliveryDays: number | null;
+  deliverables: PlanDeliverable[];
+  isFeatured: boolean;
+}
+
 export interface PortfolioItem {
   profileId: any;
   id: string;

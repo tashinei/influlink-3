@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 
-const NOISE_PATTERN =
+/** Shared with the profile rate card so both gradient surfaces match exactly. */
+export const NOISE_PATTERN =
   'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")';
 
 export type TierType = {
@@ -13,6 +14,11 @@ export type TierType = {
   features: string[];
   cta?: string;
   href?: string;
+  /** Click handler; takes priority over `href` (used for Stripe checkout). */
+  onCta?: () => void;
+  ctaDisabled?: boolean;
+  /** Small savings pill shown beside the price (e.g. annual discount). */
+  savingsBadge?: string;
 };
 
 export interface PricingGlassProps {
@@ -54,7 +60,7 @@ const REVEAL = "transition-all duration-700 ease-out motion-reduce:transition-no
 const HIDDEN = "opacity-0 translate-y-6";
 const SHOWN = "opacity-100 translate-y-0";
 
-function Price({ value, currency, period }: { value: string; currency: string; period: string }) {
+function Price({ value, currency, period, savingsBadge }: { value: string; currency: string; period: string; savingsBadge?: string }) {
   const isNumeric = /^[\d.,]/.test(value);
   if (!isNumeric) {
     return (
@@ -80,6 +86,11 @@ function Price({ value, currency, period }: { value: string; currency: string; p
         </span>
       </div>
       <span className="text-white/70 text-base font-medium ml-1">{period}</span>
+      {savingsBadge && (
+        <span className="ml-2 self-center inline-flex items-center rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white whitespace-nowrap shadow-sm">
+          {savingsBadge}
+        </span>
+      )}
     </div>
   );
 }
@@ -164,7 +175,7 @@ function PricingCard({
           <h3 className="text-lg font-semibold text-white tracking-wide mt-2">{tier.name}</h3>
 
           <div className="mt-4 mb-3 min-h-[64px] flex items-center">
-            <Price value={price} currency={currency} period={period} />
+            <Price value={price} currency={currency} period={period} savingsBadge={tier.savingsBadge} />
           </div>
 
           <p className="text-white/80 text-[13px] leading-relaxed mb-6 min-h-[56px]">{tier.description}</p>
@@ -182,7 +193,20 @@ function PricingCard({
             ))}
           </div>
 
-          {tier.href ? (
+          {tier.onCta ? (
+            <button
+              type="button"
+              onClick={tier.onCta}
+              disabled={tier.ctaDisabled}
+              className={`w-full py-3.5 rounded-[14px] font-semibold text-[14px] transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed ${
+                tier.isPopular
+                  ? "bg-white text-primary hover:bg-white/90 hover:scale-[1.02] shadow-lg"
+                  : "bg-white/15 text-white border border-white/30 hover:bg-white/25 hover:scale-[1.02]"
+              }`}
+            >
+              {tier.cta || "Get Started"}
+            </button>
+          ) : tier.href ? (
             <a
               href={tier.href}
               className={`block text-center w-full py-3.5 rounded-[14px] font-semibold text-[14px] transition-all duration-300 ${

@@ -12,6 +12,7 @@ import { useCreatorNiches } from '@/data/mockCreators';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Helmet } from 'react-helmet-async';
+import { LocationPicker } from '@/components/auth/LocationPicker';
 
 // Brand-specific industries instead of creator niches
 
@@ -83,6 +84,8 @@ const RegisterBrand = () => {
         email: '',
         handle: '',
         location: '',
+        city: '',
+        countryCode: '',
         niche: '',
         otherNiche: '',
         bio: '',
@@ -227,11 +230,13 @@ const RegisterBrand = () => {
                                     <input className="step-input !pl-10" placeholder="acme_official" value={formData.handle} onChange={e => setFormData({ ...formData, handle: e.target.value })} />
                                 </div>
                             </InputWrapper>
-                            <InputWrapper label={`${t("mvpRegisterBrand.headquarters")} (${t("mvpRegisterBrand.cityCountry")})`}>
-                                <div className="relative">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                                    <input className="step-input !pl-10" placeholder="New York, USA" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} />
-                                </div>
+                            <InputWrapper label={t("mvpRegisterBrand.headquarters")}>
+                                <LocationPicker
+                                    city={formData.city}
+                                    countryCode={formData.countryCode}
+                                    cityPlaceholder="Sofia"
+                                    onChange={next => setFormData(prev => ({ ...prev, ...next }))}
+                                />
                             </InputWrapper>
                         </div>
                         <div className="flex gap-3 pt-8 mt-auto">

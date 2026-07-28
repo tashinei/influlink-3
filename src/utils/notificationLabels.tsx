@@ -10,10 +10,18 @@ import {
     Wallet,
     Flag,
     ThumbsUp,
+    AlertTriangle,
+    CalendarClock,
+    RotateCcw,
+    Ban,
+    ArrowLeftRight,
+    type LucideIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Single source of truth for how every notification type is presented across the
-// dropdown, the list item, and the detail modal. Keeps icons + i18n consistent.
+// dropdown, the list item, and the detail modal. Keeps icons, colour tone and
+// i18n consistent.
 
 type TFunc = (key: string) => string;
 
@@ -25,6 +33,76 @@ export const PAYMENT_FLOW_TYPES = [
     "payment_released",
     "payment_completed",
 ];
+
+// ── Colour tone ──────────────────────────────────────────────────────────────
+// Each type maps to a semantic tone so the icon + its circle read at a glance:
+// green = good, amber = needs attention, red = something ended/failed.
+type Tone = "success" | "warning" | "danger" | "info" | "neutral";
+
+const TYPE_TONE: Record<string, Tone> = {
+    proposal_received: "info",
+    proposal_accepted: "success",
+    proposal_rejected: "danger",
+    proposal_declined: "danger",
+    campaign_invite: "info",
+    invite_accepted: "success",
+    invite_declined: "danger",
+    message: "info",
+    campaign_finished: "info",
+    brand_approved: "success",
+    payment_released: "success",
+    payment_completed: "success",
+    payment: "success",
+    campaign: "info",
+    // Brand subscription lifecycle
+    billing_payment_failed: "warning",
+    billing_recovered: "success",
+    billing_cancel_scheduled: "warning",
+    billing_cancel_reverted: "success",
+    billing_ended: "danger",
+    billing_plan_changed: "info",
+};
+
+const toneOf = (type: string): Tone => TYPE_TONE[type] || "neutral";
+
+const TONE_ICON: Record<Tone, string> = {
+    success: "text-emerald-600 dark:text-emerald-400",
+    warning: "text-amber-600 dark:text-amber-400",
+    danger: "text-red-600 dark:text-red-400",
+    info: "text-primary",
+    neutral: "text-muted-foreground",
+};
+
+const TONE_BG: Record<Tone, string> = {
+    success: "bg-emerald-100 dark:bg-emerald-500/15",
+    warning: "bg-amber-100 dark:bg-amber-500/15",
+    danger: "bg-red-100 dark:bg-red-500/15",
+    info: "bg-primary/10",
+    neutral: "bg-muted",
+};
+
+const ICON_FOR: Record<string, LucideIcon> = {
+    proposal_received: FileText,
+    proposal_accepted: CheckCircle2,
+    proposal_rejected: XCircle,
+    proposal_declined: XCircle,
+    campaign_invite: Mail,
+    invite_accepted: CheckCircle2,
+    invite_declined: XCircle,
+    message: MessageSquare,
+    campaign_finished: Flag,
+    brand_approved: ThumbsUp,
+    payment_released: Wallet,
+    payment_completed: CheckCircle2,
+    payment: DollarSign,
+    campaign: Package,
+    billing_payment_failed: AlertTriangle,
+    billing_recovered: CheckCircle2,
+    billing_cancel_scheduled: CalendarClock,
+    billing_cancel_reverted: RotateCcw,
+    billing_ended: Ban,
+    billing_plan_changed: ArrowLeftRight,
+};
 
 const TITLE_KEYS: Record<string, string> = {
     proposal_received: "mvpNotifications.proposalReceived",
@@ -67,27 +145,22 @@ const CATEGORY_KEYS: Record<string, string> = {
     brand_approved: "mvpNotifications.typePayment",
     payment_released: "mvpNotifications.typePayment",
     payment_completed: "mvpNotifications.typePayment",
+    billing_payment_failed: "mvpNotifications.typeBilling",
+    billing_recovered: "mvpNotifications.typeBilling",
+    billing_cancel_scheduled: "mvpNotifications.typeBilling",
+    billing_cancel_reverted: "mvpNotifications.typeBilling",
+    billing_ended: "mvpNotifications.typeBilling",
+    billing_plan_changed: "mvpNotifications.typeBilling",
 };
 
 export const getNotificationIcon = (type: string) => {
-    switch (type) {
-        case "proposal_received": return <FileText className="h-5 w-5 text-primary" />;
-        case "proposal_accepted": return <CheckCircle2 className="h-5 w-5 text-primary" />;
-        case "proposal_rejected":
-        case "proposal_declined": return <XCircle className="h-5 w-5 text-primary" />;
-        case "campaign_invite": return <Mail className="h-5 w-5 text-primary" />;
-        case "invite_accepted": return <CheckCircle2 className="h-5 w-5 text-primary" />;
-        case "invite_declined": return <XCircle className="h-5 w-5 text-primary" />;
-        case "message": return <MessageSquare className="h-5 w-5 text-primary" />;
-        case "campaign_finished": return <Flag className="h-5 w-5 text-primary" />;
-        case "brand_approved": return <ThumbsUp className="h-5 w-5 text-primary" />;
-        case "payment_released": return <Wallet className="h-5 w-5 text-primary" />;
-        case "payment_completed": return <CheckCircle2 className="h-5 w-5 text-primary" />;
-        case "payment": return <DollarSign className="h-5 w-5 text-primary" />;
-        case "campaign": return <Package className="h-5 w-5 text-primary" />;
-        default: return <Bell className="h-5 w-5 text-primary" />;
-    }
+    const Icon = ICON_FOR[type] || Bell;
+    return <Icon className={cn("h-5 w-5", TONE_ICON[toneOf(type)])} />;
 };
+
+// Circle background behind the icon, matching the type's tone. Callers wrap the
+// icon: <span class={getNotificationCircleClass(type)}>{getNotificationIcon(type)}</span>
+export const getNotificationCircleClass = (type: string) => TONE_BG[toneOf(type)];
 
 export const translateNotificationTitle = (t: TFunc, type: string, fallback: string) => {
     const key = TITLE_KEYS[type];

@@ -10,6 +10,8 @@ interface DockProps {
     onClick?: () => void;
     href?: string;
     isActive?: boolean;
+    /** Marks the item as a coach-mark target — see ProfileTour. */
+    tour?: string;
   }[];
 }
 
@@ -30,13 +32,14 @@ export const Dock = ({ items, className }: DockProps) => {
   );
 };
 
-const DockItem = ({ icon: Icon, label, onClick, href, isActive }: any) => {
+const DockItem = ({ icon: Icon, label, onClick, href, isActive, tour }: any) => {
   const Wrapper = href ? "a" : "button";
 
   return (
     <Wrapper
       onClick={onClick}
       href={href}
+      data-tour={tour}
       className="group relative flex items-center transition-all duration-300 ease-out"
     >
       <div

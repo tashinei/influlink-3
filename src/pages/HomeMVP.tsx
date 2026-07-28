@@ -15,6 +15,7 @@ import CampaignSearchSection from "@/components/home/CampaignSearchSection";
 import RegisterSelectionDialog from "@/components/RegisterSelectionDialog";
 import { useTranslation } from "@/hooks/useTranslation";
 import CTASection from "@/components/CTASection";
+import FaqSection from "@/components/home/FaqSection";
 import { useMediaQuery } from "@/hooks/use-media.query";
 import { Helmet } from "react-helmet-async";
 
@@ -187,9 +188,9 @@ const HomeMVP = () => {
           imageSrc={lastSection}
         />
       </div>
-      <div className="h-20" />
-
       <CTASection handleClickCta={handleJoinClick} />
+
+      <FaqSection />
 
       <RegisterSelectionDialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen} />
 

@@ -32,10 +32,12 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import avatarPickPlaceholder from "@/assets/avatarPickPlaceholder.png";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
     getNotificationIcon,
+    getNotificationCircleClass,
     translateNotificationTitle,
     translateNotificationMessage,
     translateNotificationCategory,
@@ -284,7 +286,7 @@ export function NotificationDetailModal({ notification, onClose, onDropdownClose
                     <>
                         <DialogHeader className="px-6 pt-6 pb-4 border-b">
                             <div className="flex text-left items-start gap-3">
-                                <div className="flex-shrink-0 p-2 rounded-full bg-muted">
+                                <div className={cn("flex-shrink-0 p-2 rounded-full", notification ? getNotificationCircleClass(notification.type) : "bg-muted")}>
                                     {notification && getNotificationIcon(notification.type)}
                                 </div>
                                 <div className="flex-1 min-w-0">

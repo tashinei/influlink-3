@@ -24,7 +24,14 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import Stripe from 'stripe';
 import { Resend } from "resend";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Pin the API version so object shapes can't shift under us if the account's
+// dashboard default is ever changed/upgraded. Set to the account's current
+// default (see any webhook event's "API version"), so pinning changes nothing
+// today — it only locks today's behavior. Bump deliberately, and re-check the
+// field reads (esp. subscription period end, which moved to the item level in
+// the 2025+ line) when you do.
+const STRIPE_API_VERSION = "2026-03-25.dahlia";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: STRIPE_API_VERSION });
 
 // --- Email via Resend (HTTPS API; DigitalOcean blocks outbound SMTP) ---
 // RESEND_API_KEY is required to actually send. MAIL_FROM must be a Resend-verified
@@ -347,15 +354,149 @@ function buildAlertEmail(type, entry, count, threshold) {
   return { subject, text, html };
 }
 
+// ── Daily security digest ─────────────────────────────────────────────────
+// Scanner probes and honeypot trips are constant, already-auto-handled
+// background noise. Emailing one per event is pure spam — scanners come from an
+// endless supply of fresh IPs, so a per-IP throttle never actually throttles.
+// Instead these fold into an in-memory accumulator and go out as ONE digest a
+// day. Only actionable signals (brute-force logins) alert in real time.
+const DIGEST_ONLY_TYPES = new Set([
+  "scanner_probe",
+  "honeypot_register",
+  "honeypot_login",
+  "honeypot_proposal",
+  "honeypot_campaign",
+]);
+
+// Resets on restart — fine for a "what happened lately" summary; the per-event
+// detail is always in the [SECURITY] logs. Map sizes are capped so a flood of
+// unique IPs can't grow memory unbounded (existing keys keep counting).
+const secDigest = { since: Date.now(), total: 0, byType: new Map(), ips: new Map(), paths: new Map() };
+function recordForDigest(type, entry) {
+  secDigest.total++;
+  secDigest.byType.set(type, (secDigest.byType.get(type) || 0) + 1);
+  const ip = entry.ip;
+  if (ip && ip !== "unknown" && (secDigest.ips.has(ip) || secDigest.ips.size < 20000)) {
+    secDigest.ips.set(ip, (secDigest.ips.get(ip) || 0) + 1);
+  }
+  if (type === "scanner_probe" && entry.path && (secDigest.paths.has(entry.path) || secDigest.paths.size < 2000)) {
+    secDigest.paths.set(entry.path, (secDigest.paths.get(entry.path) || 0) + 1);
+  }
+}
+function resetDigest() {
+  secDigest.since = Date.now();
+  secDigest.total = 0;
+  secDigest.byType.clear();
+  secDigest.ips.clear();
+  secDigest.paths.clear();
+}
+
+// Hard backstop: never more than this many real-time alert emails per hour,
+// whatever the cause — so a distributed attack can't flood the inbox.
+const MAX_ALERTS_PER_HOUR = 5;
+const recentAlerts = [];
+function underAlertBudget() {
+  const now = Date.now();
+  while (recentAlerts.length && now - recentAlerts[0] > 3600000) recentAlerts.shift();
+  if (recentAlerts.length >= MAX_ALERTS_PER_HOUR) return false;
+  recentAlerts.push(now);
+  return true;
+}
+
+const topDigest = (map, n = 6) => [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, n);
+
+function buildDigestEmail() {
+  const hrs = Math.max(1, Math.round((Date.now() - secDigest.since) / 3600000));
+  const byType = topDigest(secDigest.byType, 20);
+  const paths = topDigest(secDigest.paths, 6);
+  const ips = topDigest(secDigest.ips, 6);
+  const uniqueIps = secDigest.ips.size;
+
+  const subject = `[InfluLink] Security digest — ${secDigest.total} events, ${uniqueIps} IPs (last ${hrs}h)`;
+
+  const text = [
+    `Security digest — last ${hrs}h`,
+    ``,
+    `${secDigest.total} monitored events from ${uniqueIps} unique IP(s), all auto-handled (blocked / rejected).`,
+    ``,
+    `By type:`,
+    ...byType.map(([t, c]) => `  ${(t + ":").padEnd(20)} ${c}`),
+    ``,
+    `Top probed paths:`,
+    ...(paths.length ? paths.map(([p, c]) => `  ${c}x  ${p}`) : ["  (none)"]),
+    ``,
+    `Top source IPs:`,
+    ...(ips.length ? ips.map(([ip, c]) => `  ${c}x  ${ip}`) : ["  (none)"]),
+    ``,
+    `— Once-a-day summary. Per-event detail is in the server [SECURITY] logs.`,
+  ].join("\n");
+
+  const row = (k, v) =>
+    `<tr><td style="padding:5px 12px;color:#6b7280;font-size:13px;white-space:nowrap;vertical-align:top;">${escapeHtml(k)}</td>` +
+    `<td style="padding:5px 12px;color:#111827;font-size:13px;font-family:ui-monospace,Menlo,Consolas,monospace;word-break:break-word;">${escapeHtml(v)}</td></tr>`;
+  const section = (title, entries, fmt) =>
+    `<div style="margin-top:16px;"><div style="font-size:12px;font-weight:700;color:#1E88E5;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">${escapeHtml(title)}</div>` +
+    `<table style="width:100%;border-collapse:collapse;border:1px solid #6EC5E9;border-radius:8px;">` +
+    (entries.length ? entries.map(fmt).join("") : `<tr><td style="padding:5px 12px;color:#9ca3af;font-size:13px;">none</td></tr>`) +
+    `</table></div>`;
+
+  const html = `
+  <div style="background:white;padding:24px;font-family:'Rubik',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #1E88E5;">
+      <div style="background:#1E88E5;padding:16px 24px;">
+        <div style="color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;opacity:.9;">DAILY DIGEST</div>
+        <div style="color:#fff;font-size:20px;font-weight:700;margin-top:2px;">🛡️ ${secDigest.total} events · ${uniqueIps} IPs</div>
+      </div>
+      <div style="padding:20px 24px;">
+        <p style="margin:0;color:#374151;font-size:14px;line-height:1.6;">Everything below was handled automatically (scanner IPs blocked, bot submissions rejected) over the last ${hrs}h. Nothing needs action — it's a heads-up on background activity.</p>
+        ${section("By type", byType, ([t, c]) => row(t, String(c)))}
+        ${section("Top probed paths", paths, ([p, c]) => row(`${c}×`, p))}
+        ${section("Top source IPs", ips, ([ip, c]) => row(`${c}×`, ip))}
+      </div>
+      <div style="padding:14px 24px;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:12px;line-height:1.5;">
+        Once-a-day summary. Real-time alerts are reserved for actionable events like brute-force logins. Per-event detail is in the server logs.
+      </div>
+    </div>
+  </div>`;
+
+  return { subject, text, html };
+}
+
+async function sendSecurityDigest() {
+  try {
+    // Silence is good news — nothing happened, no email.
+    if (secDigest.total === 0) return;
+    const to = process.env.ALERT_EMAIL_TO || process.env.CONTACT_EMAIL_TO;
+    const { subject, text, html } = buildDigestEmail();
+    await sendEmail({ to, subject, text, html });
+    console.warn(`[SECURITY][DIGEST] sent: ${secDigest.total} events, ${secDigest.ips.size} IPs`);
+  } catch (err) {
+    console.error("[SECURITY][DIGEST] failed:", err.message);
+  } finally {
+    resetDigest();
+  }
+}
+
 async function maybeSecurityAlert(type, entry, count) {
   try {
+    // Noisy, auto-handled events fold into the daily digest — never emailed live.
+    if (DIGEST_ONLY_TYPES.has(type)) {
+      recordForDigest(type, entry);
+      return;
+    }
+
     const threshold = ALERT_THRESHOLDS[type];
     if (!threshold || count < threshold) return;
 
-    // Throttle: at most one alert per (type+ip) per cooldown.
+    // Real-time alert (actionable). Per-(type+ip) cooldown AND the global hourly
+    // cap, so even a distributed attack can't flood the inbox.
     const key = `${type}:${entry.ip}`;
     const now = Date.now();
     if (now - (lastAlertAt.get(key) || 0) < ALERT_COOLDOWN_MS) return;
+    if (!underAlertBudget()) {
+      console.warn(`[SECURITY][ALERT] suppressed by hourly cap: ${type} from ${entry.ip}`);
+      return;
+    }
     lastAlertAt.set(key, now);
 
     const { subject, text, html } = buildAlertEmail(type, entry, count, threshold);
@@ -398,8 +539,29 @@ const devOrigins = [
   "http://localhost:5173",
   "http://100.119.84.32:5173",
 ];
+
+// Temporary extra origins, e.g. pointing a local frontend at this server for an
+// afternoon's testing. Comma-separated in .env:
+//     EXTRA_CORS_ORIGINS=http://localhost:5173
+// It lives in .env rather than in this file for two reasons: re-uploading
+// server.js can't silently wipe it, and closing the door again is a variable
+// change plus a restart instead of a code edit. Leave it unset in normal
+// operation — anything listed here is trusted in production.
+const extraOrigins = (process.env.EXTRA_CORS_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 // Dev/localhost/Tailscale origins are never trusted in production.
-const allowedOrigins = IS_PRODUCTION ? prodOrigins : [...prodOrigins, ...devOrigins];
+const allowedOrigins = IS_PRODUCTION
+  ? [...prodOrigins, ...extraOrigins]
+  : [...prodOrigins, ...devOrigins, ...extraOrigins];
+
+if (IS_PRODUCTION && extraOrigins.length) {
+  console.warn(
+    `⚠️  [CORS] ${extraOrigins.length} extra origin(s) trusted in production: ${extraOrigins.join(", ")} — unset EXTRA_CORS_ORIGINS when you're done testing.`
+  );
+}
 
 // --- Socket.io Setup ---
 const io = new Server(httpServer, {
@@ -555,9 +717,21 @@ const contactLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many messages, please try again later." },
 });
-// Skip the webhook (Stripe has its own signature auth + retry semantics).
+// Billing: every hit reaches the Stripe API and can create Customers/Checkout/
+// Portal sessions. Cap per-IP so a compromised or scripted client can't spin up
+// runaway Stripe objects or hammer the API. Generous enough for real use.
+const billingLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many billing requests, please slow down." },
+});
+// Skip the webhook (Stripe has its own signature auth + retry semantics) and
+// the health check (uptime monitors poll it frequently and must never be 429'd).
 app.use("/api", (req, res, next) => {
   if (req.originalUrl === "/api/webhooks/stripe") return next();
+  if (req.originalUrl === "/api/health") return next();
   return apiLimiter(req, res, next);
 });
 
@@ -581,6 +755,19 @@ pool
     conn.release();
   })
   .catch((err) => console.error("❌ Database connection failed:", err.message));
+
+// Health check for uptime monitoring / load balancers. Pings the DB so a 200
+// means the app can actually serve — a DB outage returns 503. Unauthenticated
+// and exempt from the rate limiter (see the /api skip above).
+app.get("/api/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", uptime: Math.round(process.uptime()), ts: new Date().toISOString() });
+  } catch (err) {
+    console.error("[HEALTH] DB ping failed:", err.message);
+    res.status(503).json({ status: "degraded", error: "database" });
+  }
+});
 
 // =======================
 // AUTH ROUTES
@@ -611,6 +798,64 @@ const generateUniqueHandle = async (baseHandle) => {
   }
 };
 
+// ─── Email verification ──────────────────────────────────────────────────────
+const APP_URL = process.env.FRONTEND_URL || "https://mvp.influ-link.com";
+const API_URL = process.env.API_PUBLIC_URL || "https://api.influ-link.com";
+const EMAIL_VERIFY_TTL_HOURS = 24;
+
+// Idempotent migration. On FIRST creation of the column we grandfather every
+// existing account in as verified — otherwise the new login gate would lock out
+// everyone who registered before this feature. New rows default to 0.
+async function ensureEmailVerificationSchema() {
+  const [cols] = await pool.query(
+    `SELECT COUNT(*) AS c FROM information_schema.columns
+      WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'email_verified'`
+  );
+  if (cols[0].c > 0) return;
+  await pool.query(`ALTER TABLE users ADD COLUMN email_verified TINYINT(1) NOT NULL DEFAULT 0`);
+  await pool.query(`ALTER TABLE users ADD COLUMN email_verification_token VARCHAR(255) NULL`);
+  await pool.query(`ALTER TABLE users ADD COLUMN email_verification_expires DATETIME NULL`);
+  await pool.query(`UPDATE users SET email_verified = 1`); // grandfather existing users
+  console.log("[MIGRATION] email verification columns added; existing users grandfathered as verified.");
+}
+
+// The raw token only ever lives in the email link; we store its SHA-256 hash.
+const hashToken = (raw) => crypto.createHash("sha256").update(raw).digest("hex");
+
+// Mint a fresh token for a user (used by resend). Returns the RAW token.
+async function issueVerificationToken(userId) {
+  const raw = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + EMAIL_VERIFY_TTL_HOURS * 60 * 60 * 1000);
+  await pool.query(
+    "UPDATE users SET email_verification_token = ?, email_verification_expires = ? WHERE id = ?",
+    [hashToken(raw), expires, userId]
+  );
+  return raw;
+}
+
+async function sendVerificationEmail(email, name, rawToken) {
+  // Link points at the FRONTEND; the /email-verification page calls the API to
+  // confirm. (Path is /email-verification, not /verify-email, because the host
+  // intercepts the latter before it reaches the SPA router.)
+  const link = `${APP_URL}/email-verification?token=${rawToken}`;
+  const subject = "Verify your InfluLink email";
+  const text =
+    `Hi${name ? " " + name : ""},\n\n` +
+    `Confirm your email address to activate your InfluLink account:\n${link}\n\n` +
+    `This link expires in ${EMAIL_VERIFY_TTL_HOURS} hours. If you didn't sign up, you can safely ignore this email.`;
+  const html = `
+    <div style="font-family:Rubik,Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#2b2b2b">
+      <h2 style="margin:0 0 8px">Verify your email</h2>
+      <p style="color:#555;line-height:1.6">Hi${name ? " " + name : ""}, confirm your email address to activate your InfluLink account.</p>
+      <p style="margin:24px 0">
+        <a href="${link}" style="display:inline-block;background:linear-gradient(135deg,#1E88E5,#6EC5E9);color:#fff;text-decoration:none;padding:12px 24px;border-radius:9999px;font-weight:600">Verify my email</a>
+      </p>
+      <p style="color:#888;font-size:13px;line-height:1.6">Or paste this link into your browser:<br><a href="${link}" style="color:#1E88E5;word-break:break-all">${link}</a></p>
+      <p style="color:#aaa;font-size:12px;margin-top:24px">This link expires in ${EMAIL_VERIFY_TTL_HOURS} hours. If you didn't sign up, you can ignore this email.</p>
+    </div>`;
+  await sendEmail({ to: email, subject, text, html });
+}
+
 app.post("/api/register", authLimiter, async (req, res) => {
   const connection = await pool.getConnection();
 
@@ -635,6 +880,22 @@ app.post("/api/register", authLimiter, async (req, res) => {
     // 1. Initial Validation: Password is NOT here yet
     if (!email || !handle || !accountType) {
       return res.status(400).json({ message: "Missing required registration fields" });
+    }
+
+    // Whitelist accountType to exactly these two values. Critical: this field is
+    // stored, carried in the JWT, and referenced by later queries — an
+    // unvalidated value here is a second-order injection / logic-bypass vector.
+    if (accountType !== "creator" && accountType !== "brand") {
+      await connection.rollback();
+      return res.status(400).json({ message: "Invalid account type" });
+    }
+
+    // Brand signups are closed until launch. The frontend hides the option, but
+    // gate the API too so brand accounts can't be created out-of-band while
+    // BRANDS_ENABLED is off. (The finally below releases the connection.)
+    if (accountType === "brand" && !BRANDS_ENABLED) {
+      await connection.rollback();
+      return res.status(403).json({ message: "Brand registration isn't open yet." });
     }
 
     const cleanHandle = handle.replace(/^@/, '').toLowerCase().trim();
@@ -675,6 +936,7 @@ app.post("/api/register", authLimiter, async (req, res) => {
     }
 
     let userId;
+    let rawToken = null; // set for new email signups (email verification)
     // Only hash if a password was provided
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
@@ -703,6 +965,17 @@ app.post("/api/register", authLimiter, async (req, res) => {
       userId = userResult.insertId;
     }
 
+    // New email signups: store a verification token (the raw token is emailed
+    // after commit). Google users are already verified, so skip them.
+    if (!userExists) {
+      rawToken = crypto.randomBytes(32).toString("hex");
+      const verifyExpires = new Date(Date.now() + EMAIL_VERIFY_TTL_HOURS * 60 * 60 * 1000);
+      await connection.query(
+        "UPDATE users SET email_verification_token = ?, email_verification_expires = ? WHERE id = ?",
+        [hashToken(rawToken), verifyExpires, userId]
+      );
+    }
+
     // 4. UPSERT PROFILE (Same logic as before, now safe)
     const profileData = accountType === 'creator' ? [
       userId, name, cleanHandle, 'creator', location || null, niche || null, bio || null,
@@ -726,7 +999,22 @@ app.post("/api/register", authLimiter, async (req, res) => {
 
     await connection.commit();
 
-    // 5. Generate Token and Set Cookie
+    // New email signups must verify before they get a session. Send the link and
+    // return WITHOUT setting the auth cookie — the frontend shows "check your email".
+    if (!userExists) {
+      try {
+        await sendVerificationEmail(email, name, rawToken);
+      } catch (mailErr) {
+        console.error("[VERIFY] Failed to send verification email:", mailErr);
+      }
+      return res.status(201).json({
+        message: "Account created. Please check your email to verify your address.",
+        requiresVerification: true,
+        email,
+      });
+    }
+
+    // Existing (Google) user completing registration — already verified, log in.
     const token = jwt.sign({ id: userId, email, accountType }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.cookie("token", token, {
@@ -737,8 +1025,8 @@ app.post("/api/register", authLimiter, async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(userExists ? 200 : 201).json({
-      message: userExists ? "Profile updated" : "Account created",
+    res.status(200).json({
+      message: "Profile updated",
       token,
       user: { id: userId, email, username: cleanHandle, accountType, isVIP: false },
     });
@@ -777,6 +1065,16 @@ app.post("/api/login", authLimiter, validateLoginBody, async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Email must be verified before login. Google users are always verified;
+    // pre-existing accounts were grandfathered in by the migration.
+    if (!user.email_verified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in. Check your inbox for the verification link.",
+        requiresVerification: true,
+        email: user.email,
+      });
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, accountType: user.account_type },
       process.env.JWT_SECRET,
@@ -810,6 +1108,63 @@ app.post("/api/login", authLimiter, validateLoginBody, async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Confirm an email token. Called by the frontend /verify-email page (the email
+// link points there), so this returns JSON rather than redirecting.
+app.post("/api/auth/verify-email", authLimiter, async (req, res) => {
+  const raw = req.body?.token;
+  if (!raw || typeof raw !== "string") return res.json({ status: "invalid" });
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, email_verification_expires FROM users WHERE email_verification_token = ? LIMIT 1",
+      [hashToken(raw)]
+    );
+    if (rows.length === 0) return res.json({ status: "invalid" });
+
+    const user = rows[0];
+    if (!user.email_verification_expires || new Date(user.email_verification_expires) < new Date()) {
+      return res.json({ status: "expired" });
+    }
+
+    await pool.query(
+      "UPDATE users SET email_verified = 1, email_verification_token = NULL, email_verification_expires = NULL WHERE id = ?",
+      [user.id]
+    );
+
+    return res.json({ status: "success" });
+  } catch (err) {
+    console.error("[VERIFY] error:", err);
+    return res.json({ status: "error" });
+  }
+});
+
+// Resend the verification link. Always responds the same way so it can't be used
+// to probe which emails have accounts.
+app.post("/api/auth/resend-verification", authLimiter, async (req, res) => {
+  const { email } = req.body || {};
+  const generic = { message: "If that email still needs verification, we've sent a new link." };
+  if (!email || typeof email !== "string") return res.json(generic);
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, name FROM users WHERE email = ? AND email_verified = 0 AND google_id IS NULL LIMIT 1",
+      [email]
+    );
+    if (rows.length > 0) {
+      const raw = await issueVerificationToken(rows[0].id);
+      try {
+        await sendVerificationEmail(email, rows[0].name, raw);
+      } catch (mailErr) {
+        console.error("[VERIFY] resend send failed:", mailErr);
+      }
+    }
+    return res.json(generic);
+  } catch (err) {
+    console.error("[VERIFY] resend error:", err);
+    return res.json(generic);
   }
 });
 
@@ -1723,6 +2078,802 @@ app.post("/api/profiles/me/update", authenticate, async (req, res) => {
 });
 
 // =======================
+// CREATOR PLANS (RATE CARD)
+// =======================
+//
+// Creator-defined, fixed-price packages shown on the profile — e.g.
+// "Starter · 1 Reel + 3 Stories · €300". Display-only by design: a brand reads
+// the rate card and starts a conversation. Nothing here touches money; deals
+// still go through the existing campaign/escrow flow (deal_payments), so a plan
+// is marketing copy with a number on it, not a payable object.
+
+const MAX_PLANS = 6;
+const MAX_PLAN_FEATURES = 6;
+
+// Mirrors src/config/planOptions.ts. Every creator-supplied value below is an
+// enum key, not free text, so packages stay comparable across profiles — and so
+// nothing user-authored reaches the profile page as prose.
+const PLAN_PLATFORMS = ["instagram", "tiktok", "youtube", "x", "facebook"];
+const PLAN_TIERS = ["starter", "standard", "growth", "premium", "signature"];
+const PLAN_DELIVERABLES = {
+  instagram: ["reel", "story", "post", "carousel", "live", "collab"],
+  tiktok: ["video", "photo", "live", "spark"],
+  youtube: ["video", "short", "integration", "community"],
+  x: ["post", "thread", "video"],
+  facebook: ["post", "reel", "story", "video"],
+};
+const PLAN_DELIVERY_DAYS = [1, 2, 3, 5, 7, 10, 14, 21, 30];
+
+const ensureCreatorPlansTable = async () => {
+  const body = `
+    CREATE TABLE IF NOT EXISTS creator_plans (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      platform VARCHAR(20) NOT NULL DEFAULT 'instagram',
+      title VARCHAR(80) NOT NULL,
+      description VARCHAR(400) NULL,
+      price DECIMAL(10,2) NOT NULL,
+      currency CHAR(3) NOT NULL DEFAULT 'EUR',
+      delivery_days INT NULL,
+      features JSON NULL,
+      is_featured TINYINT(1) NOT NULL DEFAULT 0,
+      sort_order INT NOT NULL DEFAULT 0,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_creator_plans_user (user_id, sort_order)`;
+  try {
+    await pool.query(
+      `${body},
+      CONSTRAINT fk_creator_plans_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+    );
+  } catch (err) {
+    // A type mismatch against users.id would abort the whole CREATE. Having the
+    // table matters more than having the constraint, so retry without it.
+    console.error("[PLANS] CREATE TABLE with FK failed, retrying without:", err.message);
+    // Rethrow if the retry fails too: without the table every plans request
+    // 500s, so the startup log must say so instead of printing a tick.
+    await pool.query(`${body}\n    )`);
+  }
+
+  // `platform` was added after the table shipped, so top it up where the table
+  // already exists. Same pattern as ensureEscrowColumns.
+  const [cols] = await pool.query(
+    `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'creator_plans'`,
+    [process.env.DB_DATABASE]
+  );
+  if (!cols.some((c) => c.COLUMN_NAME === "platform")) {
+    await pool.query(
+      "ALTER TABLE creator_plans ADD COLUMN platform VARCHAR(20) NOT NULL DEFAULT 'instagram' AFTER user_id"
+    );
+    console.log("[PLANS] Added platform column to creator_plans");
+  }
+};
+
+// Validate and normalise the client payload. Never trust the body for identity
+// or ordering — the owner comes from the session and sort_order from the array.
+const parsePlansPayload = (raw) => {
+  if (!Array.isArray(raw)) return { error: "plans must be an array" };
+  if (raw.length > MAX_PLANS) return { error: `You can publish at most ${MAX_PLANS} plans` };
+
+  const plans = [];
+  for (let i = 0; i < raw.length; i++) {
+    const p = raw[i];
+    const at = `Plan ${i + 1}`;
+    if (!p || typeof p !== "object") return { error: `${at} is invalid` };
+
+    const platform = String(p.platform ?? "").trim().toLowerCase();
+    if (!PLAN_PLATFORMS.includes(platform)) return { error: `${at}: pick a platform` };
+
+    // `title` holds a tier KEY (starter/growth/…), not prose — the client
+    // renders the label from i18n. Kept under the original column name.
+    const tier = String(p.title ?? "").trim().toLowerCase();
+    if (!PLAN_TIERS.includes(tier)) return { error: `${at}: pick a package type` };
+
+    const description = String(p.description ?? "").trim();
+    if (description.length > 400) return { error: `${at}: description is too long (max 400 characters)` };
+
+    const price = Number(p.price);
+    if (!Number.isFinite(price) || price < 0) return { error: `${at}: price must be a positive number` };
+    if (price > 1000000) return { error: `${at}: price is too high` };
+
+    let deliveryDays = null;
+    if (p.deliveryDays !== null && p.deliveryDays !== undefined && p.deliveryDays !== "") {
+      deliveryDays = Number(p.deliveryDays);
+      if (!PLAN_DELIVERY_DAYS.includes(deliveryDays)) {
+        return { error: `${at}: pick a delivery time from the list` };
+      }
+    }
+
+    // Deliverables are {type, qty} pairs drawn from the chosen platform's list.
+    // Stored in the pre-existing `features` JSON column.
+    const rawItems = Array.isArray(p.deliverables) ? p.deliverables : [];
+    if (rawItems.length > MAX_PLAN_FEATURES) {
+      return { error: `${at}: at most ${MAX_PLAN_FEATURES} deliverables` };
+    }
+    const allowed = PLAN_DELIVERABLES[platform] || [];
+    const deliverables = [];
+    for (const item of rawItems) {
+      if (!item || typeof item !== "object") return { error: `${at}: invalid deliverable` };
+      const type = String(item.type ?? "").trim().toLowerCase();
+      if (!allowed.includes(type)) {
+        return { error: `${at}: "${type}" isn't available on ${platform}` };
+      }
+      const qty = Number(item.qty);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
+        return { error: `${at}: quantity must be between 1 and 10` };
+      }
+      // Collapse duplicates rather than rejecting — two "2 × Reel" rows is a
+      // slip, not an attack.
+      const existing = deliverables.find((d) => d.type === type);
+      if (existing) existing.qty = Math.min(10, existing.qty + qty);
+      else deliverables.push({ type, qty });
+    }
+    if (deliverables.length === 0) return { error: `${at}: add at least one deliverable` };
+
+    plans.push({
+      platform,
+      title: tier,
+      description: description || null,
+      price: Math.round(price * 100) / 100,
+      deliveryDays,
+      deliverables,
+      isFeatured: Boolean(p.isFeatured),
+    });
+  }
+  return { plans };
+};
+
+const formatPlan = (row) => {
+  const raw = Array.isArray(row.features) ? row.features : JSON.parse(row.features || "[]");
+  return {
+    id: String(row.id),
+    platform: row.platform || "instagram",
+    title: row.title,
+    description: row.description || "",
+    price: Number(row.price),
+    currency: row.currency || "EUR",
+    deliveryDays: row.delivery_days === null ? null : Number(row.delivery_days),
+    // Rows written before deliverables were structured hold plain strings
+    // ("3 Stories"). Surface them with a null quantity rather than dropping
+    // them — an odd-looking line beats a package with no contents.
+    deliverables: raw
+      .map((d) => {
+        if (typeof d === "string") return d.trim() ? { type: d.trim(), qty: null } : null;
+        if (d && typeof d === "object") return { type: String(d.type), qty: Number(d.qty) || 1 };
+        return null;
+      })
+      .filter(Boolean),
+    isFeatured: Boolean(row.is_featured),
+  };
+};
+
+// Public (to signed-in users) rate card for a profile, by id or @handle.
+app.get("/api/profiles/:profileId/plans", authenticate, async (req, res) => {
+  try {
+    const { profileId } = req.params;
+
+    let owner;
+    if (!isNaN(Number(profileId))) {
+      [owner] = await pool.query("SELECT id FROM profiles WHERE id = ?", [profileId]);
+    } else {
+      const handle = profileId.startsWith("@") ? profileId.substring(1) : profileId;
+      [owner] = await pool.query("SELECT id FROM profiles WHERE handle = ?", [handle]);
+    }
+    if (owner.length === 0) return res.status(404).json({ message: "Profile not found" });
+
+    const [rows] = await pool.query(
+      `SELECT id, platform, title, description, price, currency, delivery_days, features, is_featured
+       FROM creator_plans WHERE user_id = ? ORDER BY sort_order ASC, id ASC`,
+      [owner[0].id]
+    );
+    res.json(rows.map(formatPlan));
+  } catch (err) {
+    console.error("Error fetching creator plans:", err);
+    res.status(500).json({ message: "Failed to fetch plans" });
+  }
+});
+
+// Replace the signed-in creator's whole rate card. A full replace (rather than
+// per-plan CRUD) keeps ordering and deletions in one atomic write, which is
+// what the editor UI produces.
+app.put("/api/profiles/me/plans", authenticate, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const [profileRows] = await pool.query("SELECT type FROM profiles WHERE id = ?", [userId]);
+    if (profileRows.length === 0) return res.status(404).json({ message: "Profile not found" });
+    if (profileRows[0].type !== "creator") {
+      return res.status(403).json({ message: "Only creators can publish plans" });
+    }
+
+    const { plans, error } = parsePlansPayload(req.body?.plans);
+    if (error) return res.status(400).json({ message: error });
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.query("DELETE FROM creator_plans WHERE user_id = ?", [userId]);
+      if (plans.length > 0) {
+        await connection.query(
+          `INSERT INTO creator_plans
+             (user_id, platform, title, description, price, delivery_days, features, is_featured, sort_order)
+           VALUES ?`,
+          [
+            plans.map((p, i) => [
+              userId,
+              p.platform,
+              p.title,
+              p.description,
+              p.price,
+              p.deliveryDays,
+              JSON.stringify(p.deliverables),
+              p.isFeatured ? 1 : 0,
+              i,
+            ]),
+          ]
+        );
+      }
+      await connection.commit();
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+
+    const [rows] = await pool.query(
+      `SELECT id, platform, title, description, price, currency, delivery_days, features, is_featured
+       FROM creator_plans WHERE user_id = ? ORDER BY sort_order ASC, id ASC`,
+      [userId]
+    );
+    res.json({ message: "Plans updated", plans: rows.map(formatPlan) });
+  } catch (err) {
+    console.error("Error updating creator plans:", err);
+    res.status(500).json({ message: "Failed to update plans" });
+  }
+});
+
+// =======================
+// BRAND SUBSCRIPTIONS (platform SaaS billing)
+// =======================
+//
+// The pricing-page brand tiers, wired to Stripe Subscriptions. The brand pays
+// the PLATFORM a monthly/annual fee — this is unrelated to the creator escrow
+// flow above (no Connect, no commission). A subscription's tier decides which
+// product features are unlocked; anything above the tier returns 402 so the UI
+// can show an upgrade dialog ("what the plan includes and nothing more").
+//
+// Ships behind BRANDS_ENABLED — brands can't register yet, so this is dark
+// until the frontend flag flips. Stripe calls only run with a real key, so a
+// local dummy key can't error the boot or touch a live account.
+
+const STRIPE_LIVE = /^sk_(test|live)_/.test(process.env.STRIPE_SECRET_KEY || "");
+
+// Backend kill-switch for brand billing, mirroring the frontend
+// `src/config/features.ts` flag. Defaults OFF so the creator side can go live
+// (sk_live_) WITHOUT this key minting live brand Products/Prices or exposing the
+// /api/billing/* routes. Flip to "true" in the droplet .env when brands launch.
+const BRANDS_ENABLED = process.env.BRANDS_ENABLED === "true";
+
+// Gate for the brand-billing routes: while brands are dark, they don't exist.
+const requireBrandsEnabled = (req, res, next) =>
+  BRANDS_ENABLED ? next() : res.status(404).json({ message: "Not found" });
+
+const BILLING_CURRENCY = "eur";
+
+// Annual plans are billed once a year at a 20% discount (mirrors the pricing
+// page's BillingToggle). Kept as a single knob.
+const BRAND_ANNUAL_DISCOUNT = 0.8;
+
+// Grace window after a payment fails. Stripe's Smart Retries keep dunning the
+// card during this time; we keep access ON so a temporary card hiccup never
+// yanks a paying customer out mid-cycle. In normal operation access is revoked
+// when Stripe gives up and flips the subscription to `canceled` (its
+// "Subscription status → cancel the subscription" setting) — this window is the
+// backstop for the odd case where the subscription lingers in `past_due`.
+// ► MUST be ≥ Stripe's retry schedule length (Revenue recovery → Retries;
+//   currently 14 days) or we'd cut access while Stripe could still recover it.
+const BRAND_GRACE_DAYS = 15;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const toMysqlDate = (d) => (d ? new Date(d).toISOString().slice(0, 19).replace("T", " ") : null);
+
+// ⚠️ PLACEHOLDER AMOUNTS — set the real monthly prices (in euro cents) here
+// before going live. Amounts are the ONLY source of truth; changing one makes
+// ensureBrandPlanCatalog create a fresh Stripe Price on the next boot (Stripe
+// prices are immutable), so historic subscribers keep their old price while new
+// checkouts use the new one. `rank` drives feature gating; higher unlocks more.
+const BRAND_PLANS = {
+  essential: { rank: 1, monthlyCents: 1900 },   // TODO real amount
+  starter:   { rank: 2, monthlyCents: 4900 },   // TODO real amount
+  growth:    { rank: 3, monthlyCents: 9900 },   // TODO real amount
+  pro:       { rank: 4, monthlyCents: 19900 },  // TODO real amount
+  // Enterprise is contact-sales — no self-serve price, highest rank.
+  enterprise: { rank: 5, contact: true },
+};
+
+// Feature key → minimum tier that unlocks it. This IS the "nothing more"
+// contract: a gated action checks the brand's tier rank against the required
+// one. Keep aligned with the pricing page's comparison table. Extend as brand
+// features land — the frontend reads this same map via /api/billing/entitlements.
+const BRAND_FEATURE_MIN_TIER = {
+  "campaigns.create": "essential",
+  "creators.search": "essential",
+  "analytics.basic": "starter",
+  "analytics.advanced": "growth",
+  "team.seats": "growth",
+  "campaigns.unlimited": "pro",
+  "api.access": "pro",
+  "support.priority": "pro",
+};
+
+const brandTierRank = (tier) => BRAND_PLANS[tier]?.rank || 0;
+const isPaidBrandTier = (tier) =>
+  Boolean(BRAND_PLANS[tier] && !BRAND_PLANS[tier].contact);
+
+// The amount charged for a (tier, interval). Annual = monthly ×12 ×discount,
+// rounded to the cent — so the yearly Price is one integer, as Stripe wants.
+const brandPlanAmount = (tier, interval) => {
+  const monthly = BRAND_PLANS[tier]?.monthlyCents;
+  if (!monthly) return null;
+  return interval === "annual"
+    ? Math.round(monthly * 12 * BRAND_ANNUAL_DISCOUNT)
+    : monthly;
+};
+
+const brandLookupKey = (tier, interval) => `brand_${tier}_${interval}`;
+
+// In-memory cache of resolved Stripe Price IDs, keyed by lookup_key. Filled by
+// ensureBrandPlanCatalog on boot and consulted at checkout.
+const brandPriceCache = new Map();
+
+const ensureBrandBillingSchema = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS brand_subscriptions (
+      user_id INT NOT NULL PRIMARY KEY,
+      stripe_customer_id VARCHAR(255) NULL,
+      stripe_subscription_id VARCHAR(255) NULL,
+      plan_tier VARCHAR(20) NULL,
+      plan_interval VARCHAR(10) NULL,
+      status VARCHAR(30) NULL,
+      current_period_end DATETIME NULL,
+      cancel_at_period_end TINYINT(1) NOT NULL DEFAULT 0,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_brand_subs_customer (stripe_customer_id),
+      INDEX idx_brand_subs_subscription (stripe_subscription_id)
+    )
+  `);
+  // `grace_until` added after the table shipped — top it up where it's missing.
+  const [subCols] = await pool.query(
+    `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'brand_subscriptions'`,
+    [process.env.DB_DATABASE]
+  );
+  if (!subCols.some((c) => c.COLUMN_NAME === "grace_until")) {
+    await pool.query("ALTER TABLE brand_subscriptions ADD COLUMN grace_until DATETIME NULL AFTER current_period_end");
+    console.log("[BILLING] Added grace_until column to brand_subscriptions");
+  }
+  // Resolved catalog so we don't recreate Products/Prices every boot and can
+  // detect an amount change (→ mint a new Price).
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS billing_catalog (
+      lookup_key VARCHAR(64) NOT NULL PRIMARY KEY,
+      tier VARCHAR(20) NOT NULL,
+      billing_interval VARCHAR(10) NOT NULL,
+      amount_cents INT NOT NULL,
+      product_id VARCHAR(255) NOT NULL,
+      price_id VARCHAR(255) NOT NULL,
+      updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+  `);
+};
+
+// Create the Stripe Products/Prices for each paid tier, idempotently. Reuses a
+// tier's Product across boots and intervals; only mints a new Price when the
+// configured amount differs from what's recorded (Prices are immutable). Safe
+// to run every boot. No-ops without a real Stripe key.
+const ensureBrandPlanCatalog = async () => {
+  if (!BRANDS_ENABLED) {
+    console.log("[BILLING] Skipping catalog — brands disabled (BRANDS_ENABLED != true).");
+    return;
+  }
+  if (!STRIPE_LIVE) {
+    console.log("[BILLING] Skipping catalog — no live Stripe key.");
+    return;
+  }
+  const productByTier = new Map();
+  const [rows] = await pool.query("SELECT * FROM billing_catalog");
+  const existing = new Map(rows.map((r) => [r.lookup_key, r]));
+  for (const r of rows) if (!productByTier.has(r.tier)) productByTier.set(r.tier, r.product_id);
+
+  const ensureProduct = async (tier) => {
+    if (productByTier.has(tier)) return productByTier.get(tier);
+    const product = await stripe.products.create({
+      name: `InfluLink Brand — ${tier.charAt(0).toUpperCase() + tier.slice(1)}`,
+      metadata: { plan_tier: tier, kind: "brand_subscription" },
+    });
+    productByTier.set(tier, product.id);
+    return product.id;
+  };
+
+  for (const tier of Object.keys(BRAND_PLANS)) {
+    if (!isPaidBrandTier(tier)) continue;
+    for (const interval of ["monthly", "annual"]) {
+      const lookupKey = brandLookupKey(tier, interval);
+      const amount = brandPlanAmount(tier, interval);
+      const prev = existing.get(lookupKey);
+      if (prev && prev.amount_cents === amount && prev.price_id) {
+        brandPriceCache.set(lookupKey, prev.price_id);
+        continue;
+      }
+      const productId = await ensureProduct(tier);
+      const price = await stripe.prices.create({
+        product: productId,
+        unit_amount: amount,
+        currency: BILLING_CURRENCY,
+        recurring: { interval: interval === "annual" ? "year" : "month" },
+        lookup_key: lookupKey,
+        transfer_lookup_key: true, // move the key off any prior price
+        metadata: { plan_tier: tier, billing_interval: interval },
+      });
+      await pool.query(
+        `INSERT INTO billing_catalog (lookup_key, tier, billing_interval, amount_cents, product_id, price_id)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE amount_cents = VALUES(amount_cents), product_id = VALUES(product_id), price_id = VALUES(price_id)`,
+        [lookupKey, tier, interval, amount, productId, price.id]
+      );
+      brandPriceCache.set(lookupKey, price.id);
+      console.log(`[BILLING] Ensured price ${lookupKey} = ${price.id} (${amount} ${BILLING_CURRENCY})`);
+    }
+  }
+};
+
+// Statuses that grant access outright. `trialing` counts.
+const ACTIVE_SUB_STATUSES = new Set(["active", "trialing"]);
+
+// Turn a stored row into an access decision. The heart of "don't cut off
+// abruptly": a `past_due` subscription (a payment just failed, Stripe is
+// retrying) keeps its tier until the grace deadline passes — so a bounced card
+// never instantly locks a paying customer out. `paymentIssue` lets the UI warn
+// them to fix their card without losing access.
+const decideEntitlement = (row) => {
+  const base = {
+    tier: null,
+    status: row?.status || null,
+    isActive: false,
+    paymentIssue: false,
+    interval: row?.plan_interval || null,
+    currentPeriodEnd: row?.current_period_end || null,
+    graceUntil: row?.grace_until || null,
+    cancelAtPeriodEnd: Boolean(row?.cancel_at_period_end),
+  };
+  if (!row) return base;
+
+  if (ACTIVE_SUB_STATUSES.has(row.status)) {
+    return { ...base, tier: row.plan_tier, isActive: true };
+  }
+  // Payment failed but still inside the grace window → keep access, flag it.
+  if (row.status === "past_due") {
+    const inGrace = Boolean(row.grace_until && new Date(row.grace_until).getTime() > Date.now());
+    return { ...base, tier: inGrace ? row.plan_tier : null, isActive: inGrace, paymentIssue: true };
+  }
+  // canceled / unpaid / incomplete / incomplete_expired → no access.
+  return base;
+};
+
+const getBrandSubscription = async (userId) => {
+  const [rows] = await pool.query("SELECT * FROM brand_subscriptions WHERE user_id = ?", [userId]);
+  return decideEntitlement(rows[0]);
+};
+
+// Derive our tier/interval from a Stripe subscription's price. We tag every
+// Price with metadata at creation, and fall back to the lookup_key.
+const tierFromStripeSubscription = (sub) => {
+  const item = sub.items?.data?.[0];
+  const price = item?.price;
+  const meta = price?.metadata || {};
+  let tier = meta.plan_tier;
+  let interval = meta.billing_interval;
+  if ((!tier || !interval) && price?.lookup_key) {
+    const m = /^brand_(.+)_(monthly|annual)$/.exec(price.lookup_key);
+    if (m) { tier = tier || m[1]; interval = interval || m[2]; }
+  }
+  return { tier: tier || null, interval: interval || null };
+};
+
+// The current period end (renewal date), in epoch seconds. It lives on the
+// subscription in older API versions and moved to the subscription ITEM in the
+// 2025+ line (our pinned 2026-03-25.dahlia) — read both so we store a real date
+// regardless of version or webhook-vs-SDK object shape.
+const periodEndSeconds = (sub) =>
+  sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end ?? null;
+
+// In-app notification for a billing event. Best-effort — a notification
+// failure must never break webhook processing (Stripe would retry the whole
+// event and we'd double-handle the money side).
+const notifyBilling = async (userId, type, title, message) => {
+  if (!userId) return;
+  try {
+    await createNotification(pool, { userId, type, title, message, entityType: "brand_subscription", entityId: null });
+  } catch (err) {
+    console.error("[BILLING] notification failed:", err.message);
+  }
+};
+
+// Upsert local state from a Stripe Subscription object — the single funnel for
+// every subscription webhook. Detects the transition from the prior stored row
+// so it can (a) open/clear the grace window and (b) fire the right lifecycle
+// notification exactly once. Keyed by customer id, so it works even if we never
+// saw the subscription before. Renewals, upgrades, downgrades, cancels and
+// payment recovery all pass through here.
+const upsertSubscriptionFromStripe = async (sub) => {
+  const [priorRows] = await pool.query(
+    "SELECT * FROM brand_subscriptions WHERE stripe_customer_id = ?",
+    [sub.customer]
+  );
+  const prior = priorRows[0] || null;
+  const userId = prior?.user_id || null;
+
+  const { tier, interval } = tierFromStripeSubscription(sub);
+  const pe = periodEndSeconds(sub);
+  const periodEnd = pe ? toMysqlDate(pe * 1000) : null;
+  const status = sub.status;
+  const cancelAtPeriodEnd = sub.cancel_at_period_end ? 1 : 0;
+
+  // Grace window: open it the moment we enter past_due, clear it once we're
+  // active again, leave it untouched otherwise.
+  let graceUntil = prior?.grace_until || null;
+  const enteringPastDue = status === "past_due" && prior?.status !== "past_due";
+  if (enteringPastDue) graceUntil = toMysqlDate(Date.now() + BRAND_GRACE_DAYS * MS_PER_DAY);
+  else if (ACTIVE_SUB_STATUSES.has(status)) graceUntil = null;
+
+  await pool.query(
+    `UPDATE brand_subscriptions
+       SET stripe_subscription_id = ?, plan_tier = ?, plan_interval = ?, status = ?,
+           current_period_end = ?, cancel_at_period_end = ?, grace_until = ?
+     WHERE stripe_customer_id = ?`,
+    [sub.id, tier, interval, status, periodEnd, cancelAtPeriodEnd, graceUntil, sub.customer]
+  );
+
+  // ── Lifecycle notifications, one per real transition ──────────────────────
+  const was = prior?.status;
+  // Recovered: a failed payment went through on retry.
+  if (was === "past_due" && ACTIVE_SUB_STATUSES.has(status)) {
+    await notifyBilling(userId, "billing_recovered", "Payment recovered",
+      "Your card went through — your subscription is fully active again.");
+  }
+  // Scheduled to cancel at period end (brand hit cancel; access runs to term).
+  if (cancelAtPeriodEnd && !prior?.cancel_at_period_end && ACTIVE_SUB_STATUSES.has(status)) {
+    await notifyBilling(userId, "billing_cancel_scheduled", "Subscription ending",
+      `Your plan stays active until ${periodEnd || "the end of the period"}, then won't renew.`);
+  }
+  // Cancel undone before term.
+  if (!cancelAtPeriodEnd && prior?.cancel_at_period_end && ACTIVE_SUB_STATUSES.has(status)) {
+    await notifyBilling(userId, "billing_cancel_reverted", "Subscription resumed",
+      "Your plan will keep renewing — the scheduled cancellation was removed.");
+  }
+  // Fully ended.
+  if ((status === "canceled" || status === "unpaid") && was !== status) {
+    await notifyBilling(userId, "billing_ended", "Subscription ended",
+      "Your plan has ended and premium access is now off. Resubscribe anytime.");
+  }
+  // Tier changed while staying active (up/downgrade took effect).
+  if (prior?.plan_tier && tier && prior.plan_tier !== tier && ACTIVE_SUB_STATUSES.has(status)) {
+    await notifyBilling(userId, "billing_plan_changed", "Plan updated",
+      `You're now on the ${tier} plan.`);
+  }
+};
+
+// Reuse the brand's Stripe Customer across checkouts; create on first use.
+//
+// Serialized with a row lock: two near-simultaneous checkouts would otherwise
+// both see "no customer", each create one, and the second overwrite the first's
+// id — leaving a subscription whose customer no longer maps to any row, so its
+// webhook UPDATE matches nothing and the paid subscription is silently lost.
+// The claim-then-lock makes concurrent callers wait and reuse the same customer.
+const ensureBrandCustomer = async (userId) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    // Ensure a row exists to lock (no-op if already there).
+    await conn.query(
+      "INSERT INTO brand_subscriptions (user_id) VALUES (?) ON DUPLICATE KEY UPDATE user_id = user_id",
+      [userId]
+    );
+    const [rows] = await conn.query(
+      "SELECT stripe_customer_id FROM brand_subscriptions WHERE user_id = ? FOR UPDATE",
+      [userId]
+    );
+    if (rows[0]?.stripe_customer_id) {
+      await conn.commit();
+      return rows[0].stripe_customer_id;
+    }
+
+    const [userRows] = await conn.query("SELECT email, name FROM users WHERE id = ?", [userId]);
+    const user = userRows[0] || {};
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: { app_user_id: String(userId) },
+    });
+    await conn.query(
+      "UPDATE brand_subscriptions SET stripe_customer_id = ? WHERE user_id = ?",
+      [customer.id, userId]
+    );
+    await conn.commit();
+    return customer.id;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// Express guard for a tier-gated brand feature. Returns 402 with an upgrade
+// payload the frontend turns into the upgrade dialog. Apply to brand endpoints
+// as they gain tier requirements: app.post('/x', authenticate, requireFeature('analytics.advanced'), handler).
+const requireFeature = (featureKey) => async (req, res, next) => {
+  try {
+    const required = BRAND_FEATURE_MIN_TIER[featureKey];
+    if (!required) return next(); // ungated feature
+    const { tier } = await getBrandSubscription(req.user.id);
+    if (brandTierRank(tier) >= brandTierRank(required)) return next();
+    return res.status(402).json({
+      error: "upgrade_required",
+      feature: featureKey,
+      requiredTier: required,
+      currentTier: tier,
+    });
+  } catch (err) {
+    console.error("[BILLING] requireFeature failed:", err);
+    return res.status(500).json({ message: "Entitlement check failed" });
+  }
+};
+
+const FRONTEND_BASE = process.env.FRONTEND_URL || "https://mvp.influ-link.com";
+
+// Start a subscription checkout for the signed-in brand.
+app.post("/api/billing/checkout", requireBrandsEnabled, billingLimiter, authenticate, async (req, res) => {
+  try {
+    if (!STRIPE_LIVE) return res.status(503).json({ message: "Billing is not configured" });
+    const { tier, interval = "monthly" } = req.body || {};
+
+    if (!isPaidBrandTier(tier)) {
+      return res.status(400).json({ message: "Unknown or non-subscribable plan" });
+    }
+    if (!["monthly", "annual"].includes(interval)) {
+      return res.status(400).json({ message: "Invalid billing interval" });
+    }
+
+    // Only brands subscribe to brand plans.
+    const [userRows] = await pool.query("SELECT account_type FROM users WHERE id = ?", [req.user.id]);
+    if (userRows[0]?.account_type !== "brand") {
+      return res.status(403).json({ message: "Only brand accounts can subscribe to brand plans" });
+    }
+
+    // ONE active plan per account. If the brand already has a live subscription,
+    // refuse to open a second checkout — they must change the existing plan
+    // instead. This is the server-side guarantee behind "1 plan per account":
+    // it holds even if the client's view of the subscription is stale.
+    const existing = await getBrandSubscription(req.user.id);
+    if (existing.isActive || existing.status === "past_due") {
+      return res.status(409).json({
+        message: "You already have an active plan. Change your plan instead of starting a new one.",
+        shouldChangePlan: true,
+        currentTier: existing.tier,
+      });
+    }
+
+    const priceId = brandPriceCache.get(brandLookupKey(tier, interval));
+    if (!priceId) return res.status(503).json({ message: "Plan price is not available yet" });
+
+    const customerId = await ensureBrandCustomer(req.user.id);
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      client_reference_id: String(req.user.id),
+      subscription_data: { metadata: { app_user_id: String(req.user.id), plan_tier: tier, billing_interval: interval } },
+      allow_promotion_codes: true,
+      success_url: `${FRONTEND_BASE}/pricing?checkout=success`,
+      cancel_url: `${FRONTEND_BASE}/pricing?checkout=cancelled`,
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("[BILLING] checkout failed:", err);
+    res.status(500).json({ message: "Could not start checkout" });
+  }
+});
+
+// Current subscription + the entitlement map, so the UI can gate locally.
+app.get("/api/billing/subscription", requireBrandsEnabled, authenticate, async (req, res) => {
+  try {
+    const sub = await getBrandSubscription(req.user.id);
+    res.json({ subscription: sub, features: BRAND_FEATURE_MIN_TIER, ranks: Object.fromEntries(Object.entries(BRAND_PLANS).map(([k, v]) => [k, v.rank])) });
+  } catch (err) {
+    console.error("[BILLING] subscription fetch failed:", err);
+    res.status(500).json({ message: "Could not load subscription" });
+  }
+});
+
+// Stripe Billing Portal link so brands manage/cancel/switch plans themselves.
+app.post("/api/billing/portal", requireBrandsEnabled, billingLimiter, authenticate, async (req, res) => {
+  try {
+    if (!STRIPE_LIVE) return res.status(503).json({ message: "Billing is not configured" });
+    const [rows] = await pool.query(
+      "SELECT stripe_customer_id FROM brand_subscriptions WHERE user_id = ?",
+      [req.user.id]
+    );
+    const customerId = rows[0]?.stripe_customer_id;
+    if (!customerId) return res.status(404).json({ message: "No billing account yet" });
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${FRONTEND_BASE}/pricing`,
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("[BILLING] portal failed:", err);
+    res.status(500).json({ message: "Could not open billing portal" });
+  }
+});
+
+// Switch an existing subscription to a different tier/interval, in place, with
+// fair proration. Stripe credits the unused portion of the old plan and charges
+// the prorated difference for the new one on the next invoice — no second
+// subscription, no double-charge. Use this instead of checkout when the brand
+// already has a live subscription (the pricing page routes accordingly).
+app.post("/api/billing/change-plan", requireBrandsEnabled, billingLimiter, authenticate, async (req, res) => {
+  try {
+    if (!STRIPE_LIVE) return res.status(503).json({ message: "Billing is not configured" });
+    const { tier, interval = "monthly" } = req.body || {};
+    if (!isPaidBrandTier(tier)) return res.status(400).json({ message: "Unknown or non-subscribable plan" });
+    if (!["monthly", "annual"].includes(interval)) return res.status(400).json({ message: "Invalid billing interval" });
+
+    const [rows] = await pool.query(
+      "SELECT stripe_subscription_id, plan_tier, plan_interval, status FROM brand_subscriptions WHERE user_id = ?",
+      [req.user.id]
+    );
+    const row = rows[0];
+    if (!row?.stripe_subscription_id) {
+      // No live subscription — there's nothing to change; caller should checkout.
+      return res.status(409).json({ message: "No active subscription to change", shouldCheckout: true });
+    }
+    // A canceled/unpaid/incomplete subscription can't be modified in place —
+    // guard direct API calls (the UI already routes these to checkout) so we
+    // return a clean 409 instead of a Stripe error.
+    if (!["active", "trialing", "past_due"].includes(row.status)) {
+      return res.status(409).json({ message: "Subscription is not active", shouldCheckout: true });
+    }
+    if (row.plan_tier === tier && row.plan_interval === interval) {
+      return res.status(400).json({ message: "Already on this plan" });
+    }
+
+    const newPriceId = brandPriceCache.get(brandLookupKey(tier, interval));
+    if (!newPriceId) return res.status(503).json({ message: "Plan price is not available yet" });
+
+    const sub = await stripe.subscriptions.retrieve(row.stripe_subscription_id);
+    const itemId = sub.items.data[0].id;
+
+    const updated = await stripe.subscriptions.update(row.stripe_subscription_id, {
+      items: [{ id: itemId, price: newPriceId }],
+      proration_behavior: "create_prorations", // credit old, charge the difference
+      // If a cancel was scheduled, switching plan implies they're staying.
+      cancel_at_period_end: false,
+      metadata: { app_user_id: String(req.user.id), plan_tier: tier, billing_interval: interval },
+    });
+
+    // Reflect the change immediately (the webhook also confirms it).
+    await upsertSubscriptionFromStripe(updated);
+    res.json({ ok: true, tier, interval });
+  } catch (err) {
+    console.error("[BILLING] change-plan failed:", err);
+    res.status(500).json({ message: "Could not change plan" });
+  }
+});
+
+// =======================
 // CAMPAIGN ROUTES
 // =======================
 
@@ -1755,6 +2906,10 @@ app.post(
         contentTypes,
         country,
         language,
+        deliverables,
+        applicationDeadline,
+        minFollowers,
+        requirements,
       } = req.body;
 
       // Validate required fields
@@ -1762,6 +2917,17 @@ app.post(
         return res
           .status(400)
           .json({ message: "Missing required campaign fields" });
+      }
+
+      // Optional brief fields. Normalise empty strings to NULL and coerce the
+      // follower minimum to a non-negative integer (or NULL if not provided).
+      const briefDeliverables = deliverables && String(deliverables).trim() ? String(deliverables).trim() : null;
+      const briefDeadline = applicationDeadline && String(applicationDeadline).trim() ? String(applicationDeadline).trim() : null;
+      const briefRequirements = requirements && String(requirements).trim() ? String(requirements).trim() : null;
+      let briefMinFollowers = null;
+      if (minFollowers !== undefined && minFollowers !== null && String(minFollowers).trim() !== "") {
+        const n = parseInt(minFollowers, 10);
+        briefMinFollowers = Number.isFinite(n) && n >= 0 ? n : null;
       }
 
       // Parse JSON arrays
@@ -1791,10 +2957,11 @@ app.post(
 
       // Insert campaign into DB
       const [result] = await pool.query(
-        `INSERT INTO campaigns 
+        `INSERT INTO campaigns
     	(brand_id, name, description, type, start_date, budget, goal,
-     	platforms, niches, contentTypes, country, language, company_logo, reference_images, status, created_at)
-   	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', NOW())`,
+     	platforms, niches, contentTypes, country, language, company_logo, reference_images,
+     	deliverables, application_deadline, min_followers, requirements, status, created_at)
+   	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', NOW())`,
         [
           userId,
           name,
@@ -1810,6 +2977,10 @@ app.post(
           JSON.stringify(parsedLanguage),
           companyLogo,
           JSON.stringify(referenceImages),
+          briefDeliverables,
+          briefDeadline,
+          briefMinFollowers,
+          briefRequirements,
         ]
       );
 
@@ -1832,6 +3003,10 @@ app.post(
           language: parsedLanguage,
           companyLogo,
           referenceImages,
+          deliverables: briefDeliverables,
+          application_deadline: briefDeadline,
+          min_followers: briefMinFollowers,
+          requirements: briefRequirements,
         },
       });
     } catch (err) {
@@ -1972,10 +3147,23 @@ async function attemptRelease(dealPaymentId, actorUserId = null) {
     const creatorStripeId = creatorRows[0]?.stripe_account_id;
     if (!creatorStripeId) { await connection.rollback(); return { released: false, reason: 'no_stripe_account' }; }
 
-    // Move the creator's share (deal − 15% platform commission) from the platform
-    // balance to the creator's connected account. Platform keeps the commission.
+    // Finalise the commission HERE, at release — this is when the money actually
+    // splits, so the creator's tier is based on their lifetime earnings at the
+    // moment of payout (see COMMISSION_TIERS). The values stored at create-intent
+    // were a provisional estimate shown to the brand. Recomputing the split does
+    // NOT re-charge the brand: the brand's total charge (deal + fee) is fixed and
+    // independent of the commission — we only change how the deal amount is
+    // divided between the platform and the creator.
+    const deal = Number(payment.deal_amount);
+    const lifetimeEarnings = await getCreatorLifetimeEarnings(payment.creator_user_id);
+    const commissionPercent = commissionPercentForEarnings(lifetimeEarnings);
+    const commissionAmount = Math.round((deal * commissionPercent / 100) * 100) / 100;
+    const creatorPayout = Math.round((deal - commissionAmount) * 100) / 100;
+
+    // Move the creator's share from the platform balance to their connected
+    // account. Platform keeps the commission.
     const transfer = await stripe.transfers.create({
-      amount: Math.round(Number(payment.creator_payout) * 100),
+      amount: Math.round(creatorPayout * 100),
       currency: 'eur',
       destination: creatorStripeId,
       transfer_group: payment.stripe_payment_intent_id,
@@ -1986,13 +3174,16 @@ async function attemptRelease(dealPaymentId, actorUserId = null) {
     }, { idempotencyKey: `release_${payment.id}` });
 
     await connection.query(
-      "UPDATE deal_payments SET status = 'transferred', stripe_transfer_id = ?, released_at = NOW() WHERE id = ?",
-      [transfer.id, payment.id]
+      `UPDATE deal_payments
+         SET status = 'transferred', stripe_transfer_id = ?, released_at = NOW(),
+             commission_percent = ?, commission_amount = ?, creator_payout = ?
+       WHERE id = ?`,
+      [transfer.id, commissionPercent, commissionAmount, creatorPayout, payment.id]
     );
     await connection.query(
       `UPDATE campaign_participants SET status = 'completed', earnings = ?
        WHERE campaign_id = ? AND user_id = ?`,
-      [payment.creator_payout, payment.campaign_id, payment.creator_user_id]
+      [creatorPayout, payment.campaign_id, payment.creator_user_id]
     );
 
     // Always tell the creator they got paid (this notification carries the
@@ -2050,6 +3241,34 @@ const ensureEscrowColumns = async () => {
   }
 };
 // call it: ensureEscrowColumns();
+
+// Campaign brief fields shown to creators (and set by brands on creation):
+// deliverables, application deadline, minimum followers and free-text
+// requirements/guidelines. Idempotent — safe to run on every boot.
+const ensureCampaignBriefColumns = async () => {
+  const conn = await pool.getConnection();
+  try {
+    const [cols] = await conn.query(
+      `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'campaigns'`,
+      [process.env.DB_DATABASE]
+    );
+    const names = new Set(cols.map(c => c.COLUMN_NAME));
+    const alters = [];
+    if (!names.has('deliverables')) alters.push("ADD COLUMN deliverables TEXT NULL");
+    if (!names.has('application_deadline')) alters.push("ADD COLUMN application_deadline DATE NULL");
+    if (!names.has('min_followers')) alters.push("ADD COLUMN min_followers INT NULL");
+    if (!names.has('requirements')) alters.push("ADD COLUMN requirements TEXT NULL");
+    if (alters.length) {
+      await conn.query(`ALTER TABLE campaigns ${alters.join(", ")}`);
+      console.log(`[CAMPAIGN] Added ${alters.length} brief column(s) to campaigns`);
+    }
+  } catch (err) {
+    console.error("[CAMPAIGN] Brief column migration failed:", err.message);
+  } finally {
+    conn.release();
+  }
+};
 
 const migrateExistingConnections = async () => {
   const connection = await pool.getConnection();
@@ -2356,12 +3575,21 @@ app.post("/api/campaigns/search", authenticate, async (req, res) => {
       language,
       budgetRange,
       status,
+      urgentOnly,
       sortBy,
       page = 1,
       limit = 12,
     } = req.body;
 
     const offset = (page - 1) * limit;
+
+    // A campaign counts as "urgent" (immediate need) when it starts within the
+    // next URGENT_WINDOW_DAYS. There is no separate deadline column, so start_date
+    // proximity is the urgency signal (same basis as the "closing soon" sort).
+    const URGENT_WINDOW_DAYS = 7;
+    const urgentCondition =
+      `(start_date IS NOT NULL AND start_date >= CURDATE() ` +
+      `AND start_date <= DATE_ADD(CURDATE(), INTERVAL ${URGENT_WINDOW_DAYS} DAY))`;
 
     // Build WHERE conditions dynamically
     const where = [];
@@ -2434,6 +3662,10 @@ app.post("/api/campaigns/search", authenticate, async (req, res) => {
       params.push(status);
     }
 
+    if (urgentOnly) {
+      where.push(urgentCondition);
+    }
+
     const whereSQL = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
 
     // Count total
@@ -2467,11 +3699,12 @@ app.post("/api/campaigns/search", authenticate, async (req, res) => {
     // Fetch campaigns with hasApplied info
     const [results] = await pool.query(
       `
-  SELECT c.*, 
+  SELECT c.*,
     EXISTS(
-      SELECT 1 FROM proposals p 
+      SELECT 1 FROM proposals p
       WHERE p.campaign_id = c.id AND p.creator_id = ?
-    ) AS hasApplied
+    ) AS hasApplied,
+    ${urgentCondition.replace(/start_date/g, "c.start_date")} AS isUrgent
   FROM campaigns c
   ${whereSQL}
   ORDER BY ${orderBySQL}
@@ -2490,6 +3723,7 @@ app.post("/api/campaigns/search", authenticate, async (req, res) => {
       collabTypes: c.collabTypes ? JSON.parse(c.collabTypes) : [],
       niches: c.niches ? JSON.parse(c.niches) : [],
       hasApplied: Boolean(c.hasApplied),
+      isUrgent: Boolean(c.isUrgent),
       budget: Number(c.budget) // Ensure decimal is returned as a number
     }));
 
@@ -2623,6 +3857,86 @@ cron.schedule("0 0 * * *", async () => {
     console.error("❌ Cron Job Error (Notification Cleanup):", err.message);
   }
 });
+
+// Refresh Instagram long-lived tokens before they expire (~60 days). Re-exchanging
+// a still-valid long-lived token via fb_exchange_token returns a fresh 60-day
+// token, so insights keep syncing without the user having to reconnect. Runs
+// daily and only touches accounts within 10 days of expiry. A failure per account
+// (e.g. the user revoked access) is logged and skipped — their next sync will
+// surface the disconnect.
+async function refreshInstagramTokens() {
+  if (!process.env.FB_APP_ID || !process.env.FB_APP_SECRET) return;
+
+  let rows;
+  try {
+    [rows] = await pool.query(
+      `SELECT user_id, ig_user_id, access_token
+         FROM instagram_accounts
+        WHERE token_expires_at IS NOT NULL
+          AND token_expires_at < DATE_ADD(NOW(), INTERVAL 10 DAY)`
+    );
+  } catch (err) {
+    console.error("❌ Cron Job Error (IG token refresh query):", err.message);
+    return;
+  }
+
+  if (!rows.length) return;
+  console.log(`[IG REFRESH] ${rows.length} token(s) nearing expiry — refreshing...`);
+
+  for (const acc of rows) {
+    try {
+      const current = decryptSecret(acc.access_token);
+      const res = await fetch(
+        `https://graph.facebook.com/v21.0/oauth/access_token?` +
+          new URLSearchParams({
+            grant_type: "fb_exchange_token",
+            client_id: process.env.FB_APP_ID,
+            client_secret: process.env.FB_APP_SECRET,
+            fb_exchange_token: current,
+          })
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.access_token) {
+        // Code 190 = the token is permanently dead (already expired / revoked)
+        // and can't be re-exchanged. Clear the connection so the user is prompted
+        // to reconnect, same as the sync path does.
+        if (data?.error?.code === 190) {
+          console.warn(`[IG REFRESH] Token dead for ig_user ${acc.ig_user_id} (code 190) — clearing connection.`);
+          await pool.query("DELETE FROM instagram_analytics WHERE ig_user_id = ?", [acc.ig_user_id]);
+          await pool.query("DELETE FROM instagram_accounts WHERE ig_user_id = ?", [acc.ig_user_id]);
+          await pool.query(
+            "UPDATE profiles SET instagram_linked = 0 WHERE id = (SELECT id FROM users WHERE id = ?)",
+            [acc.user_id]
+          );
+          continue;
+        }
+        console.error(
+          `[IG REFRESH] Failed for ig_user ${acc.ig_user_id}:`,
+          data?.error?.message || res.status
+        );
+        continue;
+      }
+
+      // FB long-lived tokens default to ~60 days when expires_in is omitted.
+      const expiresAt = new Date(Date.now() + (Number(data.expires_in) || 5184000) * 1000);
+      await pool.query(
+        "UPDATE instagram_accounts SET access_token = ?, token_expires_at = ? WHERE ig_user_id = ?",
+        [encryptSecret(data.access_token), expiresAt, acc.ig_user_id]
+      );
+      console.log(`[IG REFRESH] Refreshed ig_user ${acc.ig_user_id} → ${expiresAt.toISOString()}`);
+    } catch (err) {
+      console.error(`[IG REFRESH] Error for ig_user ${acc.ig_user_id}:`, err.message);
+    }
+  }
+}
+
+cron.schedule("0 3 * * *", refreshInstagramTokens);
+
+// Daily security digest at 08:00 (server time). Scanner probes and bot noise are
+// folded into one summary email here instead of alerting per-event — see
+// maybeSecurityAlert / DIGEST_ONLY_TYPES. No email is sent on a quiet day.
+cron.schedule("0 8 * * *", sendSecurityDigest);
 
 
 
@@ -3023,6 +4337,11 @@ app.post('/api/consent/update', authenticate, async (req, res) => {
 app.get("/api/links", authenticate, async (req, res) => {
   const userId = req.user.id;
   const accountType = req.user.accountType;
+  // Never string-interpolate accountType into SQL. Reduce it to booleans here;
+  // `${isBrand}`/`${isCreator}` render as literal true/false, which can't inject.
+  // Defence in depth — accountType is also whitelisted at registration.
+  const isBrand = accountType === "brand";
+  const isCreator = accountType === "creator";
   // accountType is interpolated into the SQL below, so hard-restrict it to the
   // only two valid literals. This closes the injection vector even though the
   // value currently originates from the signed JWT.
@@ -3051,16 +4370,16 @@ app.get("/api/links", authenticate, async (req, res) => {
       FROM proposals p
       INNER JOIN campaigns c ON p.campaign_id = c.id
       INNER JOIN users partner ON (
-        ('${accountType}' = 'brand' AND partner.id = p.creator_id) OR
-        ('${accountType}' = 'creator' AND partner.id = c.brand_id)
+        (${isBrand} AND partner.id = p.creator_id) OR
+        (${isCreator} AND partner.id = c.brand_id)
       )
       LEFT JOIN profiles pr ON pr.id = partner.id
       LEFT JOIN deal_payments dp ON dp.campaign_id = c.id
         AND dp.brand_user_id = c.brand_id
         AND dp.creator_user_id = p.creator_id
         AND dp.status IN ('paid', 'transferred')
-      WHERE (${accountType === 'brand'} AND c.brand_id = ?) 
-         OR (${accountType === 'creator'} AND p.creator_id = ?)
+      WHERE (${isBrand} AND c.brand_id = ?) 
+         OR (${isCreator} AND p.creator_id = ?)
       UNION
       SELECT DISTINCT
         partner.id as partnerId,
@@ -3082,8 +4401,8 @@ app.get("/api/links", authenticate, async (req, res) => {
       FROM campaign_invitations ci
       INNER JOIN campaigns c ON ci.campaign_id = c.id
       INNER JOIN users partner ON (
-        ('${accountType}' = 'brand' AND partner.id = ci.creator_id) OR
-        ('${accountType}' = 'creator' AND partner.id = ci.brand_id)
+        (${isBrand} AND partner.id = ci.creator_id) OR
+        (${isCreator} AND partner.id = ci.brand_id)
       )
       LEFT JOIN profiles pr ON pr.id = partner.id
       LEFT JOIN deal_payments dp ON dp.campaign_id = c.id
@@ -3092,8 +4411,8 @@ app.get("/api/links", authenticate, async (req, res) => {
         AND dp.status IN ('paid', 'transferred')
       WHERE ci.status = 'accepted'
         AND (
-          ('${accountType}' = 'brand' AND ci.brand_id = ?) OR
-          ('${accountType}' = 'creator' AND ci.creator_id = ?)
+          (${isBrand} AND ci.brand_id = ?) OR
+          (${isCreator} AND ci.creator_id = ?)
         )
       ORDER BY proposalDate DESC
     `;
@@ -3416,7 +4735,27 @@ app.post("/api/instagram/sync", authenticate, async (req, res) => {
     );
 
     const igData = await igDataRes.json();
-    if (!igDataRes.ok) throw new Error(JSON.stringify(igData));
+    if (!igDataRes.ok) {
+      // Graph error 190 = the access token is permanently invalid (expired,
+      // revoked, or the user changed their password). It will never work again,
+      // so clear the dead connection — the profile then shows "Connect Instagram"
+      // and the user can reconnect — instead of logging a 500 on every sync.
+      if (igData?.error?.code === 190) {
+        console.warn(`[IG SYNC] Token invalid for user ${userId} (code 190) — clearing stale connection.`);
+        await pool.query("DELETE FROM instagram_analytics WHERE ig_user_id = ?", [ig_user_id]);
+        await pool.query("DELETE FROM instagram_accounts WHERE ig_user_id = ?", [ig_user_id]);
+        await pool.query(
+          "UPDATE profiles SET instagram_linked = 0 WHERE id = (SELECT id FROM users WHERE id = ?)",
+          [userId]
+        );
+        return res.status(409).json({
+          error: "instagram_reauth_required",
+          reconnect: true,
+          message: "Your Instagram session expired. Please reconnect your account.",
+        });
+      }
+      throw new Error(JSON.stringify(igData));
+    }
 
     // 2. Calculate Engagement Metrics
     const followers = igData.followers_count || 0;
@@ -3644,6 +4983,46 @@ app.post("/api/instagram/deletion-callback", async (req, res) => {
   }
 });
 
+// Meta "Deauthorize" callback — fired when a user removes the app from their
+// Facebook/Instagram settings (distinct from the data-deletion callback above).
+// Register this URL in the Meta app dashboard (Facebook Login → Settings →
+// Deauthorize Callback URL): https://api.influ-link.com/api/instagram/deauthorize-callback
+// We drop the connection + synced insights (same cleanup as manual unlink) but
+// keep the user's InfluLink account.
+app.post("/api/instagram/deauthorize-callback", async (req, res) => {
+  const { signed_request } = req.body;
+
+  if (!signed_request) {
+    return res.status(400).send("No signed request provided.");
+  }
+
+  try {
+    // Verify the signed request exactly like the deletion callback.
+    const [encodedSig, payload] = signed_request.split(".");
+    const secret = process.env.FB_APP_SECRET;
+
+    const sig = Buffer.from(encodedSig.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("hex");
+    const data = JSON.parse(Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString());
+
+    const expectedSig = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+    if (sig !== expectedSig) {
+      return res.status(400).send("Invalid signature.");
+    }
+
+    const igUserId = data.user_id;
+    console.log(`[META DEAUTH] App removed — unlinking IG user: ${igUserId}`);
+
+    await pool.query("DELETE FROM instagram_analytics WHERE ig_user_id = ?", [igUserId]);
+    await pool.query("DELETE FROM instagram_accounts WHERE ig_user_id = ?", [igUserId]);
+
+    // Meta expects a 200 acknowledgement.
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("[META DEAUTH] Error:", err);
+    res.status(400).send("Invalid request.");
+  }
+});
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -3665,8 +5044,8 @@ passport.use(new GoogleStrategy({
       if (!user) {
         // 1. New User: Insert with the role from the button they clicked
         const [result] = await pool.execute(
-          `INSERT INTO users (name, email, google_id, account_type, created_at, gdpr_consent) 
-           VALUES (?, ?, ?, ?, NOW(), 1)`,
+          `INSERT INTO users (name, email, google_id, account_type, created_at, gdpr_consent, email_verified)
+           VALUES (?, ?, ?, ?, NOW(), 1, 1)`,
           [profile.displayName, profile.emails[0].value, profile.id, role]
         );
         const [newUser] = await pool.execute('SELECT * FROM users WHERE id = ?', [result.insertId]);
@@ -3972,16 +5351,109 @@ app.post('/api/webhooks/stripe',
       console.log(`[PAYMENT] ${paymentIntent.id} marked as paid (fee: ${actualFee ?? 'n/a'})`);
     }
 
+    // ── Brand subscription lifecycle ──────────────────────────────────────
+    // Every state change flows through the subscription object so local state
+    // and Stripe can't diverge. checkout.session.completed only fires once, so
+    // we also handle customer.subscription.* for renewals, upgrades and cancels.
+    try {
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object;
+        if (session.mode === "subscription" && session.subscription) {
+          const sub = await stripe.subscriptions.retrieve(session.subscription);
+          await upsertSubscriptionFromStripe(sub);
+          console.log(`[BILLING] Subscription ${sub.id} activated for customer ${sub.customer}`);
+        }
+      } else if (
+        event.type === "customer.subscription.created" ||
+        event.type === "customer.subscription.updated" ||
+        event.type === "customer.subscription.deleted"
+      ) {
+        await upsertSubscriptionFromStripe(event.data.object);
+        console.log(`[BILLING] ${event.type} → ${event.data.object.id} (${event.data.object.status})`);
+      } else if (event.type === "invoice.payment_failed") {
+        // A renewal (or the first) charge failed. Stripe's Smart Retries will
+        // keep trying; we just tell the brand, with the next attempt date, and
+        // let the accompanying subscription.updated open the grace window.
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const [rows] = await pool.query(
+            "SELECT user_id FROM brand_subscriptions WHERE stripe_customer_id = ?",
+            [invoice.customer]
+          );
+          const userId = rows[0]?.user_id;
+          const nextTs = invoice.next_payment_attempt;
+          const when = nextTs ? toMysqlDate(nextTs * 1000) : null;
+          await notifyBilling(
+            userId,
+            "billing_payment_failed",
+            "Payment didn't go through",
+            when
+              ? `We couldn't charge your card. We'll retry on ${when}. Update your card to avoid losing access.`
+              : "We couldn't charge your card. Please update your payment method to keep your subscription."
+          );
+          console.log(`[BILLING] invoice.payment_failed for customer ${invoice.customer} (next: ${when || "n/a"})`);
+        }
+      } else if (event.type === "invoice.payment_succeeded") {
+        // Successful renewal. State (period end, status) is carried by the
+        // subscription.updated event; nothing else to do here — the "recovered"
+        // notification is fired from upsert on the past_due → active transition.
+        const invoice = event.data.object;
+        if (invoice.billing_reason === "subscription_cycle") {
+          console.log(`[BILLING] renewal paid for customer ${invoice.customer}`);
+        }
+      }
+    } catch (err) {
+      // A subscription event failed to persist (e.g. a transient DB error).
+      // Return 500 so Stripe RETRIES — losing subscription state silently would
+      // mean a paying customer with the wrong access. This is safe: subscription
+      // events and the escrow events above are different event types, so a
+      // single delivery never touches both, and re-processing is idempotent
+      // (state is upserted; notifications are gated on the prior→new transition).
+      console.error("[BILLING] subscription webhook handling failed, asking Stripe to retry:", err);
+      return res.status(500).json({ error: "subscription_handler_failed" });
+    }
+
     res.json({ received: true });
   }
 );
+// Creator commission is tiered by the creator's lifetime paid-out earnings
+// (mirrors the public Pricing page):
+//     < €1,000        → 15%   (New Creator)
+//     €1,000–€10,000  → 10%   (Pro Creator)
+//     ≥ €10,000       →  7%   (Top Creator)
+// Ordered high→low so the first matching threshold wins.
+const COMMISSION_TIERS = [
+  { minEarnings: 10000, percent: 7 },
+  { minEarnings: 1000, percent: 10 },
+  { minEarnings: 0, percent: 15 },
+];
+
+function commissionPercentForEarnings(lifetimeEarnings) {
+  const earned = Number(lifetimeEarnings) || 0;
+  const tier = COMMISSION_TIERS.find((t) => earned >= t.minEarnings);
+  return tier ? tier.percent : 15; // 15% = entry tier / safe default
+}
+
+// Sum of everything a creator has actually been paid out (released deals only).
+async function getCreatorLifetimeEarnings(creatorId) {
+  const [rows] = await pool.query(
+    "SELECT COALESCE(SUM(creator_payout), 0) AS lifetimeEarnings FROM deal_payments WHERE creator_user_id = ? AND status = 'transferred'",
+    [creatorId]
+  );
+  return Number(rows[0]?.lifetimeEarnings || 0);
+}
+
 app.post('/api/payments/create-intent', authenticate, async (req, res) => {
   try {
     const { dealAmount, creatorId, campaignId } = req.body;
     const brandId = req.user.id; // ← add
 
-    const [settings] = await pool.query('SELECT commission_percent FROM platform_settings LIMIT 1');
-    const commissionPercent = Number(settings[0].commission_percent);
+    // Provisional commission shown to the brand at checkout, based on the
+    // creator's current lifetime-earnings tier. This is only an ESTIMATE — the
+    // final commission is recomputed at release time in attemptRelease(), since
+    // the creator's tier (or the deal itself) may change before payout.
+    const lifetimeEarnings = await getCreatorLifetimeEarnings(creatorId);
+    const commissionPercent = commissionPercentForEarnings(lifetimeEarnings);
 
     const [creatorRows] = await pool.query(
       'SELECT stripe_account_id FROM users WHERE id = ?', [creatorId]
@@ -4252,6 +5724,28 @@ ensureEscrowColumns()
   .then(() => console.log("✅ Escrow columns check completed"))
   .catch(err => console.error("❌ Escrow columns migration failed:", err));
 
+ensureCampaignBriefColumns()
+  .then(() => console.log("✅ Campaign brief columns check completed"))
+  .catch(err => console.error("❌ Campaign brief columns migration failed:", err));
+
+ensureCreatorPlansTable()
+  .then(() => console.log("✅ Creator plans table check completed"))
+  .catch(err => console.error("❌ Creator plans migration failed:", err));
+
+// Brand billing: schema first, then the Stripe catalog (needs the tables and a
+// live key). Chained so the catalog never runs against missing tables.
+ensureBrandBillingSchema()
+  .then(() => {
+    console.log("✅ Brand billing schema check completed");
+    return ensureBrandPlanCatalog();
+  })
+  .then(() => console.log("✅ Brand plan catalog check completed"))
+  .catch(err => console.error("❌ Brand billing migration failed:", err));
+
+ensureEmailVerificationSchema()
+  .then(() => console.log("✅ Email verification schema check completed"))
+  .catch(err => console.error("❌ Email verification migration failed:", err));
+
 // One-time (idempotent) encryption of any Instagram tokens still stored in
 // plaintext. Only runs when ENCRYPTION_KEY is set; skips already-encrypted rows.
 async function encryptExistingTokens() {
@@ -4308,4 +5802,66 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
 // =======================
 httpServer.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
+
+  // One-line config summary so `pm2 logs` shows the effective go-live state at a
+  // glance right after a restart. No secrets are printed — only whether each is set.
+  const key = process.env.STRIPE_SECRET_KEY || "";
+  const stripeMode = key.startsWith("sk_live_") ? "LIVE" : key.startsWith("sk_test_") ? "TEST" : "OFF (no key)";
+  const stripeWebhooks =
+    [process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_WEBHOOK_SECRET_PAYMENTS].filter(Boolean).length;
+  const mail = process.env.RESEND_API_KEY
+    ? `configured (from: ${process.env.MAIL_FROM || "InfluLink <onboarding@resend.dev>"})`
+    : "OFF — verification emails will NOT send";
+  const meta = process.env.FB_APP_ID && process.env.FB_APP_SECRET ? "configured" : "OFF";
+  console.log(
+    `⚙️  [BOOT] Stripe: ${stripeMode} (${stripeWebhooks}/2 webhook secrets) | ` +
+    `brand billing: ${BRANDS_ENABLED ? "ON" : "OFF"} | ` +
+    `mail: ${mail} | Meta/IG: ${meta} | ` +
+    `encryption key: ${process.env.ENCRYPTION_KEY ? "set" : "MISSING"}`
+  );
+});
+
+// ── Resilience ──────────────────────────────────────────────────────────────
+// pm2 restarts on a hard crash, but a bare process can drop in-flight requests
+// and leave DB/Redis connections dangling. These handlers log richly first,
+// drain on shutdown signals, and turn a fatal error into a clean restart.
+let shuttingDown = false;
+async function gracefulShutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.warn(`[SHUTDOWN] ${signal} — draining...`);
+
+  // Stop accepting new connections. Socket.io keeps sockets open, so don't wait
+  // on close forever — a timer force-exits if draining stalls.
+  httpServer.close(() => console.warn("[SHUTDOWN] HTTP server closed"));
+  const force = setTimeout(() => {
+    console.error("[SHUTDOWN] drain timed out — forcing exit");
+    process.exit(1);
+  }, 10000);
+  force.unref();
+
+  try { await pool.end(); } catch (e) { console.error("[SHUTDOWN] pool:", e.message); }
+  try { await pubClient.quit(); } catch (e) { /* already closed */ }
+  try { await subClient.quit(); } catch (e) { /* already closed */ }
+
+  clearTimeout(force);
+  console.warn("[SHUTDOWN] clean exit");
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+// An uncaught exception leaves the process in an undefined state — log it and
+// exit so pm2 restarts on solid ground rather than limping on corrupted memory.
+process.on("uncaughtException", (err) => {
+  console.error("[FATAL] uncaughtException:", err);
+  gracefulShutdown("uncaughtException");
+});
+
+// An unhandled rejection is almost always a missing try/catch or await in a
+// route — that one request already failed. Log it loudly (so the bug surfaces)
+// but keep serving; taking the whole site down over one bad request is worse.
+process.on("unhandledRejection", (reason) => {
+  console.error("[WARN] unhandledRejection:", reason);
 });

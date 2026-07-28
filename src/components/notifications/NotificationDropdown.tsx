@@ -11,6 +11,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { cn } from "@/lib/utils";
 import {
   getNotificationIcon,
+  getNotificationCircleClass,
   translateNotificationTitle,
   translateNotificationMessage,
 } from "@/utils/notificationLabels";
@@ -139,7 +140,14 @@ export default function NotificationDropdown({ className, setDropdownOpen, onNot
               onClick={() => handleClick(n)}
               className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 ${!n.is_read ? "bg-primary/5" : ""}`}
             >
-              <div className="flex-shrink-0 mt-0.5">{getNotificationIcon(n.type)}</div>
+              <div
+                className={cn(
+                  "flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-full",
+                  getNotificationCircleClass(n.type)
+                )}
+              >
+                {getNotificationIcon(n.type)}
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <p className={`text-sm line-clamp-1 ${!n.is_read ? "font-semibold" : "font-medium"}`}>

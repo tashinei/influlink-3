@@ -33,6 +33,11 @@ import { toast } from "sonner";
 import { EditProfileModal } from "@/components/EditProfileModal";
 import { PortfolioItem, ProfileData } from "@/types/profile";
 import NavigationDock from "@/components/NavigationDock";
+import { CreatorOnboardingDialog } from "@/components/onboarding/CreatorOnboardingDialog";
+import { ProfileTour, buildProfileTourSteps } from "@/components/onboarding/ProfileTour";
+import { PlansSection } from "@/components/plans/PlansSection";
+import { EditPlansDialog } from "@/components/plans/EditPlansDialog";
+import { useCreatorPlans } from "@/hooks/useCreatorPlans";
 import { useUserStore } from "@/store/useUserStore";
 import { CampaignDetailModal } from "@/components/campaigns/CampaignDetailModal";
 import { EditCampaignModal } from "@/components/campaigns/EditCampaignModal";
@@ -56,6 +61,8 @@ const Profile = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<any>(null);
   const [isStripeLoading, setIsStripeLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -124,6 +131,39 @@ const Profile = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location]);
+
+  // First-run onboarding: show once for a creator viewing their own profile
+  // (e.g. right after registration). `location.state.onboarding` force-opens it;
+  // otherwise it opens the first time and is remembered in localStorage.
+  const ONBOARDING_KEY = "influlink_creator_onboarding_v1";
+  useEffect(() => {
+    if (!isOwner || profile?.type !== "creator") return;
+    const seen = localStorage.getItem(ONBOARDING_KEY);
+    if (location.state?.onboarding || !seen) {
+      setShowOnboarding(true);
+    }
+  }, [isOwner, profile?.type, location.state]);
+
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem(ONBOARDING_KEY, "1");
+    if (location.state?.onboarding) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  };
+
+  // Coach-mark tour: fired by "Get started" at the end of the onboarding
+  // dialog. Skipping the dialog skips the tour too. The short delay lets the
+  // dialog animate out first, so the tour measures a settled layout.
+  const [pendingTour, setPendingTour] = useState(false);
+  useEffect(() => {
+    if (!pendingTour) return;
+    const id = window.setTimeout(() => {
+      setPendingTour(false);
+      setShowTour(true);
+    }, 350);
+    return () => window.clearTimeout(id);
+  }, [pendingTour]);
 
   useEffect(() => {
     if (!stripeStatus) return;
@@ -253,6 +293,14 @@ const Profile = () => {
     }, 60_000);
     return () => clearInterval(interval);
   }, [refetchAnalytics]);
+
+  // Creator rate card. Fetched for the profile being viewed, not the viewer.
+  const {
+    plans,
+    isLoading: plansLoading,
+    savePlans,
+  } = useCreatorPlans(profile?.id);
+  const [isEditPlansOpen, setIsEditPlansOpen] = useState(false);
 
   // Modals
   const [isAddPostOpen, setIsAddPostOpen] = useState(false);
@@ -448,6 +496,19 @@ const Profile = () => {
     }
   };
 
+  // Rate cards are display-only, so the CTA on a plan opens a conversation
+  // with the creator rather than any kind of checkout.
+  const handleContactCreator = () => {
+    if (!profile) return;
+    setSelectedPartner({
+      id: profile.id,
+      handle: profile.handle,
+      name: profile.name,
+      avatar: profile.avatar,
+    });
+    setIsChatOpen(true);
+  };
+
   const handleConnectInstagram = () => {
     // Replace with your actual backend auth URL
     const authUrl = `${API_BASE_URL}/auth/instagram`;
@@ -478,6 +539,8 @@ const Profile = () => {
   };
 
   const { t } = useTranslation();
+
+  const tourSteps = useMemo(() => buildProfileTourSteps(t), [t]);
 
   const handleProfilePicChange = async (file: File) => {
     try {
@@ -633,6 +696,21 @@ const Profile = () => {
         isStripeLoading={isStripeLoading}
       />
 
+      {/* Rate card sits on the profile itself rather than behind a tab — for a
+          visiting brand it's the point of the page. Hidden only when a visitor
+          would see nothing. */}
+      {profile.type === "creator" && (isOwner || plans.length > 0) && (
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6 pb-10">
+          <PlansSection
+            plans={plans}
+            isLoading={plansLoading}
+            isOwner={isOwner}
+            onEdit={() => setIsEditPlansOpen(true)}
+            onContact={handleContactCreator}
+          />
+        </div>
+      )}
+
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <Tabs
           defaultValue={profile.type === "creator" ? "portfolio" : "campaigns"}
@@ -673,6 +751,7 @@ const Profile = () => {
               )}
               <TabsTrigger
                 value="analytics"
+                data-tour="analytics-tab"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary pb-3"
               >
                 {t("mvpAnalytics.title")}
@@ -682,6 +761,7 @@ const Profile = () => {
             {isOwner && (
               <Button
                 size="sm"
+                data-tour="add-work"
                 onClick={() => { profile.type == "creator" ? setIsAddPostOpen(true) : setIsCreateCampaignOpen(true) }}
                 className="gap-2 rounded-full bg-gradient-to-br from-primary to-secondary hover:scale-105 transition"
               >
@@ -878,11 +958,28 @@ const Profile = () => {
         onClose={() => setIsAddPostOpen(false)}
         onSubmit={addPostHandler}
       />
+
+      {isOwner && (
+        <EditPlansDialog
+          open={isEditPlansOpen}
+          onOpenChange={setIsEditPlansOpen}
+          plans={plans}
+          onSave={savePlans}
+        />
+      )}
       <NavigationDock
         onCampaignCreated={fetchCampaigns}
         initialChatOpen={isChatOpen}
         initialChatPartner={selectedPartner}
         onChatStateChange={(open) => setIsChatOpen(open)} />
+
+      <CreatorOnboardingDialog
+        open={showOnboarding}
+        onOpenChange={(open) => (open ? setShowOnboarding(true) : dismissOnboarding())}
+        onFinish={() => setPendingTour(true)}
+      />
+
+      <ProfileTour open={showTour} steps={tourSteps} onClose={() => setShowTour(false)} />
     </div>
   );
 };

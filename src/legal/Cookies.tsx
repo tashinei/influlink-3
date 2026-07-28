@@ -17,21 +17,25 @@ const Cookies = () => {
       description: t('mvpCookies.catStrictDesc'),
       status: t('mvpCookies.catStrictStatus'),
       icon: ShieldCheck,
-      examples: ["Auth Session", "CSRF Protection", "Cookie Preference Storage"]
+      // Only list what we actually set. The auth cookie is an HTTP-only JWT; the
+      // rest are stored in the browser (localStorage), not third-party trackers.
+      examples: [t('mvpCookies.exAuth'), t('mvpCookies.exConsent')]
     },
     {
       title: t('mvpCookies.catPerfTitle'),
       description: t('mvpCookies.catPerfDesc'),
       status: t('mvpCookies.catPerfStatus'),
       icon: Info,
-      examples: ["Google Analytics", "Vercel Insights"]
+      // We do NOT currently load third-party analytics (no Google Analytics /
+      // Vercel etc.). Keep this accurate — don't claim trackers we don't run.
+      examples: [t('mvpCookies.exNone')]
     },
     {
       title: t('mvpCookies.catFuncTitle'),
       description: t('mvpCookies.catFuncDesc'),
       status: t('mvpCookies.catFuncStatus'),
       icon: Settings,
-      examples: ["Language Preference", "Chat Support Widget"]
+      examples: [t('mvpCookies.exLang'), t('mvpCookies.exUi')]
     }
   ];
 

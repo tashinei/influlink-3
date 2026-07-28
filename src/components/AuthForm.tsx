@@ -3,10 +3,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BsGoogle } from 'react-icons/bs';
-import { Mail, Lock, User, Briefcase, CheckCircle2, Earth, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Briefcase, CheckCircle2, Earth, Eye, EyeOff, Check, X } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useMediaQuery } from '@/hooks/use-media.query';
+import { CheckEmailNotice } from '@/components/auth/CheckEmailNotice';
 
 interface AuthFormProps {
   accountType: 'creator' | 'brand';
@@ -27,6 +28,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const setAccountType = useUserStore((state) => state.setAccountType);
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
+  const [pwFocused, setPwFocused] = useState(false);
   // Timing honeypot: when the form was rendered. Bots submit near-instantly.
   const formLoadedAt = useRef(Date.now());
 
@@ -56,6 +58,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -77,7 +80,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     setError(null);
 
     if (!isValidPassword(formData.password)) {
-      setError("Password must contain only Latin characters.");
+      setError(t("mvpLogin.pwLatinError"));
+      setLoading(false);
+      return;
+    }
+
+    // Enforce the strength policy client-side on register so the user gets
+    // immediate feedback rather than a round-trip server rejection.
+    if (mode === "register" && !passwordMeetsPolicy) {
+      setError(t("mvpLogin.pwPolicyError"));
       setLoading(false);
       return;
     }
@@ -126,11 +137,26 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
       const data = await response.json();
 
       if (!response.ok) {
+        // Login blocked because the email isn't verified yet → show the
+        // check-your-email screen with a resend option, not a red error.
+        if (data.requiresVerification) {
+          setVerifyEmail(data.email || formData.email);
+          setLoading(false);
+          return;
+        }
         if (response.status === 409) {
           setError('Email already registered.');
         } else {
           setError(data.message || `${mode === 'register' ? 'Registration' : 'Login'} failed.`);
         }
+        setLoading(false);
+        return;
+      }
+
+      // Direct register (non-multistep) with the hard gate: created but not
+      // logged in — show the notice instead of trying to read data.user.
+      if (data.requiresVerification) {
+        setVerifyEmail(data.email || formData.email);
         setLoading(false);
         return;
       }
@@ -190,6 +216,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
     return asciiRegex.test(password);
   };
 
+  // Password requirements — mirror the backend policy (validatePassword in
+  // server.js) so the user sees exactly what's required before submitting,
+  // instead of getting a server error after the fact.
+  const pw = formData.password;
+  const passwordRules = [
+    { key: "pwLen", ok: pw.length >= 8 },
+    { key: "pwLower", ok: /[a-z]/.test(pw) },
+    { key: "pwUpper", ok: /[A-Z]/.test(pw) },
+    { key: "pwNumber", ok: /[0-9]/.test(pw) },
+  ];
+  const passwordMeetsPolicy = passwordRules.every((r) => r.ok);
+  const showPasswordHints = mode === "register" && (pwFocused || pw.length > 0);
+
   const [langOpen, setLangOpen] = useState(false);
   const isLarge = useMediaQuery("(min-width: 1024px)");
 
@@ -206,6 +245,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
 
   const isCreator = accountType === 'creator';
   const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
+
+  if (verifyEmail) {
+    return (
+      <div className="flex h-full w-full max-w-[36rem] flex-col justify-center p-6">
+        <CheckEmailNotice
+          email={verifyEmail}
+          onBackToLogin={() => {
+            setVerifyEmail(null);
+            setMode('login');
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -307,7 +360,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
               placeholder={t("mvpLogin.password")}
               value={formData.password}
               onChange={handleChange}
+              onFocus={() => setPwFocused(true)}
+              onBlur={() => setPwFocused(false)}
               required
+              aria-describedby={showPasswordHints ? "password-rules" : undefined}
               className="pl-9 pr-10 h-11 border-gray-300 text-white bg-white/20 placeholder:text-white"
             />
             <button
@@ -319,6 +375,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ accountType, title, description, ch
               {showPassword ? <EyeOff className="!h-5 !w-5" /> : <Eye className="!h-5 !w-5" />}
             </button>
           </div>
+
+          {/* Live password requirements — shown while registering so the rules
+              are visible before submit, not surfaced as a server error after. */}
+          {showPasswordHints && (
+            <div
+              id="password-rules"
+              className="w-[80%] mx-auto -mt-2 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2.5 backdrop-blur-sm animate-in fade-in-0 slide-in-from-top-1 duration-200"
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70 mb-1.5">
+                {t("mvpLogin.pwHeading")}
+              </p>
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
+                {passwordRules.map((rule) => (
+                  <li
+                    key={rule.key}
+                    className={`flex items-center gap-1.5 text-xs transition-colors ${rule.ok ? "text-emerald-300" : "text-white/70"}`}
+                  >
+                    <span className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full ${rule.ok ? "bg-emerald-400/25" : "bg-white/15"}`}>
+                      {rule.ok ? <Check className="h-2.5 w-2.5" strokeWidth={3} /> : <X className="h-2.5 w-2.5" strokeWidth={3} />}
+                    </span>
+                    {t(`mvpLogin.${rule.key}`)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <Button
             type="submit"

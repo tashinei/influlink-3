@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { BRANDS_ENABLED } from "@/config/features";
+import { BrandsComingSoonDialog } from "@/components/BrandsComingSoon";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,7 @@ interface AccountOption {
   icon: React.ElementType;
   href: string;
   features: string[];
+  disabled?: boolean;
 }
 
 export default function RegisterSelectionDialog({
@@ -34,6 +37,15 @@ export default function RegisterSelectionDialog({
   };
 
   const { t } = useTranslation();
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+
+  // Creator-only launch: brand signup is gated (see src/config/features.ts).
+  // Keep the selection dialog open underneath and layer the notice on top —
+  // closing one Radix dialog while opening another in the same tick leaves
+  // `body { pointer-events: none }` stuck and freezes the whole page.
+  const handleDisabledClick = () => {
+    setComingSoonOpen(true);
+  };
 
   const accountOptions: AccountOption[] = [
     {
@@ -51,12 +63,14 @@ export default function RegisterSelectionDialog({
       icon: Briefcase,
       href: "/register/brand",
       features: [t("joinDialog.postCampaigns"), t("joinDialog.findCreators"), t("joinDialog.trackPerformance")],
+      disabled: !BRANDS_ENABLED,
     },
   ];
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col h-fit p-10 pb-16 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white 
+      <DialogContent className="flex flex-col h-fit p-10 pb-16 md:h-full sm:h-auto max-h-fit sm:max-w-2xl overflow-y-auto bg-gradient-to-br from-primary via-primary to-secondary shadow-2xl sm:rounded-3xl text-white
       z-[5000]">
 
         {/* Decorative background elements - hidden on extra small screens for performance */}
@@ -84,6 +98,7 @@ export default function RegisterSelectionDialog({
                 key={option.type}
                 option={option}
                 onClick={handleOptionClick}
+                onDisabledClick={handleDisabledClick}
               />
             ))}
           </div>
@@ -101,24 +116,34 @@ export default function RegisterSelectionDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+      <BrandsComingSoonDialog open={comingSoonOpen} onOpenChange={setComingSoonOpen} />
+    </>
   );
 }
 
-function AccountOptionCard({ option, onClick }: { option: AccountOption; onClick: () => void }) {
+function AccountOptionCard({
+  option,
+  onClick,
+  onDisabledClick,
+}: {
+  option: AccountOption;
+  onClick: () => void;
+  onDisabledClick: () => void;
+}) {
   const Icon = option.icon;
 
   const { t } = useTranslation();
 
-  return (
-    <Link
-      to={option.href}
-      onClick={onClick}
-      className={cn(
-        "group relative flex flex-col rounded-2xl bg-white/10 backdrop-blur-md p-5 sm:p-6 border border-white/10",
-        "transition-all duration-300 active:scale-[0.98] sm:hover:scale-[1.02]",
-        "hover:bg-white/15 shadow-xl shadow-black/5"
-      )}
-    >
+  const cardClasses = cn(
+    "group relative flex flex-col rounded-2xl bg-white/10 backdrop-blur-md p-5 sm:p-6 border border-white/10 text-left w-full",
+    "transition-all duration-300 active:scale-[0.98] sm:hover:scale-[1.02]",
+    "hover:bg-white/15 shadow-xl shadow-black/5",
+    option.disabled && "opacity-70"
+  );
+
+  const body = (
+    <>
       <div className="flex flex-row sm:flex-col items-center sm:items-start gap-4 sm:gap-0">
         {/* Icon: Smaller on mobile to save vertical space */}
         <div className="mb-0 sm:mb-4 flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-primary-foreground/10 text-primary-foreground">
@@ -147,10 +172,28 @@ function AccountOptionCard({ option, onClick }: { option: AccountOption; onClick
 
       <div className="mt-auto flex items-center justify-between border-t border-primary-foreground/10 pt-4">
         <span className="text-xs sm:text-sm font-medium text-primary-foreground/80">
-          {t("joinDialog.getStarted")}
+          {option.disabled ? t("brandsClosed.badge") : t("joinDialog.getStarted")}
         </span>
         <ArrowRight className="h-4 w-4 text-white opacity-70 group-hover:translate-x-1 transition-transform" />
       </div>
+    </>
+  );
+
+  // Gated (creator-only launch): render a button that explains instead of a link.
+  if (option.disabled) {
+    return (
+      <button type="button" onClick={onDisabledClick} className={cardClasses}>
+        <span className="absolute right-4 top-4 px-2.5 py-1 rounded-full bg-white/90 text-primary text-[10px] font-bold uppercase tracking-wider">
+          {t("brandsClosed.badge")}
+        </span>
+        {body}
+      </button>
+    );
+  }
+
+  return (
+    <Link to={option.href} onClick={onClick} className={cardClasses}>
+      {body}
     </Link>
   );
 }

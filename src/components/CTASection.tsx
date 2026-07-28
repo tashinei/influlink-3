@@ -1,7 +1,9 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function CTASection({handleClickCta}) {
+    const { t } = useTranslation();
     return (
         <section className="relative w-full max-w-6xl mx-auto overflow-hidden lg:rounded-[2.5rem] bg-[#1a4d6b] shadow-2xl group/section">
             <div
@@ -50,14 +52,13 @@ export default function CTASection({handleClickCta}) {
 
                 <div className="max-w-xl space-y-6 text-left">
                     <h2 className="text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight">
-                        Ready to reach <br />
+                        {t("mvpCta.titleFirst")} <br />
                         <span className="text-secondary brightness-150 drop-shadow-sm">
-                            the right audience?
+                            {t("mvpCta.titleSecond")}
                         </span>
                     </h2>
                     <p className="text-lg text-gray/30 max-w-md font-medium leading-relaxed">
-                        Launch your next campaign or start earning from your content.
-                        We provide the tools to help you create real progress.
+                        {t("mvpCta.subtitle")}
                     </p>
                 </div>
 
@@ -72,7 +73,7 @@ export default function CTASection({handleClickCta}) {
                     )}
                     onClick={handleClickCta}
                 >
-                    <span className="relative z-10">Join us now</span>
+                    <span className="relative z-10">{t("mvpCta.button")}</span>
 
                     <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
                         <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-40 group-hover:animate-shimmer" />

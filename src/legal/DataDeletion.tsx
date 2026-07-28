@@ -73,6 +73,26 @@ const DataDeletion = () => {
                         ))}
                     </div>
 
+                    {/* Full account deletion (GDPR right to erasure) */}
+                    <div className="max-w-4xl mx-auto mb-12">
+                        <Card className="rounded-[2.5rem] border-slate-100 shadow-xl bg-white overflow-hidden">
+                            <CardContent className="p-8 md:p-12 space-y-4">
+                                <h2 className="text-2xl font-bold text-slate-900">{t('mvpDataDeletion.fullTitle')}</h2>
+                                <p className="text-slate-600 leading-relaxed">
+                                    {t('mvpDataDeletion.fullP1')}
+                                </p>
+                                <p className="text-slate-600 leading-relaxed">
+                                    {t('mvpDataDeletion.fullP2a')}{" "}
+                                    <span className="font-semibold text-primary">global@influ-link.com</span>{" "}
+                                    {t('mvpDataDeletion.fullP2b')}
+                                </p>
+                                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-sm text-amber-800">
+                                    <strong>{t('mvpDataDeletion.fullNoteLabel')}</strong> {t('mvpDataDeletion.fullNote')}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* Technical Instructions */}
                     <div className="max-w-4xl mx-auto">
                         <Card className="rounded-[2.5rem] border-slate-100 overflow-hidden shadow-2xl shadow-blue-900/5">

@@ -13,6 +13,7 @@ import {
 import { CampaignFilterPanel } from "./CampaignFilterPanel";
 import { useLocation } from "react-router-dom";
 import { CampaignApplyDialog } from "./CampaignApplyModal";
+import { CampaignBriefModal } from "./CampaignBriefModal";
 import { useUserStore } from "@/store/useUserStore";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Helmet } from "react-helmet-async";
@@ -33,6 +34,8 @@ const SearchCampaigns = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false); // Mobile drawer state
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignData | null>(null);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [viewCampaign, setViewCampaign] = useState<CampaignData | null>(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
 
   // --- Filter Initialization ---
   const initialQuery = location.state?.query ?? "";
@@ -69,6 +72,7 @@ const SearchCampaigns = () => {
     if (filters.country.length) count++;
     if (filters.budgetRange) count++;
     if (filters.status !== "any") count++;
+    if (filters.urgentOnly) count++;
     return count;
   }, [filters]);
 
@@ -131,6 +135,11 @@ const SearchCampaigns = () => {
       setSelectedCampaign(campaign);
       setApplyModalOpen(true);
     }
+  };
+
+  const handleViewClick = (campaign: CampaignData) => {
+    setViewCampaign(campaign);
+    setViewModalOpen(true);
   };
 
   const { t } = useTranslation();
@@ -222,6 +231,7 @@ const SearchCampaigns = () => {
                       key={campaign.id}
                       campaign={campaign}
                       onApply={handleApplyClick}
+                      onView={handleViewClick}
                     />
                   ))}
                 </div>
@@ -293,6 +303,13 @@ const SearchCampaigns = () => {
           }}
         />
       )}
+
+      <CampaignBriefModal
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        campaign={viewCampaign}
+        onApply={handleApplyClick}
+      />
     </div>
   );
 };

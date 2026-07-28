@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { Search, X, Check, Globe } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTranslation } from "@/hooks/useTranslation";
+import { EUROPEAN_COUNTRY_CODES } from "@/data/countries";
 
 export default function CountryPickerModal({
   open,
@@ -18,18 +19,10 @@ export default function CountryPickerModal({
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   
-  const ALL_EUROPEAN_COUNTRY_CODES = [
-    "AL", "AD", "AT", "BY", "BE", "BA", "BG", "HR", "CY", "CZ", "DK",
-    "EE", "FI", "FR", "DE", "GR", "HU", "IS", "IE", "IT", "XK", "LV",
-    "LI", "LT", "LU", "MT", "MD", "MC", "ME", "NL", "NO", "PL", "PT",
-    "RO", "RU", "SM", "RS", "SK", "SI", "ES", "SE", "CH", "TR", "UA",
-    "GB", "VA"
-  ];
-
   const getFlagUrl = (code) => `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
 
   const translatedCountries = useMemo(() => {
-    return ALL_EUROPEAN_COUNTRY_CODES.map((code) => ({
+    return EUROPEAN_COUNTRY_CODES.map((code) => ({
       code: code,
       // Name is fetched dynamically from the translation file
       name: t(`form.countries.${code}`),

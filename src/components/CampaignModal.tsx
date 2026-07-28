@@ -48,6 +48,10 @@ interface CampaignForm {
   date: string;
   budget: string;
   goal: string;
+  deliverables: string;
+  applicationDeadline: string;
+  minFollowers: string;
+  requirements: string;
   companyLogo: File | null;
   referenceImages: File[] | null;
   platforms: string[];
@@ -127,6 +131,10 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
     date: "",
     budget: "",
     goal: "reach",
+    deliverables: "",
+    applicationDeadline: "",
+    minFollowers: "",
+    requirements: "",
     companyLogo: null,
     referenceImages: null,
     platforms: [],
@@ -239,6 +247,10 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
       formData.append("date", form.date);
       formData.append("budget", form.budget);
       formData.append("goal", form.goal);
+      formData.append("deliverables", form.deliverables);
+      formData.append("applicationDeadline", form.applicationDeadline);
+      formData.append("minFollowers", form.minFollowers);
+      formData.append("requirements", form.requirements);
       formData.append("platforms", JSON.stringify(form.platforms));
       formData.append("niches", JSON.stringify(form.niches));
       formData.append("contentTypes", JSON.stringify(form.contentTypes));
@@ -418,6 +430,73 @@ const CreateCampaignModal = ({ open, onOpenChange, onSuccess }: CreateCampaignMo
               {errors.budget && (
                 <p className="text-sm text-red-500">{errors.budget}</p>
               )}
+            </div>
+
+            {/* Deliverables */}
+            <div className="space-y-3">
+              <Label htmlFor="deliverables" className="flex items-center gap-2 text-sm font-medium">
+                <Layers className="h-4 w-4 text-primary/70" />
+                {t("mvpCreateCampaign.deliverables")}
+              </Label>
+              <Input
+                id="deliverables"
+                name="deliverables"
+                placeholder={t("mvpCreateCampaign.deliverablesPlaceholder")}
+                className="h-11"
+                value={form.deliverables}
+                onChange={handleInputChange}
+              />
+            </div>
+
+            {/* Application deadline & Min followers */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="space-y-3">
+                <Label htmlFor="applicationDeadline" className="flex items-center gap-2 text-sm font-medium">
+                  <Calendar className="h-4 w-4 text-primary/70" />
+                  {t("mvpCreateCampaign.applicationDeadline")}
+                </Label>
+                <Input
+                  id="applicationDeadline"
+                  name="applicationDeadline"
+                  type="date"
+                  className="h-11"
+                  value={form.applicationDeadline}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="minFollowers" className="flex items-center gap-2 text-sm font-medium">
+                  <Users className="h-4 w-4 text-primary/70" />
+                  {t("mvpCreateCampaign.minFollowers")}
+                </Label>
+                <Input
+                  id="minFollowers"
+                  name="minFollowers"
+                  type="number"
+                  min={0}
+                  placeholder={t("mvpCreateCampaign.minFollowersPlaceholder")}
+                  className="h-11"
+                  value={form.minFollowers}
+                  onChange={handleInputChange}
+                />
+              </div>
+            </div>
+
+            {/* Requirements / guidelines */}
+            <div className="space-y-3">
+              <Label htmlFor="requirements" className="flex items-center gap-2 text-sm font-medium">
+                <FileText className="h-4 w-4 text-primary/70" />
+                {t("mvpCreateCampaign.requirements")}
+              </Label>
+              <Textarea
+                id="requirements"
+                name="requirements"
+                placeholder={t("mvpCreateCampaign.requirementsPlaceholder")}
+                className="min-h-[100px] resize-none"
+                value={form.requirements}
+                onChange={handleInputChange}
+              />
             </div>
           </div>
         );

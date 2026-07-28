@@ -8,6 +8,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import staticBgImage from '../assets/registerBackLatest4.jpg';
+import { CheckEmailNotice } from '@/components/auth/CheckEmailNotice';
+import { LocationPicker } from '@/components/auth/LocationPicker';
 import { MeshGradient } from '@paper-design/shaders-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '@/store/useUserStore';
@@ -17,8 +19,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Helmet } from 'react-helmet-async';
 
-const RegisterCreator = () => {
-    const StepHeader = ({ step, title, benefit }: { step: number, title: string, benefit: string }) => (
+// StepHeader is defined at MODULE scope (not inside RegisterCreator) so it keeps
+// a stable component identity across re-renders. It used to be declared inside
+// the component, so every keystroke recreated the function and React remounted
+// the header — replaying its entrance animation on each character typed.
+const StepHeader = ({ step, title, benefit }: { step: number; title: string; benefit: string }) => {
+    const { t } = useTranslation();
+    return (
         <div className="space-y-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-2">
                 <Badge className="bg-white/20 text-white hover:bg-white/20 backdrop-blur-md border-white/10">
@@ -40,6 +47,9 @@ const RegisterCreator = () => {
             </div>
         </div>
     );
+};
+
+const RegisterCreator = () => {
 
     const LANGUAGE_OPTIONS = [
         "English", "Spanish", "French", "German", "Chinese",
@@ -111,6 +121,8 @@ const RegisterCreator = () => {
         email: '',
         handle: '',
         location: '',
+        city: '',
+        countryCode: '',
         niche: '',
         otherNiche: '',
         bio: '',
@@ -132,6 +144,7 @@ const RegisterCreator = () => {
     const { setUser, setRegistered, setAccountType } = useUserStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
 
     useEffect(() => {
         const savedData = sessionStorage.getItem('registration_draft');
@@ -179,6 +192,15 @@ const RegisterCreator = () => {
                 throw new Error(data.message || "Registration failed.");
             }
 
+            // Hard email-verification gate: the account was created but is NOT
+            // logged in. Show the "check your email" screen instead of the app.
+            if (data.requiresVerification) {
+                sessionStorage.removeItem('registration_draft');
+                setVerificationEmail(data.email || formData.email);
+                setIsSubmitting(false);
+                return;
+            }
+
             setUser({
                 id: data.user.id,
                 email: data.user.email,
@@ -192,7 +214,7 @@ const RegisterCreator = () => {
             setAccountType(data.user.accountType as "creator" | "brand");
 
             sessionStorage.removeItem('registration_draft');
-            navigate('/profile/me');
+            navigate('/profile/me', { state: { onboarding: true } });
 
         } catch (err: any) {
             console.error("Final Submission Error:", err);
@@ -267,6 +289,18 @@ const RegisterCreator = () => {
     const primaryButtonClass = 'bg-gradient-to-br from-primary to-secondary text-white hover:bg-primary/90';
     const creatorNiches = useCreatorNiches();
     const renderStepContent = () => {
+        if (verificationEmail) {
+            return (
+                <CheckEmailNotice
+                    email={verificationEmail}
+                    onBackToLogin={() => {
+                        setVerificationEmail(null);
+                        setIsRegister(false);
+                        setStep(1);
+                    }}
+                />
+            );
+        }
         switch (step) {
             case 1:
                 return (
@@ -320,16 +354,13 @@ const RegisterCreator = () => {
                                 </InputWrapper>
                             </div>
 
-                            <InputWrapper label={`${t("mvpLogin.location")} (${t("mvpLogin.countryCity")})`}>
-                                <div className="relative">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                                    <input
-                                        className="step-input !pl-[40px]"
-                                        placeholder="London, UK"
-                                        value={formData.location}
-                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                    />
-                                </div>
+                            <InputWrapper label={t("mvpLogin.location")}>
+                                <LocationPicker
+                                    city={formData.city}
+                                    countryCode={formData.countryCode}
+                                    cityPlaceholder="Sofia"
+                                    onChange={next => setFormData(prev => ({ ...prev, ...next }))}
+                                />
                             </InputWrapper>
                             <InputWrapper label={t("mvpLogin.languages")}>
                                 <div className="relative group">

@@ -130,20 +130,20 @@ export const ProfileHeader = ({
     }
   };
 
-  const onConnectInstagram = () => {
+  // Meta OAuth URL. Rendered as a real <a href> (not a window.location.href in
+  // an onClick) — a native link navigation is reliable on mobile, whereas a
+  // programmatic redirect from a tap can be silently dropped by some mobile
+  // browsers (desktop is unaffected).
+  const IG_AUTH_URL = (() => {
     const clientID = "1829769444346525";
-    const redirectUri = encodeURIComponent(
-      "https://mvp.influ-link.com/instagram-callback",
-    );
-    const scope =
-      "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement";
-
-    // Construct the Meta Login URL
-    const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
-
-    // Redirect the user
-    window.location.href = authUrl;
-  };
+    const redirectUri = encodeURIComponent("https://mvp.influ-link.com/instagram-callback");
+    // business_management is required to enumerate Pages owned by a Meta Business
+    // portfolio via /me/accounts. Meta now auto-adds Page↔Instagram connections to
+    // a business portfolio, so most creators' Pages are business-owned and won't
+    // appear without it. Must be submitted for App Review alongside the others.
+    const scope = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management";
+    return `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientID}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code`;
+  })();
 
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [isUnlinkModalOpen, setIsUnlinkModalOpen] = useState(false);
@@ -317,14 +317,23 @@ export const ProfileHeader = ({
                         </Button>
                       ) : (
                         <Button
+                          asChild
                           variant="outline"
+                          data-tour="connect-instagram"
                           className="flex-1 md:flex-none rounded-full px-4 border-pink-500 text-pink-600 hover:bg-pink-50 text-sm h-11"
-                          onClick={onConnectInstagram}
                         >
-                          <BsInstagram className="w-4 h-4 mr-2" />
-                          <span className="truncate">
-                            {t("profile.connectInstagram")}
-                          </span>
+                          {/* target="_blank" opens the OAuth flow in a browser
+                              tab instead of letting the phone hand the
+                              facebook.com link to the installed FB/IG app
+                              (Universal/App Links), which hijacks the tap and
+                              bounces — the reason a plain tap "did nothing" while
+                              "open in new tab" worked. */}
+                          <a href={IG_AUTH_URL} target="_blank" rel="noopener noreferrer">
+                            <BsInstagram className="w-4 h-4 mr-2" />
+                            <span className="truncate">
+                              {t("profile.connectInstagram")}
+                            </span>
+                          </a>
                         </Button>
                       )}
 
@@ -346,6 +355,7 @@ export const ProfileHeader = ({
                             <Button
                               variant="ghost"
                               size="icon"
+                              data-tour="profile-menu"
                               className="rounded-full h-11 w-11"
                             >
                               <MoreHorizontal className="w-5 h-5" />
@@ -440,6 +450,7 @@ export const ProfileHeader = ({
                     {profile.stripeOnboardingComplete ? (
                       <Button
                         variant="outline"
+                        data-tour="payouts"
                         className="flex-[1.5] rounded-xl h-10 px-1 text-[10px] font-black border-slate-200"
                         onClick={onStripeAction}
                         disabled={isStripeLoading}
@@ -454,6 +465,7 @@ export const ProfileHeader = ({
                       <Button
                         onClick={onStripeAction}
                         disabled={isStripeLoading}
+                        data-tour="payouts"
                         className="bg-gradient-to-r from-[#635BFF] to-[#00D4FF] text-white"
                       >
                         <CreditCard className="mr-2 h-4 w-4" />

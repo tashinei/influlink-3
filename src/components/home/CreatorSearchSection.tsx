@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useCreatorCountries, useCreatorNiches } from '@/data/mockCreators';
 import { Badge } from "@/components/ui/badge";
 import CountryPickerModal from "../CountryPickerModal";
+import NicheMultiSelect from "./NicheMultiSelect";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   Select,
@@ -185,21 +186,15 @@ const CreatorSearchSection = ({ onSearch, onClickSearch, isRegistered }: Props) 
 
             {/* QUICK FILTERS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {/* Niche - Scrollable box for mobile */}
+              {/* Niche - Multi-select dropdown */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-primary">{t("mvpSearchSection.niche")}</Label>
-                <div className="flex flex-wrap gap-2 max-h-32 md:max-h-24 overflow-y-auto p-3 bg-muted/30 rounded-xl border border-border/50">
-                  {niches.map((niche) => (
-                    <Badge
-                      key={niche}
-                      variant={selectedNiches?.includes(niche) ? "default" : "outline"}
-                      className="cursor-pointer py-1.5 px-3 active:scale-95 transition-transform"
-                      onClick={() => toggleSelection(niche, selectedNiches, setSelectedNiches)}
-                    >
-                      {niche}
-                    </Badge>
-                  ))}
-                </div>
+                <NicheMultiSelect
+                  niches={niches}
+                  selected={selectedNiches}
+                  onChange={setSelectedNiches}
+                  placeholder={t("mvpSearchSection.nichePlaceholder")}
+                />
               </div>
 
               {/* Platform */}

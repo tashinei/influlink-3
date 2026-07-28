@@ -102,17 +102,20 @@ export default function NavigationDock
       icon: <MessageCircle className="h-full w-full" />,
       onClick: () => setIsChatOpen(true),
       isActive: isChatOpen,
+      tour: "dock-chat",
     },
     {
       label: accountType === "brand" ? t("dock.findCreators") : t("dock.findCampaigns"),
       icon: accountType === "brand" ? <User2 className="h-full w-full" /> : <Briefcase className="h-full w-full" />,
       onClick: handleExplore,
+      tour: "dock-explore",
     },
     {
       label: t("dock.links"),
       icon: <Link className="h-full w-full" />,
       onClick: () => setIsLinksModalOpen(true),
       isActive: isLinksModalOpen,
+      tour: "dock-links",
     },
     {
       id: "notifications",

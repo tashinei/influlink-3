@@ -1,0 +1,24 @@
+# SPA history fallback (Apache).
+# InfluLink is a single-page React app: routes like /verify-email, /pricing,
+# /data-deletion-status exist only in the client-side router, not as files on
+# disk. Without this, a *fresh* load of one of those URLs (e.g. clicking the
+# email-verification link) 404s at Apache. This serves index.html for any
+# request that isn't a real file or directory, letting React Router take over.
+#
+# NOTE: requires the site's Apache config to allow overrides for this directory
+# (AllowOverride All, with mod_rewrite enabled). If .htaccess is ignored, put the
+# same rules — or `FallbackResource /index.html` — in the vhost instead.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Never rewrite the SPA shell itself.
+  RewriteRule ^index\.html$ - [L]
+
+  # Serve real files/directories as-is (JS, CSS, images, favicon, etc.).
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Everything else → the SPA shell.
+  RewriteRule . /index.html [L]
+</IfModule>
